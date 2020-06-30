@@ -8,17 +8,18 @@ using Catlab.Theories: BiproductCategory
 using Catlab.CategoricalAlgebra.ShapeDiagrams
 using Catlab.CategoricalAlgebra.FinSets
 using Petri
+using AutoHashEquals
 
 import Catlab.Theories: dom, codom, id, compose, ⋅, ∘, otimes, ⊗, munit,
                         braid, σ, mcopy, Δ, mmerge, ∇, create, □, delete, ◊,
                         pair, copair, proj1, proj2, coproj1, coproj2
 
-struct PetriCospanOb
+@auto_hash_equals struct PetriCospanOb
     n::Int
 end
 Base.eachindex(X::PetriCospanOb) = 1:X.n
 
-struct PetriFunctor
+@auto_hash_equals struct PetriFunctor
     n::Function
     dom::Int
     codom::Int
@@ -34,7 +35,7 @@ end
 ⋅(f::PetriFunctor, g::PetriFunctor) = compose(f, g)
 ∘(f::PetriFunctor, g::PetriFunctor) = compose(g, f)
 
-struct PetriCospan{F<:PetriFunctor, D<:Petri.Model}
+@auto_hash_equals struct PetriCospan{F<:PetriFunctor, D<:Petri.Model}
     f::DecoratedCospan{F,D}
 end
 
@@ -48,6 +49,7 @@ NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Vector{Int}, Vector{I
         # if you have PetriCospans f: x -> a <- y and g: y -> b <- z
         # solve pushout of the span defined as a <- y -> b, to get a +_y b
         # figure out PetriFunctor for a +_y b
+        cs′ = pushout(Span(right(f.f), left(g.f)))
         Nothing
     end
 
