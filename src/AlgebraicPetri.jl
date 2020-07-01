@@ -20,11 +20,11 @@ end
 Base.eachindex(X::PetriCospanOb) = 1:X.n
 
 struct PetriDecorator <: AbstractFunctor end
-struct PetriLaxitor <: AbstractLaxitor end
+struct PetriLaxator <: AbstractLaxator end
 
-const PetriFunctor = LaxMonoidalFunctor{PetriDecorator, PetriLaxitor}
+const PetriFunctor = LaxMonoidalFunctor{PetriDecorator, PetriLaxator}
 
-id(::Type{PetriFunctor}) = PetriFunctor(PetriDecorator(), PetriLaxitor())
+id(::Type{PetriFunctor}) = PetriFunctor(PetriDecorator(), PetriLaxator())
 
 """ we follow FinOrd's lead in taking the skeleton of FinSet so we work with
 Petri nets where the state space is a single Int n rather than the range 1:n.
@@ -46,7 +46,7 @@ transitions in a list of pairs of multisets.
 map(f::Function, ts::Vector{Tuple{Vector{Int}, Vector{Int}}}) = [(f.(t[1]), f.(t[2])) for t in ts]
 
 """ A functor from FinOrd to Set has a hom part, which given a hom f in FinOrd
-(a function n::Int->m::Int) should return a representation of F(f)::F(n)->F(m), 
+(a function n::Int->m::Int) should return a representation of F(f)::F(n)->F(m),
 here we implement this as a function that takes a Petri net of size n to a Petri
 net of size m, such that the transitions are mapped appropriately.
 """
@@ -58,7 +58,7 @@ end
 For Petri nets, it encodes the idea that you shift the states of q up by the
 number of states in p.
 """
-function (l::PetriLaxitor)(p::Petri.Model, q::Petri.Model)
+function (l::PetriLaxator)(p::Petri.Model, q::Petri.Model)
     return Petri.Model(collect(1:(length(p.S)+length(q.S))),
                        vcat(p.Δ, map(x->x+length(p.S), q.Δ)))
 end
@@ -94,6 +94,7 @@ NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Vector{Int}, Vector{I
     otimes(f::PetriCospan, g::PetriCospan) = begin
         fl, fr = left(f), right(f)
         gl, gr = left(g), right(g)
+        # TODO: Replace with universal properties once implemented
         PetriCospan(
             Cospan(
                 FinOrdFunction(x->x > dom(fl).n ? gl(x-dom(fl).n)+codom(fl).n : fl(x),
@@ -112,28 +113,28 @@ NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Vector{Int}, Vector{I
         PetriCospan(
             Cospan(
                 id(FinOrd(Z.n)),
-                FinOrdFunction(x->vcat(X.n+1:Z.n, 1:X.n)[x], Z.n, Z.n)
+                FinOrdFunction(vcat(X.n+1:Z.n, 1:X.n), Z.n, Z.n)
             ), id(PetriFunctor), NullPetri(Z.n))
     end
 
     mcopy(X::PetriCospanOb) = PetriCospan(
         Cospan(
             id(FinOrd(X.n)),
-            FinOrdFunction(x->vcat(1:X.n,1:X.n)[x], 2*X.n, X.n)
+            FinOrdFunction(vcat(1:X.n,1:X.n), 2*X.n, X.n)
         ), id(PetriFunctor), NullPetri(X.n))
 
     mmerge(X::PetriCospanOb) = PetriCospan(
         Cospan(
-            FinOrdFunction(x->vcat(1:X.n,1:X.n)[x], 2*X.n, X.n),
+            FinOrdFunction(vcat(1:X.n,1:X.n), 2*X.n, X.n),
             id(FinOrd(X.n))
         ), id(PetriFunctor), NullPetri(X.n))
 
     create(X::PetriCospanOb) = PetriCospan(
-        Cospan(FinOrdFunction(x->[][x], 0, X.n), id(FinOrd(X.n))),
+        Cospan(FinOrdFunction(Int[], 0, X.n), id(FinOrd(X.n))),
         id(PetriFunctor), NullPetri(X.n))
 
     delete(X::PetriCospanOb) = PetriCospan(
-        Cospan(id(FinOrd(X.n)), FinOrdFunction(x->[][x], 0, X.n)),
+        Cospan(id(FinOrd(X.n)), FinOrdFunction(Int[], 0, X.n)),
         id(PetriFunctor), NullPetri(X.n))
 
     pair(f::PetriCospan, g::PetriCospan) = compose(mcopy(dom(f)), otimes(f, g))
