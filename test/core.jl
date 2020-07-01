@@ -11,7 +11,7 @@ I = munit(PetriCospanOb)
 compare_petricospan(σ(p1, p2), braid(p1,p2))
 
 @test dom(Δ(p1)) == p1
-@test codom(mcopy(p1)) == p1 ⊗ p1
+@test codom(Δ(p1)) == p1 ⊗ p1
 @test dom(◊(p1)) == p1
 @test codom(◊(p1)) == I
 
