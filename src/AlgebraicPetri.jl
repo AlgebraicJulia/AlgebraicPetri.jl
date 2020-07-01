@@ -19,15 +19,6 @@ import Catlab.Theories: dom, codom, id, compose, ⋅, ∘, otimes, ⊗, munit,
 end
 Base.eachindex(X::PetriCospanOb) = 1:X.n
 
-# AbstractFunctor, AbstractLaxitor, and LaxMonoidalFunctor should go to Catlab
-abstract type AbstractFunctor end
-abstract type AbstractLaxitor end
-
-struct LaxMonoidalFunctor{Ftr, Lxr} <: AbstractFunctor
-    F::Ftr
-    L::Lxr
-end
-
 struct PetriDecorator <: AbstractFunctor end
 struct PetriLaxitor <: AbstractLaxitor end
 
