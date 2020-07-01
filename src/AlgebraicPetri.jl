@@ -60,8 +60,7 @@ number of states in p.
 """
 function (l::PetriLaxitor)(p::Petri.Model, q::Petri.Model)
     return Petri.Model(collect(1:(length(p.S)+length(q.S))),
-                       vcat(p.Δ, map(x->x+length(p.S), q.Δ))
-                      )
+                       vcat(p.Δ, map(x->x+length(p.S), q.Δ)))
 end
 
 const PetriCospan = DecoratedCospan{PetriFunctor, Petri.Model}
@@ -88,8 +87,7 @@ NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Vector{Int}, Vector{I
     id(X::PetriCospanOb) = PetriCospan(
         Cospan(id(FinOrd(X.n)), id(FinOrd(X.n))),
         id(PetriFunctor),
-        NullPetri(X.n)
-    )
+        NullPetri(X.n))
 
     otimes(X::PetriCospanOb, Y::PetriCospanOb) = PetriCospanOb(X.n + Y.n)
 
@@ -104,9 +102,7 @@ NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Vector{Int}, Vector{I
                 FinOrdFunction(x->x > dom(fr).n ? gr(x-dom(fr).n)+codom(fr).n : fr(x),
                                FinOrd(dom(fr).n + dom(gr).n),
                                FinOrd(codom(fr).n + codom(gr).n))
-            ),
-            decorator(f), decorator(f).L(decoration(f), decoration(g))
-        )
+            ), decorator(f), decorator(f).L(decoration(f), decoration(g)))
     end
 
     munit(::Type{PetriCospanOb}) = PetriCospanOb(0)
@@ -117,33 +113,28 @@ NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Vector{Int}, Vector{I
             Cospan(
                 id(FinOrd(Z.n)),
                 FinOrdFunction(x->vcat(X.n+1:Z.n, 1:X.n)[x], Z.n, Z.n)
-            ), id(PetriFunctor), NullPetri(Z.n)
-        )
+            ), id(PetriFunctor), NullPetri(Z.n))
     end
 
     mcopy(X::PetriCospanOb) = PetriCospan(
         Cospan(
             id(FinOrd(X.n)),
             FinOrdFunction(x->vcat(1:X.n,1:X.n)[x], 2*X.n, X.n)
-        ), id(PetriFunctor), NullPetri(X.n)
-    )
+        ), id(PetriFunctor), NullPetri(X.n))
 
     mmerge(X::PetriCospanOb) = PetriCospan(
         Cospan(
             FinOrdFunction(x->vcat(1:X.n,1:X.n)[x], 2*X.n, X.n),
             id(FinOrd(X.n))
-        ), id(PetriFunctor), NullPetri(X.n)
-    )
+        ), id(PetriFunctor), NullPetri(X.n))
 
     create(X::PetriCospanOb) = PetriCospan(
         Cospan(FinOrdFunction(x->[][x], 0, X.n), id(FinOrd(X.n))),
-        id(PetriFunctor), NullPetri(X.n)
-    )
+        id(PetriFunctor), NullPetri(X.n))
 
     delete(X::PetriCospanOb) = PetriCospan(
         Cospan(id(FinOrd(X.n)), FinOrdFunction(x->[][x], 0, X.n)),
-        id(PetriFunctor), NullPetri(X.n)
-    )
+        id(PetriFunctor), NullPetri(X.n))
 
     pair(f::PetriCospan, g::PetriCospan) = compose(mcopy(dom(f)), otimes(f, g))
     copair(f::PetriCospan, g::PetriCospan) = compose(otimes(f, g), mmerge(codom(f)))
