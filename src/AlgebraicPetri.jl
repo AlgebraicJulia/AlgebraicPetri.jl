@@ -60,7 +60,7 @@ here we implement this as a function that takes a Petri net of size n to a Petri
 net of size m, such that the transitions are mapped appropriately.
 """
 function (pd::PetriDecorator)(f::FinOrdFunction)
-    return (p::Petri.Model) -> Petri.Model(collect(1:codom(f).n), map(f.func, p.Δ))
+    return (p::Petri.Model) -> Petri.Model(collect(1:codom(f).n), map(x->f(x), p.Δ))
 end
 
 """ the laxitor takes a pair of decorations and returns the coproduct decoration
@@ -81,12 +81,17 @@ NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Vector{Int}, Vector{I
     dom(f::PetriCospan) = PetriCospanOb(dom(left(f)).n)
     codom(f::PetriCospan) = PetriCospanOb(dom(right(f)).n)
 
-    compose(f::PetriCospan, g::PetriCospan) = begin
-        # if you have PetriCospans f: x -> a <- y and g: y -> b <- z
-        # solve pushout of the span defined as a <- y -> b, to get a +_y b
-        # figure out PetriFunctor for a +_y b
-        cs′ = pushout(Span(right(f), left(g)))
-        Nothing
+    compose(p::PetriCospan, q::PetriCospan) = begin
+        # reimplementation of pushout of Span{FinOrdFunc, FinOrdFun}
+        # to save the value of coeq
+        f, g = right(p), left(q)
+        coprod = coproduct(codom(f), codom(g))
+        ι1, ι2 = left(coprod), right(coprod)
+        coeq = coequalizer(f⋅ι1, g⋅ι2)
+        f′, g′ = ι1⋅coeq, ι2⋅coeq
+        composite = Cospan(left(p)⋅f′, right(q)⋅g′)
+        dpuq = decorator(p).L(decoration(p), decoration(q))
+        return PetriCospan(composite, decorator(p), decorator(p).F(coeq)(dpuq))
     end
 
     id(X::PetriCospanOb) = PetriCospan(
