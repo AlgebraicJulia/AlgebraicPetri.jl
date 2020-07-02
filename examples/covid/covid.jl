@@ -41,6 +41,8 @@ end
 
 S,E,I,R,D,transmission,exposure,illness,recovery,death = generators(Epidemiology)
 
+display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true)
+
 F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=Dict(
         S=>ob, E=>ob, I=>ob, R=>ob, D=>ob,
         transmission=>transmission_petri, exposure=>exposure_petri,
@@ -52,7 +54,7 @@ sir = transmission ⋅ recovery
 p_sir = decoration(F(sir))
 
 # display wiring diagram and petri net visualization
-to_graphviz(sir, orientation=LeftToRight, labels=true)
+display_wd(sir)
 Graph(p_sir)
 
 # define initial states and transition rates
@@ -69,7 +71,7 @@ sei = exposure ⋅ (illness ⊗ id(I)) ⋅ ∇(I)
 seir = sei ⋅ recovery
 p_seir = decoration(F(seir))
 
-to_graphviz(seir, orientation=LeftToRight, labels=true)
+display_wd(seir)
 Graph(p_seir)
 
 # define initial states and transition rates
@@ -84,7 +86,7 @@ plot(sol)
 seird = sei ⋅ Δ(I) ⋅ (death ⊗ recovery)
 p_seird = decoration(F(seird))
 
-to_graphviz(seird, orientation=LeftToRight, labels=true)
+display_wd(seird)
 Graph(p_seird)
 
 # define initial states and transition rates
@@ -97,6 +99,6 @@ sol = OrdinaryDiffEq.solve(prob,Tsit5())
 plot(sol)
 
 # TODO: Add support for types so we can simplify to this
-seir = exposure ⋅ (illness ⊗ recovery)
-seird = seir ⋅ (death ⊗ id(R))
-to_graphviz(seird, orientation=LeftToRight, labels=true)
+# seir = exposure ⋅ (illness ⊗ recovery)
+# seird = seir ⋅ (death ⊗ id(R))
+# display_wd(seird)
