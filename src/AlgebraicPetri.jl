@@ -38,12 +38,25 @@ function (pd::PetriDecorator)(n::FinOrd)
     return p -> typeof(p) <: Petri.Model && length(p.S) == n.n
 end
 
+""" mapping a function over the keys of a dictionary and merge same keys with sum
+"""
+map(f::Function, d::Dict{Int,Int}) = begin
+    out = Dict{Int,Int}()
+    for p in Base.map(x->Pair(f(x[1]), x[2]), collect(d))
+        if p[1] in keys(out)
+            out[p[1]] += p[2]
+        else
+            out[p[1]] = p[2]
+        end
+    end
+    out
+end
 """ mapping a FinOrdFunc over the transitions of a Petri net means renumbering
 the states incident to a transition where the transitions of a petri net are
 stored as a list of tuples of lists. This could be easily adapted for storing
 transitions in a list of pairs of multisets.
 """
-map(f::Function, ts::Vector{Tuple{Vector{Int}, Vector{Int}}}) = [(f.(t[1]), f.(t[2])) for t in ts]
+map(f::Function, ts::Vector{Tuple{Dict{Int,Int}, Dict{Int,Int}}}) = [(map(f, t[1]), map(f, t[2])) for t in ts]
 
 """ A functor from FinOrd to Set has a hom part, which given a hom f in FinOrd
 (a function n::Int->m::Int) should return a representation of F(f)::F(n)->F(m),
@@ -65,7 +78,7 @@ end
 
 const PetriCospan = DecoratedCospan{PetriFunctor, Petri.Model}
 
-NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Vector{Int}, Vector{Int}}}())
+NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Dict{Int, Int}, Dict{Int, Int}}}())
 
 @instance BiproductCategory(PetriCospanOb, PetriCospan) begin
     dom(f::PetriCospan) = PetriCospanOb(dom(left(f)).n)
