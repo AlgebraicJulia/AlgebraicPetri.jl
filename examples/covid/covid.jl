@@ -1,4 +1,6 @@
 using Petri
+using OrdinaryDiffEq
+using Plots
 using AlgebraicPetri
 using Catlab
 using Catlab.Theories
@@ -44,25 +46,57 @@ F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=Dict(
         transmission=>transmission_petri, exposure=>exposure_petri,
         illness=>spontaneous_petri, recovery=>spontaneous_petri, death=>spontaneous_petri))
 
+# define model
 sir = transmission ⋅ recovery
-f_sir = F(sir)
+# get resulting petri net
+p_sir = decoration(F(sir))
 
+# display wiring diagram and petri net visualization
 to_graphviz(sir, orientation=LeftToRight, labels=true)
-Graph(decoration(f_sir))
+Graph(p_sir)
+
+# define initial states and transition rates
+u0 = [10.0, 1, 0]
+p = [0.4, 0.4]
+# create and solve ODE problem
+prob = ODEProblem(toODE(p_sir),u0,(0.0,7.5),p)
+sol = OrdinaryDiffEq.solve(prob,Tsit5())
+# visualize the solution
+plot(sol)
 
 sei = exposure ⋅ (illness ⊗ id(I)) ⋅ ∇(I)
+
 seir = sei ⋅ recovery
-f_seir = F(seir)
+p_seir = decoration(F(seir))
 
 to_graphviz(seir, orientation=LeftToRight, labels=true)
-Graph(decoration(f_seir))
+Graph(p_seir)
+
+# define initial states and transition rates
+u0 = [10.0, 1, 0, 0]
+p = [0.9, 0.2, 0.5]
+# create and solve ODE problem
+prob = ODEProblem(toODE(p_seir),u0,(0.0,15.0),p)
+sol = OrdinaryDiffEq.solve(prob,Tsit5())
+# visualize the solution
+plot(sol)
 
 seird = sei ⋅ Δ(I) ⋅ (death ⊗ recovery)
-f_seird = F(seird)
+p_seird = decoration(F(seird))
 
 to_graphviz(seird, orientation=LeftToRight, labels=true)
-Graph(decoration(f_seird))
+Graph(p_seird)
 
-# TODO: Add support for types so we can simplify
-# seir = exposure ⋅ (illness ⊗ recovery)
-# seird = seir ⋅ (death ⊗ id(R))
+# define initial states and transition rates
+u0 = [10.0, 1, 0, 0, 0]
+p = [0.9, 0.2, 0.5, 0.1]
+# create and solve ODE problem
+prob = ODEProblem(toODE(p_seird),u0,(0.0,15.0),p)
+sol = OrdinaryDiffEq.solve(prob,Tsit5())
+# visualize the solution
+plot(sol)
+
+# TODO: Add support for types so we can simplify to this
+seir = exposure ⋅ (illness ⊗ recovery)
+seird = seir ⋅ (death ⊗ id(R))
+to_graphviz(seird, orientation=LeftToRight, labels=true)
