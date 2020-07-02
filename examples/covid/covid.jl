@@ -29,8 +29,8 @@ spontaneous = PetriCospan(
         ), id(PetriFunctor), Petri.Model([1, 2], [(Dict(1=>1), Dict(2=>1))]))
 
 transmission = PetriCospan(
-        Cospan(FinOrdFunction([1, 2], 2, 2),
-               FinOrdFunction([2, 2], 2, 2)
+        Cospan(FinOrdFunction([1], 1, 2),
+               FinOrdFunction([2], 1, 2)
         ), id(PetriFunctor), Petri.Model([1, 2], [(Dict(1=>1, 2=>1), Dict(2=>2))]))
 
 exposure = PetriCospan(
@@ -38,14 +38,14 @@ exposure = PetriCospan(
                FinOrdFunction([3, 2], 2, 3)
         ), id(PetriFunctor), Petri.Model([1, 2, 3], [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))]))
 
-SIR = transmission ⋅ ∇(PetriCospanOb(1)) ⋅ spontaneous
+SIR = transmission ⋅ spontaneous
 
 Graph(decoration(SIR))
 
 # doesn't work
 SEIR = exposure ⋅ (spontaneous ⊗ spontaneous)
 
-decoration(SEIR)
+Graph(decoration(SEIR))
 
 SEIRD = SEIR ⋅ (id(PetriCospanOb(1)) ⊗ spontaneous)
 
@@ -57,7 +57,7 @@ decoration(SEIRD)
     I::Ob
     R::Ob
     D::Ob
-    transmission::Hom(otimes(S,I), otimes(I,I))
+    transmission::Hom(otimes(S,I), I)
     exposure::Hom(otimes(S,I), otimes(E,I))
     illness::Hom(E,I)
     recovery::Hom(I,R)
