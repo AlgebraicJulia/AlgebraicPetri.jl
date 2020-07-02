@@ -140,11 +140,9 @@ plot(sol)
 seird_city = @program Epidemiology (s::S, e::E, i::I) begin
     e2, i2 = exposure(s, i)
     i3 = illness(e2)
-    d = death(i2)
-    r = recovery(i2)
-    e_out = [e, e2]
-    i_out = [i2, i3]
-    return travel(s, e_out, i_out)
+    d = death(i3)
+    r = recovery(i3)
+    return travel(s, [e, e2], [i2, i3])
 end
 seird_city = to_hom_expr(FreeBiproductCategory, seird_city)
 
