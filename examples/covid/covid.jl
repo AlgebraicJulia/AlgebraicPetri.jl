@@ -25,6 +25,10 @@ exposure_petri = PetriCospan(
         Cospan(FinOrdFunction([1, 2], 3),
                FinOrdFunction([3, 2], 3)
         ), id(PetriFunctor), Petri.Model([1, 2, 3], [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))]))
+travel_petri = PetriCospan(
+        Cospan(FinOrdFunction([1,2,3,4,5], 8),
+               FinOrdFunction([6,7,8], 8)
+        ), id(PetriFunctor), Petri.Model(collect(1:8), [(Dict(1=>1, 2=>1, 3=>1), Dict(6=>1, 7=>1, 8=>1))]))
 
 @present Epidemiology(FreeBiproductCategory) begin
     S::Ob
@@ -32,21 +36,22 @@ exposure_petri = PetriCospan(
     I::Ob
     R::Ob
     D::Ob
-    transmission::Hom(otimes(S,I), I)
-    exposure::Hom(otimes(S,I), otimes(E,I))
+    transmission::Hom(S⊗I, I)
+    exposure::Hom(S⊗I, E⊗I)
     illness::Hom(E,I)
     recovery::Hom(I,R)
     death::Hom(I,D)
+    travel::Hom(S⊗E⊗I⊗R⊗D,S⊗E⊗I)
 end
 
-S,E,I,R,D,transmission,exposure,illness,recovery,death = generators(Epidemiology)
+S,E,I,R,D,transmission,exposure,illness,recovery,death,travel = generators(Epidemiology)
 
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true)
 
 F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=Dict(
         S=>ob, E=>ob, I=>ob, R=>ob, D=>ob,
         transmission=>transmission_petri, exposure=>exposure_petri,
-        illness=>spontaneous_petri, recovery=>spontaneous_petri, death=>spontaneous_petri))
+        illness=>spontaneous_petri, recovery=>spontaneous_petri, death=>spontaneous_petri,travel=>travel_petri))
 
 # define model
 sir = transmission ⋅ recovery
@@ -102,3 +107,21 @@ plot(sol)
 # seir = exposure ⋅ (illness ⊗ recovery)
 # seird = seir ⋅ (death ⊗ id(R))
 # display_wd(seird)
+
+se  = id(S) ⊗ id(E)
+sei = id(S) ⊗ id(E) ⊗ id(I)
+seird_city = (((Δ(S) ⊗ id(E)) ⋅ (id(S) ⊗ σ(S,E))) ⊗ id(I)) ⋅ (se ⊗ exposure) ⋅ (id(S) ⊗ (∇(E) ⋅ Δ(E)) ⊗ id(I)) ⋅ (se ⊗ ((illness ⊗ id(I)) ⋅ (∇(I) ⋅ Δ(I)) ⋅ (id(I) ⊗ (Δ(I) ⋅(recovery ⊗ death))))) ⋅ travel
+
+p_seird_city = decoration(F(seird_city))
+
+display_wd(seird_city)
+Graph(p_seird_city)
+
+ncities(city,n::Int) = compose([city for i in 1:n]...)
+seird_2 = ncities(seird_city, 2)
+display_wd(seird_2)
+
+seird_3 = ncities(seird_city, 3)
+p_seird_3 = decoration(F(seird_3))
+display_wd(seird_3)
+Graph(p_seird_3)
