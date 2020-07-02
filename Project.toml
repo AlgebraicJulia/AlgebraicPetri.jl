@@ -10,9 +10,9 @@ Catlab = "134e5e36-593f-5add-ad60-77f754baafbe"
 Petri = "4259d249-1051-49fa-8328-3f8ab9391c33"
 
 [compat]
-AutoHashEquals = "0.2.0"
-Petri = "0.3.1"
 julia = "1.0"
+AutoHashEquals = "0.2.0"
+Petri = "0.3.2"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

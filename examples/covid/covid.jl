@@ -4,6 +4,8 @@ using Plots
 using AlgebraicPetri
 using Catlab
 using Catlab.Theories
+using Catlab.Programs
+using Catlab.WiringDiagrams
 using Catlab.CategoricalAlgebra.ShapeDiagrams
 using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Graphics
@@ -132,9 +134,23 @@ plot(sol)
 
 # COVID-19 TRAVEL MODEL:
 # SEIRD City Model with travel as S ⊗ E ⊗ I → S ⊗ E ⊗ I
-seird_city = (((Δ(S) ⊗ id(E)) ⋅ (id(S) ⊗ σ(S,E))) ⊗ id(I)) ⋅ (id(S, E) ⊗ exposure) ⋅ (id(S) ⊗ (∇(E) ⋅ Δ(E)) ⊗ id(I)) ⋅ (id(S, E) ⊗ ((illness ⊗ id(I)) ⋅ (∇(I) ⋅ Δ(I)) ⋅ (id(I) ⊗ (Δ(I) ⋅(recovery ⊗ death))))) ⋅ (travel ⊗ ◊(R) ⊗ ◊(D))
+# Manually defined Hom:
+#       seird_city = (((Δ(S) ⊗ id(E)) ⋅ (id(S) ⊗ σ(S,E))) ⊗ id(I)) ⋅ (id(S, E) ⊗ exposure) ⋅ (id(S) ⊗ (∇(E) ⋅ Δ(E)) ⊗ id(I)) ⋅ (id(S, E) ⊗ ((illness ⊗ id(I)) ⋅ (∇(I) ⋅ Δ(I)) ⋅ (id(I) ⊗ (Δ(I) ⋅(recovery ⊗ death))))) ⋅ (travel ⊗ ◊(R) ⊗ ◊(D))
+# use the program interface for easier model definition
+seird_city = @program Epidemiology (s::S, e::E, i::I) begin
+    e2, i2 = exposure(s, i)
+    i3 = illness(e2)
+    d = death(i2)
+    r = recovery(i2)
+    e_out = [e, e2]
+    i_out = [i2, i3]
+    return travel(s, e_out, i_out)
+end
+seird_city = to_hom_expr(FreeBiproductCategory, seird_city)
 
 display_wd(seird_city)
+
+Graph(decoration(F(seird_city)))
 
 # function to compose n city models together
 ncities(city,n::Int) = compose([city for i in 1:n]...)
