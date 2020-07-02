@@ -1,18 +1,18 @@
 f = PetriCospan(
-        Cospan(FinOrdFunction(x->[1,2][x], 2, 4),
-               FinOrdFunction(x->[3,4][x], 2, 4)
+        Cospan(FinOrdFunction([1,2], 2, 4),
+               FinOrdFunction([3,4], 2, 4)
         ), id(PetriFunctor), Petri.Model([1, 2, 3, 4], [([1], [3]), ([2], [4])]))
 
 g = PetriCospan(
-        Cospan(FinOrdFunction(x->[1,2][x], 2, 3),
-               FinOrdFunction(x->[3][x], 1, 3)
+        Cospan(FinOrdFunction([1,2], 2, 3),
+               FinOrdFunction([3], 1, 3)
         ), id(PetriFunctor), Petri.Model([1, 2, 3], [([1,2], [3])]))
 
 h = f ⋅ g
 
 h′ = PetriCospan(
-         Cospan(FinOrdFunction(x->[1,2][x], 2, 5),
-                FinOrdFunction(x->[5][x], 1, 5)
+         Cospan(FinOrdFunction([1,2], 2, 5),
+                FinOrdFunction([5], 1, 5)
          ), id(PetriFunctor), Petri.Model([1, 2, 3, 4, 5],
                                           [([1], [3]), ([2], [4]), ([3, 4], [5])]))
 
