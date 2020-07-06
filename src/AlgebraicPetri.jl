@@ -14,6 +14,11 @@ import Catlab.Theories: dom, codom, id, compose, ⋅, ∘, otimes, ⊗, munit,
                         braid, σ, mcopy, Δ, mmerge, ∇, create, □, delete, ◊,
                         pair, copair, proj1, proj2, coproj1, coproj2
 
+
+""" Finite ordinal (natural number)
+
+An object in the category of Open Petri Nets.
+"""
 @auto_hash_equals struct PetriCospanOb
     n::Int
 end
@@ -22,12 +27,16 @@ Base.eachindex(X::PetriCospanOb) = 1:X.n
 struct PetriDecorator <: AbstractFunctor end
 struct PetriLaxator <: AbstractLaxator end
 
+""" Petri Functor
+
+A functor from FinOrd to Petri defined as a PetriDecorator and a PetriLaxator
+"""
 const PetriFunctor = LaxMonoidalFunctor{PetriDecorator, PetriLaxator}
 
 id(::Type{PetriFunctor}) = PetriFunctor(PetriDecorator(), PetriLaxator())
 
-""" we follow FinOrd's lead in taking the skeleton of FinSet so we work with
-Petri nets where the state space is a single Int n rather than the range 1:n.
+""" AlgebraicPetri.PetriDecorator(n::FinOrd)
+
 A functor from FinOrd to Set has an objects part, which given an object n in
 FinOrd (a natural number) should return a representation of F(n)::Set, sets can
 be represented as a predicate that takes an element and returns true if the
@@ -38,8 +47,6 @@ function (pd::PetriDecorator)(n::FinOrd)
     return p -> typeof(p) <: Petri.Model && length(p.S) == n.n
 end
 
-""" mapping a function over the keys of a dictionary and merge same keys with sum
-"""
 map(f::Function, d::Dict{Int,Int}) = begin
     out = Dict{Int,Int}()
     for p in Base.map(x->Pair(f(x[1]), x[2]), collect(d))
@@ -51,14 +58,12 @@ map(f::Function, d::Dict{Int,Int}) = begin
     end
     out
 end
-""" mapping a FinOrdFunc over the transitions of a Petri net means renumbering
-the states incident to a transition where the transitions of a petri net are
-stored as a list of tuples of lists. This could be easily adapted for storing
-transitions in a list of pairs of multisets.
-"""
+
 map(f::Function, ts::Vector{Tuple{Dict{Int,Int}, Dict{Int,Int}}}) = [(map(f, t[1]), map(f, t[2])) for t in ts]
 
-""" A functor from FinOrd to Set has a hom part, which given a hom f in FinOrd
+""" AlgebraicPetri.PetriDecorator(f::FinOrdFunction)
+
+A functor from FinOrd to Set has a hom part, which given a hom f in FinOrd
 (a function n::Int->m::Int) should return a representation of F(f)::F(n)->F(m),
 here we implement this as a function that takes a Petri net of size n to a Petri
 net of size m, such that the transitions are mapped appropriately.
@@ -67,8 +72,10 @@ function (pd::PetriDecorator)(f::FinOrdFunction)
     return (p::Petri.Model) -> Petri.Model(collect(1:codom(f).n), map(x->f(x), p.Δ))
 end
 
-""" the laxitor takes a pair of decorations and returns the coproduct decoration
-For Petri nets, it encodes the idea that you shift the states of q up by the
+""" AlgebraicPetri.PetriLaxator(p::Petri.Model, q::Petri.Model)
+
+The laxitor takes a pair of decorations and returns the coproduct decoration
+For Petri nets, this encodes the idea that you shift the states of q up by the
 number of states in p.
 """
 function (l::PetriLaxator)(p::Petri.Model, q::Petri.Model)
@@ -76,6 +83,12 @@ function (l::PetriLaxator)(p::Petri.Model, q::Petri.Model)
                        vcat(p.Δ, map(x->x+length(p.S), q.Δ)))
 end
 
+""" Petri Cospan
+
+A morphism in the category of Open Petri Nets defined as a decorated cospan with
+a [`PetriFunctor`](@ref) as the decorator which maps the category of finite
+ordinals to the category Petri and a Petri.Model as the decoration
+"""
 const PetriCospan = DecoratedCospan{PetriFunctor, Petri.Model}
 
 NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Dict{Int, Int}, Dict{Int, Int}}}())
