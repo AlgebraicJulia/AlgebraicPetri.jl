@@ -24,26 +24,15 @@ id(args...) = foldl((x,y)->id(x) ⊗ id(y), args);
 
 ob = PetriCospanOb(1);
 
-spontaneous_petri = PetriCospan(
-        Cospan(FinOrdFunction([1], 2),
-               FinOrdFunction([2], 2)
-        ), id(PetriFunctor), Petri.Model([1, 2], [(Dict(1=>1), Dict(2=>1))]));
+spontaneous_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1), Dict(2=>1))]), [2]);
 
-transmission_petri = PetriCospan(
-        Cospan(FinOrdFunction([1], 2),
-               FinOrdFunction([2], 2)
-        ), id(PetriFunctor), Petri.Model([1, 2], [(Dict(1=>1, 2=>1), Dict(2=>2))]));
+transmission_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1, 2=>1), Dict(2=>2))]), [2]);
 
-exposure_petri = PetriCospan(
-        Cospan(FinOrdFunction([1, 2], 3),
-               FinOrdFunction([3, 2], 3)
-        ), id(PetriFunctor), Petri.Model([1, 2, 3], [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))]))
+exposure_petri = PetriCospan([1, 2], Petri.Model(1:3, [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))]), [3, 2]);
 travel_petri = PetriCospan(
-        Cospan(FinOrdFunction([1,2,3], 6),
-               FinOrdFunction([4,5,6], 6)
-        ), id(PetriFunctor), Petri.Model(collect(1:6), [(Dict(1=>1), Dict(4=>1)),
-                                                        (Dict(2=>1), Dict(5=>1)),
-                                                        (Dict(3=>1), Dict(6=>1))]));
+        [1,2,3],
+        Petri.Model(1:6, [(Dict(1=>1), Dict(4=>1)), (Dict(2=>1), Dict(5=>1)), (Dict(3=>1), Dict(6=>1))]),
+        [4,5,6]);
 
 # #### Step 2: Define a strongly type presentation of the Free Biproduct Category for the desired domain
 

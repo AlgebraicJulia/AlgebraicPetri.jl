@@ -91,6 +91,18 @@ ordinals to the category Petri and a Petri.Model as the decoration
 """
 const PetriCospan = DecoratedCospan{PetriFunctor, Petri.Model}
 
+""" AlgebraicPetri.PetriCospan(l::Vector{Int}, m::Petri.Model, r::Vector{Int})
+
+A constructor for Petri Cospans where `l` is a vector of the input states from
+Petri.Model `m`, and `r` is a vector of the output states from Petri.Model `m`
+"""
+function (::Type{PetriCospan})(l::Vector{Int}, m::Petri.Model, r::Vector{Int})
+    return PetriCospan(
+        Cospan(FinOrdFunction(l, length(m.S)),
+               FinOrdFunction(r, length(m.S))
+        ), id(PetriFunctor), m)
+end
+
 NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Dict{Int, Int}, Dict{Int, Int}}}())
 
 @instance BiproductCategory(PetriCospanOb, PetriCospan) begin

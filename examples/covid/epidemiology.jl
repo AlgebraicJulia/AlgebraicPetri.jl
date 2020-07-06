@@ -23,26 +23,17 @@ ob = PetriCospanOb(1)
 Graph(decoration(id(ob)))
 
 # +
-spontaneous_petri = PetriCospan(
-        Cospan(FinOrdFunction([1], 2),
-               FinOrdFunction([2], 2)
-        ), id(PetriFunctor), Petri.Model([1, 2], [(Dict(1=>1), Dict(2=>1))]))
+spontaneous_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1), Dict(2=>1))]), [2])
 
 Graph(decoration(spontaneous_petri))
 
 # +
-transmission_petri = PetriCospan(
-        Cospan(FinOrdFunction([1], 2),
-               FinOrdFunction([2], 2)
-        ), id(PetriFunctor), Petri.Model([1, 2], [(Dict(1=>1, 2=>1), Dict(2=>2))]))
+transmission_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1, 2=>1), Dict(2=>2))]), [2])
 
 Graph(decoration(transmission_petri))
 
 # +
-exposure_petri = PetriCospan(
-        Cospan(FinOrdFunction([1, 2], 3),
-               FinOrdFunction([3, 2], 3)
-        ), id(PetriFunctor), Petri.Model([1, 2, 3], [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))]))
+exposure_petri = PetriCospan([1, 2], Petri.Model(1:3, [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))]), [3, 2])
 
 Graph(decoration(exposure_petri))
 # -
