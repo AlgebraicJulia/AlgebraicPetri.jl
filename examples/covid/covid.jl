@@ -9,12 +9,46 @@ using Catlab.WiringDiagrams
 using Catlab.CategoricalAlgebra.ShapeDiagrams
 using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Graphics
-using Catlab.Graphics.Graphviz: Graph
+using Catlab.Graphics.Graphviz: Graph, run_graphviz
 
 import Catlab.Theories: id
 
 # A few helper functions
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true)
+save_wd(ex, fname::AbstractString) = begin
+    g = display_wd(ex)
+    open(fname, "w") do io
+        run_graphviz(io, g, format="svg")
+    end
+end
+save_graph(g, fname::AbstractString) = begin
+    open(fname, "w") do io
+        run_graphviz(io, g, format="svg")
+    end
+end
+
+splot(soln, fname) = begin
+    p = plot(soln, linewidth=5, legend=false)
+    savefig(p, fname)
+end
+
+splot(soln, t, fname) = begin
+    p = plot(t, soln, linewidth=5, legend=false)
+    savefig(p, fname)
+end
+
+splotchannels(sol, dir) = begin
+    mkpath(dir)
+    jp(p) = joinpath(dir, p)
+    splot(sol, jp("solution.svg"))
+    pltdims = [3,8,13]
+    splot(sol[pltdims,:]', sol.t, jp("infecteds.svg"))
+    splot(sum(sol(sol.t, idxs=pltdims), dims=1)', sol.t, jp("infecteds_sum.svg"))
+    pltdims = [3,8,13] .+ 1
+    splot(sol[pltdims,:]', sol.t, jp( "recovered.svg" ))
+    splot(sum(sol(sol.t, idxs=pltdims), dims=1)', sol.t, jp( "recovered_sum.svg" ))
+end
+
 id(args...) = foldl((x,y)->id(x) ⊗ id(y), args)
 
 # Step 1: Define building block Petri Net models
@@ -40,6 +74,11 @@ travel_petri = PetriCospan(
         ), id(PetriFunctor), Petri.Model(collect(1:6), [(Dict(1=>1), Dict(4=>1)),
                                                         (Dict(2=>1), Dict(5=>1)),
                                                         (Dict(3=>1), Dict(6=>1))]))
+
+[save_graph(Graph(decoration(p)), pname) for (p,pname) in [(spontaneous_petri, "spont.svg"),
+                                               (transmission_petri, "transmission.svg"),
+                                               (exposure_petri, "exposure.svg"),
+                                               (travel_petri, "travel.svg")]]
 
 # Step 2: Define a strongly type presentation of the
 #         Free Biproduct Category for the desired domain
@@ -77,7 +116,9 @@ p_sir = decoration(F(sir))
 
 # display wiring diagram and petri net visualization
 display_wd(sir)
-Graph(p_sir)
+save_wd(sir, "sir.svg")
+g = Graph(p_sir)
+save_graph(g, "sir_graph.svg")
 
 # define initial states and transition rates
 u0 = [10.0, 1, 0]
@@ -86,7 +127,7 @@ p = [0.4, 0.4]
 prob = ODEProblem(toODE(p_sir),u0,(0.0,7.5),p)
 sol = OrdinaryDiffEq.solve(prob,Tsit5())
 # visualize the solution
-plot(sol)
+splot(sol, "sir_soln.svg")
 
 # define model
 sei = exposure ⋅ (illness ⊗ id(I)) ⋅ ∇(I)
@@ -97,7 +138,9 @@ p_seir = decoration(F(seir))
 
 # display wiring diagram and petri net visualization
 display_wd(seir)
-Graph(p_seir)
+save_wd(seir, "seir.svg")
+g = Graph(p_seir)
+save_graph(g, "seir_graph.svg")
 
 # define initial states and transition rates
 u0 = [10.0, 1, 0, 0]
@@ -106,7 +149,7 @@ p = [0.9, 0.2, 0.5]
 prob = ODEProblem(toODE(p_seir),u0,(0.0,15.0),p)
 sol = OrdinaryDiffEq.solve(prob,Tsit5())
 # visualize the solution
-plot(sol)
+splot(sol, "seir_soln.svg")
 
 # define model
 seird = sei ⋅ Δ(I) ⋅ (death ⊗ recovery)
@@ -115,7 +158,9 @@ p_seird = decoration(F(seird))
 
 # display wiring diagram and petri net visualization
 display_wd(seird)
-Graph(p_seird)
+save_wd(seird, "seird.svg")
+g = Graph(p_seird)
+save_graph(g, "seird_graph.svg")
 
 # define initial states and transition rates
 u0 = [10.0, 1, 0, 0, 0]
@@ -124,7 +169,7 @@ p = [0.9, 0.2, 0.5, 0.1]
 prob = ODEProblem(toODE(p_seird),u0,(0.0,15.0),p)
 sol = OrdinaryDiffEq.solve(prob,Tsit5())
 # visualize the solution
-plot(sol)
+splot(sol, "seird_soln.svg")
 
 # TODO: Add support for types so we can simplify to this
 # seir = exposure ⋅ (illness ⊗ recovery)
@@ -147,8 +192,10 @@ end
 seird_city = to_hom_expr(FreeBiproductCategory, seird_city)
 
 display_wd(seird_city)
+save_wd(seird_city, "seird_city.svg")
 
-Graph(decoration(F(seird_city)))
+g = Graph(decoration(F(seird_city)))
+save_graph(g, "seird_graph.svg")
 
 # function to compose n city models together
 ncities(city,n::Int) = compose([city for i in 1:n]...)
@@ -158,10 +205,13 @@ seird_3 = ncities(seird_city, 3)
 pc_seird_3 = F(seird_3)
 p_seird_3 = decoration(pc_seird_3)
 display_wd(seird_3)
-Graph(p_seird_3)
+save_wd(seird_3, "seird_3.svg")
+g = Graph(p_seird_3)
+save_graph(g, "seird_3_graph.svg")
 
-# Define time frame, 2 months
-tspan = (0.0,60.0)
+pltdims = [4,9, 14]
+# Define time frame, 3 months
+tspan = (0.0,90.0)
 # Define initial states
 u0 = zeros(Float64, base(pc_seird_3).n)
 u0[1]  = 10000
@@ -171,13 +221,63 @@ u0[2]  = 1
 # Define transition rates
 seirdparams(n::Int, k::Number) = begin
     βseird = [10/sum(u0), 1/2, 1/5, 1/16]
-    βtravel = [1/2, 1/200, 1/2]/100k
+    βtravel = [1/20, 1/200, 1/20]/100k
     β = vcat(βseird, βtravel)
-    return foldl(vcat, [β for i in 1:n])
+    return foldl(vcat, [(1-(0/(2n)))*β for i in 1:n])
 end
-params = seirdparams(3, 2)
+params = seirdparams(3, 5)
 # Generate and solve resulting ODE
 prob = ODEProblem(toODE(p_seird_3),u0,tspan,params)
 sol = OrdinaryDiffEq.solve(prob,Tsit5())
 # visualize the solution
-plot(sol)
+
+
+    
+splotchannels(sol, "seird")
+
+include("dynamic_rates.jl")
+
+asymptotic(a,b,k=1) = t->(b + (a-b)/(k*t+1))
+triangleasm(a,b,k=1) = t->max(b, (1-t/k)*(a-b)+b)
+trianglewave(a,b,k=1) = t->((a-b)/π)*asin(sin(t*2π/k))+2b
+coswave(a,b,k=1) = t->(a-b)*(cos(t*2π/k)/2)+( a+b )/2
+sincwave(a,b,k=1) = t->(a-b)*(sinc(t*2π/k)/2)+( a+b )/2
+modsincwave(a,b,k) = t-> max(b, (a-b)*(sinc(t*2π/k))+(b))
+# sqwave(a,b,k=1) = t->(a-b)*(cos(t*2π/k)/2)+( a+b )/2
+dynseirdparams(f, a,b,period, n::Int, scale::Number) = begin
+    βseird = [f(a,b,period), 1/2, 1/5, 1/16]
+    βtravel = [1/20, 1/200, 1/20]/100scale
+    β = vcat(βseird, βtravel)
+    return foldl(vcat, [β for i in 1:n])
+end
+
+waveparams(f,a,b,p) = begin
+    dynseirdparams(f,a,b,p,3,5)
+end
+
+function drawsol(f, a, b, p, dir)
+    tspan = (0, 240.0)
+    println("INFO: Processing $dir")
+    dynparams = waveparams(f, a/sum(u0), b/sum(u0),p)
+    mkpath(dir)
+    prob = ODEProblem(DynamicRates.toODE(p_seird_3, nothing),u0,tspan, dynparams)
+    sol = OrdinaryDiffEq.solve(prob,Tsit5(), saveat=1:1:tspan[2])
+    splotchannels(sol, dir)
+    savefig(plot(sol.t, f(a,b,p), ylim=(0,12), legend=false, linewidth=5), "$dir/transmissability.svg")
+end
+
+a,b = 10, 1
+dir = "dynamic/mitigation/"
+drawsol(asymptotic,  a,b,1/6, "$dir/asymptotic")
+drawsol(triangleasm, a,b,25 , "$dir/trianglesm")
+drawsol(coswave,     a,b,25 , "$dir/coswave")
+drawsol(sincwave,    a,b,100, "$dir/sincwave")
+drawsol(modsincwave, a,b,100, "$dir/modsincwave")
+
+a,b = 10, 1/2
+dir = "dynamic/containment"
+drawsol(asymptotic,  a,b,1/6, "$dir/asymptotic")
+drawsol(triangleasm, a,b, 25, "$dir/trianglesm")
+drawsol(coswave,     a,b, 25, "$dir/coswave")
+drawsol(sincwave,    a,b,100, "$dir/sincwave")
+drawsol(modsincwave, a,b,100, "$dir/modsincwave")
