@@ -77,7 +77,7 @@ Graph(p_sir)
 u0 = [10.0, 1, 0];
 p = [0.4, 0.4];
 
-prob = ODEProblem(toODE(p_sir),u0,(0.0,7.5),p);
+prob = ODEProblem(vectorfields(p_sir),u0,(0.0,7.5),p);
 sol = OrdinaryDiffEq.solve(prob,Tsit5());
 
 plot(sol)
@@ -104,7 +104,7 @@ Graph(p_seir)
 u0 = [10.0, 1, 0, 0];
 p = [0.9, 0.2, 0.5];
 
-prob = ODEProblem(toODE(p_seir),u0,(0.0,15.0),p);
+prob = ODEProblem(vectorfields(p_seir),u0,(0.0,15.0),p);
 sol = OrdinaryDiffEq.solve(prob,Tsit5());
 
 plot(sol)
@@ -129,7 +129,7 @@ Graph(p_seird)
 u0 = [10.0, 1, 0, 0, 0];
 p = [0.9, 0.2, 0.5, 0.1];
 
-prob = ODEProblem(toODE(p_seird),u0,(0.0,15.0),p);
+prob = ODEProblem(vectorfields(p_seird),u0,(0.0,15.0),p);
 sol = OrdinaryDiffEq.solve(prob,Tsit5());
 
 plot(sol)
