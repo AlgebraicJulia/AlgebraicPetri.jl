@@ -1,5 +1,6 @@
 # AlgebraicPetri.jl
 
-Build petri net agent based models compositionally
+[![Documentation](https://github.com/AlgebraicJulia/AlgebraicPetri.jl/workflows/Documentation/badge.svg)](https://algebraicjulia.github.io/AlgebraicPetri.jl/dev/)
+![Tests](https://github.com/AlgebraicJulia/AlgebraicPetri.jl/workflows/Tests/badge.svg)
 
-Currently relies on having the [Catlab.jl](https://github.com/AlgebraicJulia/Catlab.jl) package in development mode to pull the latest unreleased code from master.
+Build petri net agent based models compositionally
