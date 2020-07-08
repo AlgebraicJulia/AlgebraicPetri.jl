@@ -47,8 +47,8 @@ function (pd::PetriDecorator)(n::FinOrd)
     return p -> typeof(p) <: Petri.Model && length(p.S) == n.n
 end
 
-map(f::Function, d::Dict{Int,Int}) = begin
-    out = Dict{Int,Int}()
+map(f::Function, d::Dict{Int,V}) where V = begin
+    out = Dict{Int,Number}()
     for p in Base.map(x->Pair(f(x[1]), x[2]), collect(d))
         if p[1] in keys(out)
             out[p[1]] += p[2]
@@ -59,7 +59,9 @@ map(f::Function, d::Dict{Int,Int}) = begin
     out
 end
 
-map(f::Function, ts::Vector{Tuple{Dict{Int,Int}, Dict{Int,Int}}}) = [(map(f, t[1]), map(f, t[2])) for t in ts]
+# this should get fixed, but multiple dispatch is hard 😂
+map(f::Function, ts::Vector{Tuple{Dict{Int,V}, Dict{Int,W}}}) where {V,W} = [(map(f, t[1]), map(f, t[2])) for t in ts]
+map(f::Function, ts::Vector{Tuple{Dict{Int,V} where V, Dict{Int,V} where V}}) = [(map(f, t[1]), map(f, t[2])) for t in ts]
 
 """ AlgebraicPetri.PetriDecorator(f::FinOrdFunction)
 
@@ -104,7 +106,7 @@ function (::Type{PetriCospan})(l::AbstractVector, m::Petri.Model, r::AbstractVec
                        id(PetriFunctor), m)
 end
 
-NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Dict{Int, Int}, Dict{Int, Int}}}())
+NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Dict{Int, Number}, Dict{Int, Number}}}())
 
 @instance BiproductCategory(PetriCospanOb, PetriCospan) begin
     dom(f::PetriCospan) = PetriCospanOb(dom(left(f)).n)
@@ -185,5 +187,7 @@ NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Dict{Int, Int}, Dict{
     coproj1(A::PetriCospanOb, B::PetriCospanOb) = otimes(id(A), create(B))
     coproj2(A::PetriCospanOb, B::PetriCospanOb) = otimes(create(A), id(B))
 end
+
+include("Epidemiology.jl")
 
 end

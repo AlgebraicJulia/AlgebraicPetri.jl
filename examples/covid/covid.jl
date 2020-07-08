@@ -3,6 +3,7 @@
 #md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/covid/covid.ipynb)
 
 using AlgebraicPetri
+using AlgebraicPetri.Epidemiology
 
 using Petri
 using OrdinaryDiffEq
@@ -11,54 +12,35 @@ using Plots
 using Catlab
 using Catlab.Theories
 using Catlab.Programs
-using Catlab.WiringDiagrams
 using Catlab.CategoricalAlgebra.ShapeDiagrams
+using Catlab.WiringDiagrams
 using Catlab.Graphics
-using Catlab.Graphics.Graphviz: Graph, run_graphviz
+using Catlab.Graphics.Graphviz: Graph
 
 import Catlab.Theories: id
 
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 id(args...) = foldl((x,y)->id(x) ⊗ id(y), args);
 
-# #### Step 1: Define building block Petri Net models
-
-ob = PetriCospanOb(1);
-
-spontaneous_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1), Dict(2=>1))]), [2]);
-
-transmission_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1, 2=>1), Dict(2=>2))]), [2]);
-
-exposure_petri = PetriCospan([1, 2], Petri.Model(1:3, [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))]), [3, 2]);
+# #### Step 1: Define a new primitive to extend the presentation of InfectiousDiseases
 
 travel_petri = PetriCospan(
         [1,2,3],
         Petri.Model(1:6, [(Dict(1=>1), Dict(4=>1)), (Dict(2=>1), Dict(5=>1)), (Dict(3=>1), Dict(6=>1))]),
         [4,5,6]);
 
-# #### Step 2: Define a strongly type presentation of the
-#         Free Biproduct Category for the desired domain
+# #### Step 2: Extend the Infectious Disease presentation,
+# get the new generators, and update the functor
 
-@present Epidemiology(FreeBiproductCategory) begin
-    S::Ob
-    E::Ob
-    I::Ob
-    R::Ob
-    D::Ob
-    transmission::Hom(S⊗I, I)
-    exposure::Hom(S⊗I, E⊗I)
-    illness::Hom(E,I)
-    recovery::Hom(I,R)
-    death::Hom(I,D)
+@present EpiWithTravel <: InfectiousDiseases begin
     travel::Hom(S⊗E⊗I,S⊗E⊗I)
 end;
 
-S,E,I,R,D,transmission,exposure,illness,recovery,death,travel = generators(Epidemiology);
+S,E,I,R,D,transmission,exposure,illness,recovery,death,travel = generators(EpiWithTravel);
+new_functor = copy(FunctorGenerators)
+new_functor[travel] = travel_petri
 
-F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=Dict(
-        S=>ob, E=>ob, I=>ob, R=>ob, D=>ob,
-        transmission=>transmission_petri, exposure=>exposure_petri,
-        illness=>spontaneous_petri, recovery=>spontaneous_petri, death=>spontaneous_petri,travel=>travel_petri));
+F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=new_functor);
 
 # ### COVID-19 TRAVEL MODEL:
 
@@ -70,7 +52,7 @@ F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=Dict(
 #
 # This is a very complicated interaction, so we can use the program interface for easier model definition
 
-seird_city = @program Epidemiology (s::S, e::E, i::I) begin
+seird_city = @program EpiWithTravel (s::S, e::E, i::I) begin
     e2, i2 = exposure(s, i)
     i3 = illness(e2)
     d = death(i3)

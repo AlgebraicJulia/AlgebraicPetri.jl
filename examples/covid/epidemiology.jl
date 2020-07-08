@@ -2,61 +2,18 @@
 #
 #md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/covid/epidemiology.ipynb)
 
-using AlgebraicPetri
+using AlgebraicPetri.Epidemiology
 
 using Petri
 using OrdinaryDiffEq
 using Plots
 
-using Catlab
 using Catlab.Theories
-using Catlab.Programs
-using Catlab.WiringDiagrams
 using Catlab.CategoricalAlgebra.ShapeDiagrams
 using Catlab.Graphics
 using Catlab.Graphics.Graphviz: Graph
 
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
-
-# ### Step 1: Define building block Petri Net models
-
-ob = PetriCospanOb(1);
-Graph(decoration(id(ob)))
-#-
-spontaneous_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1), Dict(2=>1))]), [2]);
-Graph(decoration(spontaneous_petri))
-#-
-transmission_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1, 2=>1), Dict(2=>2))]), [2]);
-Graph(decoration(transmission_petri))
-#-
-exposure_petri = PetriCospan([1, 2], Petri.Model(1:3, [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))]), [3, 2]);
-Graph(decoration(exposure_petri))
-
-# ### Step 2: Define a strongly type presentation of the Free Biproduct Category for the desired domain
-
-@present Epidemiology(FreeBiproductCategory) begin
-    S::Ob
-    E::Ob
-    I::Ob
-    R::Ob
-    D::Ob
-    transmission::Hom(S⊗I, I)
-    exposure::Hom(S⊗I, E⊗I)
-    illness::Hom(E,I)
-    recovery::Hom(I,R)
-    death::Hom(I,D)
-end;
-
-# Create the generators
-S,E,I,R,D,transmission,exposure,illness,recovery,death = generators(Epidemiology);
-
-# Define a functor from the generators to the building block Petri Nets
-F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=Dict(
-        S=>ob, E=>ob, I=>ob, R=>ob, D=>ob,
-        transmission=>transmission_petri, exposure=>exposure_petri,
-        illness=>spontaneous_petri, recovery=>spontaneous_petri, death=>spontaneous_petri));
-
-# ### Step 3: Create, visualize, and solve possible models
 
 # #### SIR Model:
 
@@ -66,7 +23,7 @@ sir = transmission ⋅ recovery
 
 # get resulting petri net and visualize model
 
-p_sir = decoration(F(sir));
+p_sir = decoration(F_epi(sir));
 display_wd(sir)
 #-
 Graph(p_sir)
@@ -92,7 +49,7 @@ seir = sei ⋅ recovery
 
 # get resulting petri net and visualize model
 
-p_seir = decoration(F(seir));
+p_seir = decoration(F_epi(seir));
 
 display_wd(seir)
 #-
@@ -117,7 +74,7 @@ seird = sei ⋅ Δ(I) ⋅ (death ⊗ recovery)
 
 # get resulting petri net and visualize model
 
-p_seird = decoration(F(seird));
+p_seird = decoration(F_epi(seird));
 
 display_wd(seird)
 #-
