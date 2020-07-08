@@ -186,4 +186,6 @@ NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Dict{Int, Int}, Dict{
     coproj2(A::PetriCospanOb, B::PetriCospanOb) = otimes(create(A), id(B))
 end
 
+include("Epidemiology.jl")
+
 end
