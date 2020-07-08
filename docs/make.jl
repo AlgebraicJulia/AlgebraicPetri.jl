@@ -37,6 +37,7 @@ makedocs(
   pages     = Any[
     "AlgebraicPetri.jl" => "index.md",
     "Examples" => Any[
+      "examples/predation/lotka-volterra.md",
       "examples/covid/epidemiology.md",
       "examples/covid/covid.md",
     ],
