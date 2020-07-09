@@ -47,8 +47,8 @@ function (pd::PetriDecorator)(n::FinOrd)
     return p -> typeof(p) <: Petri.Model && length(p.S) == n.n
 end
 
-map(f::Function, d::Dict{Int,V}) where V = begin
-    out = Dict{Int,Number}()
+map(f::Function, d::Dict{K,V}) where {K,V} = begin
+    out = Dict{K,V}()
     for p in Base.map(x->Pair(f(x[1]), x[2]), collect(d))
         if p[1] in keys(out)
             out[p[1]] += p[2]
@@ -59,9 +59,7 @@ map(f::Function, d::Dict{Int,V}) where V = begin
     out
 end
 
-# this should get fixed, but multiple dispatch is hard 😂
-map(f::Function, ts::Vector{Tuple{Dict{Int,V}, Dict{Int,W}}}) where {V,W} = [(map(f, t[1]), map(f, t[2])) for t in ts]
-map(f::Function, ts::Vector{Tuple{Dict{Int,V} where V, Dict{Int,V} where V}}) = [(map(f, t[1]), map(f, t[2])) for t in ts]
+map(f::Function, ts::Vector{Tuple{S,T}}) where {S<:Dict, T<:Dict} = [(map(f, t[1]), map(f, t[2])) for t in ts]
 
 """ AlgebraicPetri.PetriDecorator(f::FinOrdFunction)
 
