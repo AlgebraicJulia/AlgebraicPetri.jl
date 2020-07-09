@@ -30,7 +30,9 @@ end
 @info "Building Documenter.jl docs"
 makedocs(
   modules   = [AlgebraicPetri],
-  format    = Documenter.HTML(),
+  format    = Documenter.HTML(
+    assets = ["assets/analytics.js"],
+  ),
   sitename  = "AlgebraicPetri.jl",
   doctest   = false,
   checkdocs = :none,
