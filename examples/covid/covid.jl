@@ -15,7 +15,6 @@ using Catlab.Programs
 using Catlab.CategoricalAlgebra.ShapeDiagrams
 using Catlab.WiringDiagrams
 using Catlab.Graphics
-using Catlab.Graphics.Graphviz: Graph
 
 import Catlab.Theories: id
 
@@ -95,8 +94,8 @@ params = seirdparams(3, 5);
 
 # Generate, solve, and visualize resulting ODE
 
-prob = ODEProblem(vectorfields(p_seird_3),u0,tspan,params);
-sol = OrdinaryDiffEq.solve(prob,Tsit5());
+prob = ODEProblem(p_seird_3,u0,tspan,params);
+sol = solve(prob,Tsit5());
 
 plot(sol)
 
@@ -126,7 +125,7 @@ a,b,p = 10, 1, 1/6
 
 dynparams = waveparams(asymptotic, a/sum(u0), b/sum(u0),p)
 
-prob = ODEProblem(vectorfields(p_seird_3),u0,tspan, dynparams)
-sol = OrdinaryDiffEq.solve(prob,Tsit5(), saveat=1:1:tspan[2])
+prob = ODEProblem(p_seird_3,u0,tspan, dynparams)
+sol = solve(prob,Tsit5(), saveat=1:1:tspan[2])
 
 plot(sol)
