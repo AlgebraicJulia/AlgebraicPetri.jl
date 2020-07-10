@@ -1,6 +1,7 @@
 # +
 include("epidemiology.jl")
 
+using OrdinaryDiffEq
 using Catlab.Graphics.Graphviz: run_graphviz
 
 # +
@@ -46,7 +47,7 @@ save_graph(Graph(p_sir), "sir_graph.svg")
 u0 = [10.0, 1, 0]
 p = [0.4, 0.4]
 # create and solve ODE problem
-prob = ODEProblem(vectorfields(p_sir),u0,(0.0,7.5),p)
+prob = ODEProblem(p_sir,u0,(0.0,7.5),p)
 sol = OrdinaryDiffEq.solve(prob,Tsit5())
 # visualize the solution
 splot(sol, "sir_soln.svg")
@@ -58,7 +59,7 @@ save_graph(Graph(p_seir), "seir_graph.svg")
 u0 = [10.0, 1, 0, 0]
 p = [0.9, 0.2, 0.5]
 # create and solve ODE problem
-prob = ODEProblem(vectorfields(p_seir),u0,(0.0,15.0),p)
+prob = ODEProblem(p_seir,u0,(0.0,15.0),p)
 sol = OrdinaryDiffEq.solve(prob,Tsit5())
 # visualize the solution
 splot(sol, "seir_soln.svg")
@@ -70,7 +71,7 @@ save_graph(Graph(p_seird), "seird_graph.svg")
 u0 = [10.0, 1, 0, 0, 0]
 p = [0.9, 0.2, 0.5, 0.1]
 # create and solve ODE problem
-prob = ODEProblem(vectorfields(p_seird),u0,(0.0,15.0),p)
+prob = ODEProblem(p_seird,u0,(0.0,15.0),p)
 sol = OrdinaryDiffEq.solve(prob,Tsit5())
 # visualize the solution
 splot(sol, "seird_soln.svg")
@@ -100,7 +101,7 @@ u0[2]  = 1
 # Define transition rates
 params = seirdparams(3, 5)
 # Generate and solve resulting ODE
-prob = ODEProblem(vectorfields(p_seird_3),u0,tspan,params)
+prob = ODEProblem(p_seird_3,u0,tspan,params)
 sol = OrdinaryDiffEq.solve(prob,Tsit5())
 splotchannels(sol, "seird")
 
@@ -109,7 +110,7 @@ function drawsol(f, a, b, p, dir)
     println("INFO: Processing $dir")
     dynparams = waveparams(f, a/sum(u0), b/sum(u0),p)
     mkpath(dir)
-    prob = ODEProblem(vectorfields(p_seird_3),u0,tspan, dynparams)
+    prob = ODEProblem(p_seird_3,u0,tspan, dynparams)
     sol = OrdinaryDiffEq.solve(prob,Tsit5(), saveat=1:1:tspan[2])
     splotchannels(sol, dir)
     savefig(plot(sol.t, f(a,b,p), ylim=(0,12), legend=false, linewidth=5), "$dir/transmissability.svg")

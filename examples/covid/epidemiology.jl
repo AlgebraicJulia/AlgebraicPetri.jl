@@ -5,13 +5,12 @@
 using AlgebraicPetri.Epidemiology
 
 using Petri
-using OrdinaryDiffEq
+using StochasticDiffEq
 using Plots
 
 using Catlab.Theories
 using Catlab.CategoricalAlgebra.ShapeDiagrams
 using Catlab.Graphics
-using Catlab.Graphics.Graphviz: Graph
 
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
@@ -34,8 +33,8 @@ Graph(p_sir)
 u0 = [10.0, 1, 0];
 p = [0.4, 0.4];
 
-prob = ODEProblem(vectorfields(p_sir),u0,(0.0,7.5),p);
-sol = OrdinaryDiffEq.solve(prob,Tsit5());
+prob,cb = SDEProblem(p_sir,u0,(0.0,7.5),p);
+sol = solve(prob,SRA1(),callback=cb)
 
 plot(sol)
 
@@ -61,8 +60,8 @@ Graph(p_seir)
 u0 = [10.0, 1, 0, 0];
 p = [0.9, 0.2, 0.5];
 
-prob = ODEProblem(vectorfields(p_seir),u0,(0.0,15.0),p);
-sol = OrdinaryDiffEq.solve(prob,Tsit5());
+prob,cb = SDEProblem(p_seir,u0,(0.0,15.0),p);
+sol = solve(prob,SRA1(),callback=cb)
 
 plot(sol)
 
@@ -86,7 +85,7 @@ Graph(p_seird)
 u0 = [10.0, 1, 0, 0, 0];
 p = [0.9, 0.2, 0.5, 0.1];
 
-prob = ODEProblem(vectorfields(p_seird),u0,(0.0,15.0),p);
-sol = OrdinaryDiffEq.solve(prob,Tsit5());
+prob,cb = SDEProblem(p_seird,u0,(0.0,15.0),p);
+sol = solve(prob,SRA1(),callback=cb)
 
 plot(sol)

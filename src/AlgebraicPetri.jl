@@ -104,8 +104,6 @@ function (::Type{PetriCospan})(l::AbstractVector, m::Petri.Model, r::AbstractVec
                        id(PetriFunctor), m)
 end
 
-NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Dict{Int, Number}, Dict{Int, Number}}}())
-
 @instance BiproductCategory(PetriCospanOb, PetriCospan) begin
     dom(f::PetriCospan) = PetriCospanOb(dom(left(f)).n)
     codom(f::PetriCospan) = PetriCospanOb(dom(right(f)).n)
@@ -126,7 +124,7 @@ NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Dict{Int, Number}, Di
     id(X::PetriCospanOb) = PetriCospan(
         Cospan(id(FinOrd(X.n)), id(FinOrd(X.n))),
         id(PetriFunctor),
-        NullPetri(X.n))
+        EmptyPetri(X.n))
 
     otimes(X::PetriCospanOb, Y::PetriCospanOb) = PetriCospanOb(X.n + Y.n)
 
@@ -153,28 +151,28 @@ NullPetri(n::Int) = Petri.Model(collect(1:n), Vector{Tuple{Dict{Int, Number}, Di
             Cospan(
                 id(FinOrd(Z.n)),
                 FinOrdFunction(vcat(X.n+1:Z.n, 1:X.n), Z.n, Z.n)
-            ), id(PetriFunctor), NullPetri(Z.n))
+            ), id(PetriFunctor), EmptyPetri(Z.n))
     end
 
     mcopy(X::PetriCospanOb) = PetriCospan(
         Cospan(
             id(FinOrd(X.n)),
             FinOrdFunction(vcat(1:X.n,1:X.n), 2*X.n, X.n)
-        ), id(PetriFunctor), NullPetri(X.n))
+        ), id(PetriFunctor), EmptyPetri(X.n))
 
     mmerge(X::PetriCospanOb) = PetriCospan(
         Cospan(
             FinOrdFunction(vcat(1:X.n,1:X.n), 2*X.n, X.n),
             id(FinOrd(X.n))
-        ), id(PetriFunctor), NullPetri(X.n))
+        ), id(PetriFunctor), EmptyPetri(X.n))
 
     create(X::PetriCospanOb) = PetriCospan(
         Cospan(FinOrdFunction(Int[], 0, X.n), id(FinOrd(X.n))),
-        id(PetriFunctor), NullPetri(X.n))
+        id(PetriFunctor), EmptyPetri(X.n))
 
     delete(X::PetriCospanOb) = PetriCospan(
         Cospan(id(FinOrd(X.n)), FinOrdFunction(Int[], 0, X.n)),
-        id(PetriFunctor), NullPetri(X.n))
+        id(PetriFunctor), EmptyPetri(X.n))
 
     pair(f::PetriCospan, g::PetriCospan) = compose(mcopy(dom(f)), otimes(f, g))
     copair(f::PetriCospan, g::PetriCospan) = compose(otimes(f, g), mmerge(codom(f)))

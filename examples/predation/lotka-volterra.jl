@@ -14,7 +14,6 @@ using Catlab.Programs
 using Catlab.CategoricalAlgebra.ShapeDiagrams
 using Catlab.WiringDiagrams
 using Catlab.Graphics
-using Catlab.Graphics.Graphviz: Graph
 
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
@@ -58,8 +57,8 @@ Graph(lotka_petri)
 
 u0 = [40, 2];
 p = [4.0, 1.0, 2.0];
-prob = ODEProblem(vectorfields(lotka_petri),u0,(0.0,8.0),p);
-sol = OrdinaryDiffEq.solve(prob,Tsit5(),abstol=1e-6);
+prob = ODEProblem(lotka_petri,u0,(0.0,8.0),p);
+sol = solve(prob,Tsit5(),abstol=1e-6);
 plot(sol)
 
 # There is also a second syntax that is easier to write for programmers
@@ -108,6 +107,6 @@ Graph(dual_lv_petri)
 
 u0 = [40, 2, 1];
 p = [4.0, 1.0, 2.0, 2.5, 1.5];
-prob = ODEProblem(vectorfields(dual_lv_petri),u0,(0.0,8.0),p);
-sol = OrdinaryDiffEq.solve(prob,Tsit5(),abstol=1e-6);
+prob = ODEProblem(dual_lv_petri,u0,(0.0,8.0),p);
+sol = solve(prob,Tsit5(),abstol=1e-6);
 plot(sol)
