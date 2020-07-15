@@ -42,9 +42,7 @@ plot(sol)
 
 # define model
 
-sei = exposure ⋅ (illness ⊗ id(I)) ⋅ ∇(I)
-
-seir = sei ⋅ recovery
+seir = exposure ⋅ illness ⋅ recovery
 
 # get resulting petri net and visualize model
 
@@ -69,7 +67,7 @@ plot(sol)
 
 # define model
 
-seird = sei ⋅ Δ(I) ⋅ (death ⊗ recovery)
+seird = exposure ⋅ illness ⋅ Δ(I) ⋅ (death ⊗ recovery)
 
 # get resulting petri net and visualize model
 

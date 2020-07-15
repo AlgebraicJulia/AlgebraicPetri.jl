@@ -9,8 +9,8 @@ export InfectiousDiseases, FunctorGenerators, F_epi, S, E, I, R, D, transmission
 
 ob = PetriCospanOb(1)
 spontaneous_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1), Dict(2=>1))]), [2])
-transmission_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1, 2=>1), Dict(2=>2))]), [2])
-exposure_petri = PetriCospan([1, 2], Petri.Model(1:3, [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))]), [3, 2])
+transmission_petri = PetriCospan([1,2], Petri.Model(1:2, [(Dict(1=>1, 2=>1), Dict(2=>2))]), [2])
+exposure_petri = PetriCospan([1, 2], Petri.Model(1:3, [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))]), [3])
 
 """ InfectiousDiseases
 """
@@ -21,7 +21,7 @@ exposure_petri = PetriCospan([1, 2], Petri.Model(1:3, [(Dict(1=>1, 2=>1), Dict(3
     R::Ob
     D::Ob
     transmission::Hom(S⊗I, I)
-    exposure::Hom(S⊗I, E⊗I)
+    exposure::Hom(S⊗I, E)
     illness::Hom(E,I)
     recovery::Hom(I,R)
     death::Hom(I,D)

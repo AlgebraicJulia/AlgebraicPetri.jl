@@ -52,11 +52,11 @@ F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=new_functor);
 # This is a very complicated interaction, so we can use the program interface for easier model definition
 
 seird_city = @program EpiWithTravel (s::S, e::E, i::I) begin
-    e2, i2 = exposure(s, i)
-    i3 = illness(e2)
+    e2 = exposure(s, i)
+    i2 = illness(e2)
     d = death(i3)
     r = recovery(i3)
-    return travel(s, [e, e2], [i2, i3])
+    return travel(s, [e, e2], [i, i2])
 end
 seird_city = to_hom_expr(FreeBiproductCategory, seird_city)
 
