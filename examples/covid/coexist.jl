@@ -91,8 +91,8 @@ coexist = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::
     d_all = [d, d_2]
     return s, e_all, i_all, i2_all, a_all, r_all, r2_all, d_all
 end
-display_wd(coexist)
-save_wd(coexist, "coexist_wd.svg")
+# display_wd(coexist)
+# save_wd(coexist, "coexist_wd.svg")
 coexist = to_hom_expr(FreeBiproductCategory, coexist)
 
 crossexposure = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::D,
@@ -106,33 +106,34 @@ crossexposure = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R
            s′, e′, i′, i2′, a′, r′, r2′, d′
     # braid the output to easily recurse
 end
-display_wd(crossexposure)
-save_wd(crossexposure, "crossexposure_wd.svg")
+# display_wd(crossexposure)
+# save_wd(crossexposure, "crossexposure_wd.svg")
 crossexposure = to_hom_expr(FreeBiproductCategory, crossexposure)
 
 # 2 generation cross exposure + coexist model
 twogen = (coexist ⊗ coexist) ⋅ crossexposure
-display_wd(twogen)
-Graph(decoration(F(twogen)))
+# display_wd(twogen)
+# Graph(decoration(F(twogen)))
 
 # n generation cross exposure + coexist model
-n = 5
+n = 9
 population = otimes(S, E, I, I2, A, R, R2, D)
 pops = [population for i in 1:n]
 
 single_exposure = foldl(⋅, [otimes(map(id, pops[1:i])...,crossexposure⋅σ(pops[i+1:i+2]...),map(id, pops[i+3:end])...) for i in 0:(n-2)])
-display_wd(single_exposure)
-save_wd(single_exposure, "single_crossexposure.svg")
+# display_wd(single_exposure)
+# save_wd(single_exposure, "$(n)gen_single_crossexposure.svg")
 
 ngen_exposure = foldl(⋅, [single_exposure for i in 1:n])
-display_wd(ngen_exposure)
-save_wd(ngen_exposure, "ngen_crossexposure.svg")
+# display_wd(ngen_exposure)
+# save_wd(ngen_exposure, "$(n)gen_crossexposure.svg")
 
 ngen_coexist = ngen_exposure ⋅ foldl(⊗, [coexist for i in 1:n])
-display_wd(ngen_coexist)
-save_wd(ngen_coexist, "ngen_coexist_wd.svg")
+# display_wd(ngen_coexist)
+save_wd(ngen_coexist, "$(n)gen_coexist_wd.svg")
 
-save_graph(Graph(decoration(F(ngen_coexist))), "ngen_coexist_petri.svg")
+ngen_coexist_petri = decoration(F(ngen_coexist))
+save_graph(Graph(ngen_coexist_petri), "$(n)gen_coexist_petri.svg")
 
 # Generate some simpler diagrams to expose the hierarchical structure
 @present CoexistOverview(FreeBiproductCategory) begin
@@ -141,17 +142,16 @@ save_graph(Graph(decoration(F(ngen_coexist))), "ngen_coexist_petri.svg")
     crossexposure::Hom(Pop⊗Pop,Pop⊗Pop)
 end
 pop′,coexist′,crossexposure′ = generators(CoexistOverview)
-n = 5
 pops = [pop′ for i in 1:n]
 single_exposure = foldl(⋅, [otimes(map(id, pops[1:i])...,crossexposure′⋅σ(pops[i+1:i+2]...),map(id, pops[i+3:end])...) for i in 0:(n-2)])
 display_wd(single_exposure)
-save_wd(single_exposure, "single_crossexposure_overview.svg")
+save_wd(single_exposure, "$(n)gen_single_crossexposure_overview.svg")
 ngen_exposure = foldl(⋅, [single_exposure for i in 1:n])
 display_wd(ngen_exposure)
-save_wd(ngen_exposure, "ngen_crossexposure_overview.svg")
+save_wd(ngen_exposure, "$(n)gen_crossexposure_overview.svg")
 ngen_coexist = ngen_exposure ⋅ foldl(⊗, [coexist′ for i in 1:n])
 display_wd(ngen_coexist)
-save_wd(ngen_coexist, "ngen_coexist_overview.svg")
+save_wd(ngen_coexist, "$(n)gen_coexist_overview.svg")
 
 # Even more generalized diagram
 @present AllCoexist(FreeBiproductCategory) begin
