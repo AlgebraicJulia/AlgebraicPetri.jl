@@ -15,13 +15,25 @@ using Catlab.Programs
 using Catlab.CategoricalAlgebra.ShapeDiagrams
 using Catlab.WiringDiagrams
 using Catlab.Graphics
+using Catlab.Graphics.Graphviz: run_graphviz
 
 import Catlab.Theories: id
 
+# helper functions
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
-id(args...) = foldl((x,y)->id(x) ⊗ id(y), args);
+save_wd(ex, fname::AbstractString) = begin
+    g = display_wd(ex)
+    open(fname, "w") do io
+        run_graphviz(io, g, format="svg")
+    end
+end
+save_graph(g, fname::AbstractString) = begin
+    open(fname, "w") do io
+        run_graphviz(io, g, format="svg")
+    end
+end
 
-# #### Step 2: Extend the Infectious Disease presentation,
+# Extend the Infectious Disease presentation,
 # get the new generators, and update the functor
 
 @present EpiCoexist <: InfectiousDiseases begin
@@ -58,16 +70,6 @@ new_functor[death2] = new_functor[death]
 
 F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=new_functor);
 
-# ### COVID-19 TRAVEL MODEL:
-
-# SEIRD City Model with travel as S ⊗ E ⊗ I → S ⊗ E ⊗ I
-#
-# $seird_{city} = (((Δ(S) ⊗ id(E)) ⋅ (id(S) ⊗ σ(S,E))) ⊗ id(I)) ⋅ (id(S, E) ⊗ exposure) ⋅
-#                 (id(S) ⊗ (∇(E) ⋅ Δ(E)) ⊗ id(I)) ⋅ (id(S, E) ⊗ ((illness ⊗ id(I)) ⋅
-#                 (∇(I) ⋅ Δ(I)) ⋅ (id(I) ⊗ (Δ(I) ⋅(recovery ⊗ death))))) ⋅ (travel ⊗ ◊(R) ⊗ ◊(D))$
-#
-# This is a very complicated interaction, so we can use the program interface for easier model definition
-
 coexist = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::D) begin
     e_2 = exposure(s, i)
     e_3 = exposure_i2(s, i2)
@@ -90,7 +92,7 @@ coexist = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::
     return s, e_all, i_all, i2_all, a_all, r_all, r2_all, d_all
 end
 display_wd(coexist)
-
+save_wd(coexist, "coexist_wd.svg")
 coexist = to_hom_expr(FreeBiproductCategory, coexist)
 
 crossexposure = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::D,
@@ -100,26 +102,72 @@ crossexposure = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R
     e_4 = exposure_a(s, a′)
     e_5 = exposure_e(s, e′)
     e_all = [e, e_2, e_3, e_4, e_5]
-
-    e′_2 = exposure(s′, i)
-    e′_3 = exposure_i2(s′, i2)
-    e′_4 = exposure_a(s′, a)
-    e′_5 = exposure_e(s′, e_all)
-    e′_all = [e′, e′_2, e′_3, e′_4, e′_5]
     return s, e_all, i, i2, a, r, r2, d,
-           s′, e′_all, i′, i2′, a′, r′, r2′, d′
+           s′, e′, i′, i2′, a′, r′, r2′, d′
+    # braid the output to easily recurse
 end
 display_wd(crossexposure)
-
+save_wd(crossexposure, "crossexposure_wd.svg")
 crossexposure = to_hom_expr(FreeBiproductCategory, crossexposure)
 
+# 2 generation cross exposure + coexist model
 twogen = (coexist ⊗ coexist) ⋅ crossexposure
-
 display_wd(twogen)
-
-Graph(decoration(F(coexist ⊗ coexist)))
 Graph(decoration(F(twogen)))
 
+# n generation cross exposure + coexist model
+n = 5
+population = otimes(S, E, I, I2, A, R, R2, D)
+pops = [population for i in 1:n]
+
+single_exposure = foldl(⋅, [otimes(map(id, pops[1:i])...,crossexposure⋅σ(pops[i+1:i+2]...),map(id, pops[i+3:end])...) for i in 0:(n-2)])
+display_wd(single_exposure)
+save_wd(single_exposure, "single_crossexposure.svg")
+
+ngen_exposure = foldl(⋅, [single_exposure for i in 1:n])
+display_wd(ngen_exposure)
+save_wd(ngen_exposure, "ngen_crossexposure.svg")
+
+ngen_coexist = ngen_exposure ⋅ foldl(⊗, [coexist for i in 1:n])
+display_wd(ngen_coexist)
+save_wd(ngen_coexist, "ngen_coexist_wd.svg")
+
+save_graph(Graph(decoration(F(ngen_coexist))), "ngen_coexist_petri.svg")
+
+# Generate some simpler diagrams to expose the hierarchical structure
+@present CoexistOverview(FreeBiproductCategory) begin
+    Pop::Ob
+    coexist::Hom(Pop,Pop)
+    crossexposure::Hom(Pop⊗Pop,Pop⊗Pop)
+end
+pop′,coexist′,crossexposure′ = generators(CoexistOverview)
+n = 5
+pops = [pop′ for i in 1:n]
+single_exposure = foldl(⋅, [otimes(map(id, pops[1:i])...,crossexposure′⋅σ(pops[i+1:i+2]...),map(id, pops[i+3:end])...) for i in 0:(n-2)])
+display_wd(single_exposure)
+save_wd(single_exposure, "single_crossexposure_overview.svg")
+ngen_exposure = foldl(⋅, [single_exposure for i in 1:n])
+display_wd(ngen_exposure)
+save_wd(ngen_exposure, "ngen_crossexposure_overview.svg")
+ngen_coexist = ngen_exposure ⋅ foldl(⊗, [coexist′ for i in 1:n])
+display_wd(ngen_coexist)
+save_wd(ngen_coexist, "ngen_coexist_overview.svg")
+
+# Even more generalized diagram
+@present AllCoexist(FreeBiproductCategory) begin
+    TotalPop::Ob
+    AllCoexist::Hom(TotalPop,TotalPop)
+    AllCrossExposure::Hom(TotalPop,TotalPop)
+end
+allpop,allcoexist,allcrossexposure = generators(AllCoexist)
+all_coexist = allcrossexposure ⋅ allcoexist
+display_wd(all_coexist)
+save_wd(all_coexist, "all_coexist_wd.svg")
+
+
+# Attempt to compute solution to single generation COEXIST model
+
+# identify states and transitions
 # S_1 = S
 # S_2 = E
 # S_3 = R2
@@ -142,7 +190,6 @@ Graph(decoration(F(twogen)))
 # T_11 = death2 = recovery2 * fatality_hospital_ratio / 1 - fatality_hospital_ratio
 
 # Define time frame and initial parameters
-
 coexist_pc = F(coexist)
 coexist_petri = decoration(coexist_pc)
 Graph(coexist_petri)
@@ -155,10 +202,9 @@ fatality_rate = 0.146
 β = [0,0,0,0,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))]
 
 # Generate, solve, and visualize resulting ODE
-
 prob = ODEProblem(coexist_petri,u0,tspan,β);
 sol = solve(prob,Tsit5());
 
 plot(sol)
 
-map(x->x[3], sol.u)
+map(x->x[4], sol.u)
