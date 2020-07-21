@@ -6,6 +6,7 @@ using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 
 using Petri
+using LabelledArrays
 using OrdinaryDiffEq
 using Plots
 
@@ -32,6 +33,9 @@ save_graph(g, fname::AbstractString) = begin
         run_graphviz(io, g, format="svg")
     end
 end
+dictreplace(f::Dict{K,N}, d::Dict{K,V}) where {K,N,V} = Dict{N,V}(Base.map(x->Pair(f[x[1]], x[2]), collect(d))) # hide
+dictreplace(f::Dict, ts::Vector{Tuple{S,T}}) where {S<:Dict, T<:Dict} = [(dictreplace(f, t[1]), dictreplace(f, t[2])) for t in ts] # hide
+statereplace(m::Model, f::Dict{K,N}) where {K,N} = Petri.Model(map(s->f[s], m.S), dictreplace(f, m.Δ)) # hide
 
 # Extend the Infectious Disease presentation,
 # get the new generators, and update the functor
@@ -95,6 +99,8 @@ end
 # save_wd(coexist, "coexist_wd.svg")
 coexist = to_hom_expr(FreeBiproductCategory, coexist)
 
+#Graph(decoration(F(coexist)))
+
 crossexposure = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::D,
                                s′::S, e′::E, i′::I, i2′::I2, a′::A, r′::R, r2′::R2, d′::D) begin
     e_2 = exposure(s, i′)
@@ -104,9 +110,8 @@ crossexposure = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R
     e_all = [e, e_2, e_3, e_4, e_5]
     return s, e_all, i, i2, a, r, r2, d,
            s′, e′, i′, i2′, a′, r′, r2′, d′
-    # braid the output to easily recurse
 end
-# display_wd(crossexposure)
+#display_wd(crossexposure)
 # save_wd(crossexposure, "crossexposure_wd.svg")
 crossexposure = to_hom_expr(FreeBiproductCategory, crossexposure)
 
@@ -130,10 +135,11 @@ ngen_exposure = foldl(⋅, [single_exposure for i in 1:n])
 
 ngen_coexist = ngen_exposure ⋅ foldl(⊗, [coexist for i in 1:n])
 # display_wd(ngen_coexist)
-save_wd(ngen_coexist, "$(n)gen_coexist_wd.svg")
+#save_wd(ngen_coexist, "$(n)gen_coexist_wd.svg")
 
 ngen_coexist_petri = decoration(F(ngen_coexist))
-save_graph(Graph(ngen_coexist_petri), "$(n)gen_coexist_petri.svg")
+#Graph(ngen_coexist_petri)
+#save_graph(Graph(ngen_coexist_petri), "$(n)gen_coexist_petri.svg")
 
 # Generate some simpler diagrams to expose the hierarchical structure
 @present CoexistOverview(FreeBiproductCategory) begin
@@ -144,14 +150,14 @@ end
 pop′,coexist′,crossexposure′ = generators(CoexistOverview)
 pops = [pop′ for i in 1:n]
 single_exposure = foldl(⋅, [otimes(map(id, pops[1:i])...,crossexposure′⋅σ(pops[i+1:i+2]...),map(id, pops[i+3:end])...) for i in 0:(n-2)])
-display_wd(single_exposure)
-save_wd(single_exposure, "$(n)gen_single_crossexposure_overview.svg")
+#display_wd(single_exposure)
+#save_wd(single_exposure, "$(n)gen_single_crossexposure_overview.svg")
 ngen_exposure = foldl(⋅, [single_exposure for i in 1:n])
-display_wd(ngen_exposure)
-save_wd(ngen_exposure, "$(n)gen_crossexposure_overview.svg")
+#display_wd(ngen_exposure)
+#save_wd(ngen_exposure, "$(n)gen_crossexposure_overview.svg")
 ngen_coexist = ngen_exposure ⋅ foldl(⊗, [coexist′ for i in 1:n])
-display_wd(ngen_coexist)
-save_wd(ngen_coexist, "$(n)gen_coexist_overview.svg")
+#display_wd(ngen_coexist)
+#save_wd(ngen_coexist, "$(n)gen_coexist_overview.svg")
 
 # Even more generalized diagram
 @present AllCoexist(FreeBiproductCategory) begin
@@ -161,8 +167,8 @@ save_wd(ngen_coexist, "$(n)gen_coexist_overview.svg")
 end
 allpop,allcoexist,allcrossexposure = generators(AllCoexist)
 all_coexist = allcrossexposure ⋅ allcoexist
-display_wd(all_coexist)
-save_wd(all_coexist, "all_coexist_wd.svg")
+#display_wd(all_coexist)
+#save_wd(all_coexist, "all_coexist_wd.svg")
 
 
 # Attempt to compute solution to single generation COEXIST model
@@ -190,21 +196,26 @@ save_wd(all_coexist, "all_coexist_wd.svg")
 # T_11 = death2 = recovery2 * fatality_hospital_ratio / 1 - fatality_hospital_ratio
 
 # Define time frame and initial parameters
-coexist_pc = F(coexist)
-coexist_petri = decoration(coexist_pc)
-Graph(coexist_petri)
+coexist_petri = statereplace(decoration(F(coexist)), Dict(1=>:S,2=>:E,3=>:R2,4=>:D,5=>:I2,6=>:A,7=>:R,8=>:I))
+# Graph(coexist_petri)
 
 tspan = (0.0,150.0)
-u0 = zeros(Float64, base(coexist_pc).n)
-u0[2]  = 13000000
+u0 = Dict([Pair(s, 0) for s in coexist_petri.S])
+u0[:S]  = 57345080
+u0[:E]  = 1000
+u0[:I]  = 1000
+u0[:I2] = 1000
+u0[:A]  = 1000
+N = sum(values(u0))
 
+social_mixing_rate = 1.2232/N
+social_mixing_rate_with_distancing = 0.7748/N
 fatality_rate = 0.146
-β = [0,0,0,0,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))]
+β = [.001*social_mixing_rate,0.1*social_mixing_rate,0.6*social_mixing_rate,0.5*social_mixing_rate,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))]
 
-# Generate, solve, and visualize resulting ODE
 prob = ODEProblem(coexist_petri,u0,tspan,β);
 sol = solve(prob,Tsit5());
 
 plot(sol)
 
-map(x->x[4], sol.u)
+map(x->x.D, sol.u)
