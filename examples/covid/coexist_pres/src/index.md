@@ -134,9 +134,13 @@ FunctorGenerators = Dict(S=>ob, E=>ob, I=>ob, R=>ob, D=>ob,
 
 ```@example coexist
 sir = transmission ⋅ recovery
-sir_petri = statereplace(decoration(F_epi(sir)), Dict(1=>:S,2=>:I,3=>:R)); # hide
-save_graph(Graph(sir_petri), "sir_petri.svg"); # hide
-save_wd(sir, "sir_wd.svg"); # hide
+nothing # hide
+```
+
+```@setup coexist
+sir_petri = statereplace(decoration(F_epi(sir)), Dict(1=>:S,2=>:I,3=>:R))
+save_graph(Graph(sir_petri), "sir_petri.svg")
+save_wd(sir, "sir_wd.svg")
 ```
 
 <br/><br/>.center[![](sir_wd.svg)]
@@ -154,10 +158,14 @@ seir = @program InfectiousDiseases (s::S,i::I) begin
   i_all = [i,i2]
   return recovery(i_all)
 end
-seir =  to_hom_expr(FreeBiproductCategory, seir); # hide
-seir_petri = statereplace(decoration(F_epi(seir)), Dict(1=>S,2=>E,3=>I,4=>R)); # hide
-save_graph(Graph(seir_petri), "seir_petri.svg"); # hide
-save_wd(seir, "seir_wd.svg"); # hide
+nothing # hide
+```
+
+```@setup coexist
+seir =  to_hom_expr(FreeBiproductCategory, seir)
+seir_petri = statereplace(decoration(F_epi(seir)), Dict(1=>S,2=>E,3=>I,4=>R))
+save_graph(Graph(seir_petri), "seir_petri.svg")
+save_wd(seir, "seir_wd.svg")
 ```
 
 .center[![](seir_wd.svg)]
@@ -189,12 +197,16 @@ coexist = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::
     r2_all = [r2, r2_2]
     d_all = [d, d_2]
     return s, e_all, i_all, i2_all, a_all, r_all, r2_all, d_all
-end;
-save_wd(coexist, "coexist_wd.svg"); # hide
-coexist =  to_hom_expr(FreeBiproductCategory, coexist); # hide
-coexist_petri = decoration(F(coexist)); # hide
+end
+nothing # hide
+```
+
+```@setup coexist
+save_wd(coexist, "coexist_wd.svg")
+coexist =  to_hom_expr(FreeBiproductCategory, coexist)
+coexist_petri = decoration(F(coexist))
 coexist_petri = statereplace(coexist_petri, Dict(1=>:S,2=>:E,3=>:R2,4=>:D,5=>:I2,6=>:A,7=>:R,8=>:I))
-save_graph(Graph(coexist_petri), "coexist_petri.svg"); # hide
+save_graph(Graph(coexist_petri), "coexist_petri.svg")
 ```
 
 ---
@@ -208,24 +220,27 @@ save_graph(Graph(coexist_petri), "coexist_petri.svg"); # hide
 # Simulate the Model
 
 ```@example coexist
-tspan = (0.0,200.0) # hide
 u0 = LVector(;zip(coexist_petri.S, zeros(length(coexist_petri.S)))...) # hide
 u0.S  = 57345080
 u0.E  = 1000
 u0.I  = 1000
 u0.I2 = 1000
 u0.A  = 1000
+nothing # hide
+```
 
-social_mixing_rate = 1.2232/sum(u0) # hide
-social_mixing_rate_with_distancing = 0.7748/sum(u0) # hide
-fatality_rate = 0.146 # hide
-β = [.001*social_mixing_rate,0.1*social_mixing_rate,0.6*social_mixing_rate,0.5*social_mixing_rate,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))] # hide
+```@setup coexist
+tspan = (0.0,200.0)
+social_mixing_rate = 1.2232/sum(u0)
+social_mixing_rate_with_distancing = 0.7748/sum(u0)
+fatality_rate = 0.146
+β = [.001*social_mixing_rate,0.1*social_mixing_rate,0.6*social_mixing_rate,0.5*social_mixing_rate,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))]
 
-prob = ODEProblem(coexist_petri,u0,tspan,β); # hide
-sol = solve(prob,Tsit5()); # hide
+prob = ODEProblem(coexist_petri,u0,tspan,β)
+sol = solve(prob,Tsit5())
 
-plot(sol) # hide
-savefig("sol_plot.svg"); # hide
+plot(sol)
+savefig("sol_plot.svg")
 ```
 
 .center[![](sol_plot.svg)]
@@ -244,18 +259,22 @@ crossexposure = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R
     e_all = [e, e_2, e_3, e_4, e_5]
     return s, e_all, i, i2, a, r, r2, d,
            s′, e′, i′, i2′, a′, r′, r2′, d′
-end;
-save_wd(crossexposure, "crossexposure_wd.svg"); # hide
-crossexposure = to_hom_expr(FreeBiproductCategory, crossexposure); #hide
+end
+nothing # hide
+```
 
-@present CoexistOverview(FreeBiproductCategory) begin # hide
-    Pop::Ob # hide
-    coexist::Hom(Pop,Pop) # hide
-    crossexposure::Hom(Pop⊗Pop,Pop⊗Pop) # hide
-end; # hide
-pop′,coexist′,crossexposure′ = generators(CoexistOverview); # hide
-twogen′ = crossexposure′ ⋅ σ(pop′, pop′) ⋅ crossexposure′ ⋅ (coexist′ ⊗ coexist′); # hide
-save_wd(twogen′, "twogen_overview_wd.svg"); # hide
+```@setup coexist
+save_wd(crossexposure, "crossexposure_wd.svg")
+crossexposure = to_hom_expr(FreeBiproductCategory, crossexposure)
+
+@present CoexistOverview(FreeBiproductCategory) begin
+    Pop::Ob
+    coexist::Hom(Pop,Pop)
+    crossexposure::Hom(Pop⊗Pop,Pop⊗Pop)
+end
+pop′,coexist′,crossexposure′ = generators(CoexistOverview)
+twogen′ = crossexposure′ ⋅ σ(pop′, pop′) ⋅ crossexposure′ ⋅ (coexist′ ⊗ coexist′)
+save_wd(twogen′, "twogen_overview_wd.svg")
 ```
 
 <br/><br/>
@@ -263,14 +282,14 @@ save_wd(twogen′, "twogen_overview_wd.svg"); # hide
 
 ---
 
-```@example coexist
-population = otimes(S, E, I, I2, A, R, R2, D); # hide
-twogen = crossexposure ⋅ σ(population, population) ⋅ crossexposure ⋅ (coexist ⊗ coexist); # hide
-twogen_petri = decoration(F(twogen)); # hide
-twogen_petri = statereplace(twogen_petri, Dict(1=>:S,2=>:E,3=>:I,4=>:I2,5=>:A,6=>:R,7=>:R2,8=>:D, # hide
-                                               9=>:S′,10=>:E′,11=>:I′,12=>:I2′,13=>:A′,14=>:R′,15=>:R2′,16=>:D′)); # hide
-save_wd(twogen, "twogen_wd.svg"); # hide
-save_graph(Graph(twogen_petri), "twogen_petri.svg"); # hide
+```@setup coexist
+population = otimes(S, E, I, I2, A, R, R2, D)
+twogen = crossexposure ⋅ σ(population, population) ⋅ crossexposure ⋅ (coexist ⊗ coexist)
+twogen_petri = decoration(F(twogen))
+twogen_petri = statereplace(twogen_petri, Dict(1=>:S,2=>:E,3=>:I,4=>:I2,5=>:A,6=>:R,7=>:R2,8=>:D,
+                                               9=>:S′,10=>:E′,11=>:I′,12=>:I2′,13=>:A′,14=>:R′,15=>:R2′,16=>:D′))
+save_wd(twogen, "twogen_wd.svg")
+save_graph(Graph(twogen_petri), "twogen_petri.svg")
 ```
 
 .center[<img src="twogen_petri.svg" width=90%>]
