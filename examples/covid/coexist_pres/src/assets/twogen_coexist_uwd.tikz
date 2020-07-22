@@ -8,16 +8,13 @@
 		\node [style=none] (5) at (-1, -1.5) {};
 		\node [style=none] (6) at (-2.75, 0) {};
 		\node [style=none] (7) at (2.75, 0) {};
-		\node [style=Hom1x3] (8) at (0, 2.25) {$crossexposure$};
-		\node [style=Hom1x3] (10) at (-4, 0) {$coexist$};
-		\node [style=Hom1x3] (11) at (4, 0) {$coexist$};
-		\node [style=Hom1x3] (12) at (0, -2.5) {$crossexposure$};
-		\node [style=none] (13) at (-5.75, 3.75) {};
-		\node [style=none] (14) at (-5.75, -4) {};
-		\node [style=none] (15) at (5.75, -4) {};
-		\node [style=none] (16) at (5.75, 3.75) {};
-		\node [style=none] (17) at (-6, -1.5) {};
-		\node [style=none] (18) at (6, -1.5) {};
+		\node [style={Hom1x3_rounded}] (8) at (0, 2.25) {$crossexposure$};
+		\node [style={Hom1x3_rounded}] (10) at (-4, 0) {$coexist$};
+		\node [style={Hom1x3_rounded}] (11) at (4, 0) {$coexist$};
+		\node [style={Hom1x3_rounded}] (12) at (0, -2.5) {$crossexposure$};
+		\node [style=none] (17) at (-6.5, -1.5) {};
+		\node [style=none] (18) at (6.5, -1.5) {};
+		\node [style=outerframe] (19) at (0, 0) {};
 	\end{pgfonlayer}
 	\begin{pgfonlayer}{edgelayer}
 		\draw (0) to (2.center);
@@ -26,10 +23,6 @@
 		\draw [in=90, out=-90, looseness=0.75] (0) to (4.center);
 		\draw (0) to (6.center);
 		\draw (1) to (7.center);
-		\draw (13.center) to (14.center);
-		\draw (14.center) to (15.center);
-		\draw (15.center) to (16.center);
-		\draw (16.center) to (13.center);
 		\draw [in=0, out=-90, looseness=0.50] (0) to (17.center);
 		\draw [in=-180, out=-90, looseness=0.50] (1) to (18.center);
 	\end{pgfonlayer}
