@@ -293,3 +293,14 @@ save_graph(Graph(twogen_petri), "twogen_petri.svg")
 ```
 
 .center[<img src="twogen_petri.svg" width=90%>]
+
+---
+
+# Undirected Wiring Diagrams
+
+.center[
+![](twogen_overview_wd.svg)
+
+<br/>
+<img src="assets/twogen\_coexist\_uwd.png" width=50%>
+]
