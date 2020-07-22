@@ -304,3 +304,17 @@ save_graph(Graph(twogen_petri), "twogen_petri.svg")
 <br/>
 <img src="assets/twogen\_coexist\_uwd.png" width=50%>
 ]
+
+---
+
+### Coexist:
+
+.center[
+<img src="assets/coexist\_uwd.png" width=50%>
+]
+
+### Cross Exposure:
+
+.center[
+<img src="assets/crossexposure\_uwd.png" width=50%>
+]
