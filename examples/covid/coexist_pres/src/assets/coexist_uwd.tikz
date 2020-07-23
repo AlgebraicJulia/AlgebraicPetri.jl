@@ -67,7 +67,7 @@
 		\draw (16) to (28.center);
 		\draw (30.center) to (27);
 		\draw [in=0, out=135, looseness=1.25] (27) to (29.center);
-		\draw (33.center) to (16);
+		\draw [in=75, out=-180, looseness=1.25] (33.center) to (16);
 		\draw (32.center) to (26);
 		\draw [in=150, out=0, looseness=1.50] (36.center) to (25);
 		\draw (34.center) to (26);
