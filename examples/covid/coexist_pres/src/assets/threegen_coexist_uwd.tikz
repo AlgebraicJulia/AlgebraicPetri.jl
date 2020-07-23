@@ -1,0 +1,55 @@
+\begin{tikzpicture}
+	\begin{pgfonlayer}{nodelayer}
+		\node [style=none] (7) at (4.5, -3) {};
+		\node [style={Hom1x3_rounded}] (8) at (-5, 6.25) {$crossexposure$};
+		\node [style={Hom1x3_rounded}] (11) at (5.75, -3) {$coexist$};
+		\node [style={Hom1x3_rounded}] (12) at (-5, 3.75) {$crossexposure$};
+		\node [style={Hom1x3_rounded}] (20) at (-5, 1.25) {$crossexposure$};
+		\node [style=none] (21) at (-3, 6.5) {};
+		\node [style=none] (22) at (-3, 6) {};
+		\node [style=none] (23) at (-3, 4) {};
+		\node [style=none] (24) at (-3, 3.5) {};
+		\node [style=none] (25) at (-3, 1.5) {};
+		\node [style=none] (26) at (-3, 1) {};
+		\node [style=finsetdot] (27) at (2, 3) {};
+		\node [style=finsetdot] (28) at (2, 0) {};
+		\node [style=finsetdot] (29) at (2, -3) {};
+		\node [style={Hom1x3_rounded}] (30) at (-5, -1.25) {$crossexposure$};
+		\node [style={Hom1x3_rounded}] (31) at (-5, -3.75) {$crossexposure$};
+		\node [style={Hom1x3_rounded}] (32) at (-5, -6.25) {$crossexposure$};
+		\node [style=none] (33) at (-3, -1) {};
+		\node [style=none] (34) at (-3, -1.5) {};
+		\node [style=none] (35) at (-3, -3.5) {};
+		\node [style=none] (36) at (-3, -4) {};
+		\node [style=none] (37) at (-3, -6) {};
+		\node [style=none] (38) at (-3, -6.5) {};
+		\node [style=none] (39) at (4.5, 0) {};
+		\node [style={Hom1x3_rounded}] (40) at (5.75, 0) {$coexist$};
+		\node [style=none] (41) at (4.5, 3) {};
+		\node [style={Hom1x3_rounded}] (42) at (5.75, 3) {$coexist$};
+		\node [style=outerbox8x4] (43) at (0, 0) {};
+		\node [style=none] (44) at (8.5, -4.5) {};
+		\node [style=none] (45) at (8.5, -1.5) {};
+		\node [style=none] (46) at (8.5, 1.5) {};
+	\end{pgfonlayer}
+	\begin{pgfonlayer}{edgelayer}
+		\draw [in=0, out=135, looseness=1.25] (27) to (21.center);
+		\draw [in=0, out=165] (27) to (23.center);
+		\draw [in=0, out=165] (28) to (25.center);
+		\draw [in=0, out=-150, looseness=0.75] (28) to (33.center);
+		\draw [in=0, out=-180] (29) to (35.center);
+		\draw [in=0, out=-105] (29) to (37.center);
+		\draw [in=0, out=-105] (28) to (38.center);
+		\draw [in=0, out=-120, looseness=0.75] (27) to (36.center);
+		\draw [in=0, out=-150] (27) to (26.center);
+		\draw [in=0, out=150, looseness=1.25] (29) to (34.center);
+		\draw [in=0, out=120, looseness=0.75] (29) to (24.center);
+		\draw [in=0, out=120] (28) to (22.center);
+		\draw (27) to (41.center);
+		\draw (39.center) to (28);
+		\draw (7.center) to (29);
+		\draw [in=-180, out=-60, looseness=0.75] (29) to (44.center);
+		\draw [in=-180, out=-60, looseness=0.75] (28) to (45.center);
+		\draw [in=180, out=-60, looseness=0.75] (27) to (46.center);
+	\end{pgfonlayer}
+\end{tikzpicture}

@@ -35,14 +35,15 @@ using Catlab.Graphics;
 using Catlab.Graphics.Graphviz: run_graphviz;
 ⊗ = otimes;
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
+mkdir("figs")
 save_wd(ex, fname::AbstractString) = begin
     g = display_wd(ex)
-    open(fname, "w") do io
+    open(joinpath("figs", fname), "w") do io
         run_graphviz(io, g, format="svg")
     end
 end;
 save_graph(g, fname::AbstractString) = begin
-    open(fname, "w") do io
+    open(joinpath("figs", fname), "w") do io
         run_graphviz(io, g, format="svg")
     end
 end;
@@ -121,12 +122,12 @@ FunctorGenerators = Dict(S=>ob, E=>ob, I=>ob, R=>ob, D=>ob,
 
 ### Epidemiology Building Blocks
 
-|    Algebraic Expression   |              Wiring Diagram              |                  Petri Net                  |
-|:-------------------------:|:----------------------------------------:|:-------------------------------------------:|
-|      $illness: E → I$     |    <img width=50 />![](illness_wd.svg)   |    <img width=50 />![](illness_petri.svg)   |
-| $transmission: S ⊗ I → I$ | <img width=50 />![](transmission_wd.svg) | <img width=50 />![](transmission_petri.svg) |
-|   $exposure: S ⊗ I → E$   |   <img width=50 />![](exposure_wd.svg)   |   <img width=50 />![](exposure_petri.svg)   |
-|     $recovery: I → R$     |   <img width=50 />![](recovery_wd.svg)   |   <img width=50 />![](recovery_petri.svg)   |
+|    Algebraic Expression   |                 Wiring Diagram                |                     Petri Net                    |
+|:-------------------------:|:---------------------------------------------:|:------------------------------------------------:|
+|      $illness: E → I$     |    <img width=50 />![](figs/illness_wd.svg)   |    <img width=50 />![](figs/illness_petri.svg)   |
+| $transmission: S ⊗ I → I$ | <img width=50 />![](figs/transmission_wd.svg) | <img width=50 />![](figs/transmission_petri.svg) |
+|   $exposure: S ⊗ I → E$   |   <img width=50 />![](figs/exposure_wd.svg)   |   <img width=50 />![](figs/exposure_petri.svg)   |
+|     $recovery: I → R$     |   <img width=50 />![](figs/recovery_wd.svg)   |   <img width=50 />![](figs/recovery_petri.svg)   |
 
 ---
 
@@ -143,9 +144,9 @@ save_graph(Graph(sir_petri), "sir_petri.svg")
 save_wd(sir, "sir_wd.svg")
 ```
 
-<br/><br/>.center[![](sir_wd.svg)]
+<br/><br/>.center[![](figs/sir_wd.svg)]
 
-<br/><br/>.center[![](sir_petri.svg)]
+<br/><br/>.center[![](figs/sir_petri.svg)]
 
 ---
 
@@ -168,13 +169,43 @@ save_graph(Graph(seir_petri), "seir_petri.svg")
 save_wd(seir, "seir_wd.svg")
 ```
 
-.center[![](seir_wd.svg)]
+.center[![](figs/seir_wd.svg)]
 
-.center[![](seir_petri.svg)]
+.center[![](figs/seir_petri.svg)]
+
+---
+
+# COEXIST COVID-19 Model
+
+.center[
+<br/>
+<img src="assets/coexist.png" width=80%>
+]
 
 ---
 
 # Extend Basic Epidemiology
+
+```julia
+@present EpiCoexist <: InfectiousDiseases begin
+    I2::Ob
+    A::Ob
+    R2::Ob
+    exposure_e::Hom(S⊗E,E)
+    exposure_i2::Hom(S⊗I2,E)
+    exposure_a::Hom(S⊗A,E)
+    progression::Hom(I,I2)
+    asymptomatic_infection::Hom(E,A)
+    recover_late::Hom(R,R2)
+    asymptomatic_recovery::Hom(A,R)
+    recovery2::Hom(I2,R)
+    death2::Hom(I2,D)
+end;
+```
+
+---
+
+# Defining COEXIST
 
 ```@example coexist
 coexist = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::D) begin
@@ -213,7 +244,7 @@ save_graph(Graph(coexist_petri), "coexist_petri.svg")
 
 # COEXIST SEIRD Model Petri Net
 
-<img src="coexist_petri.svg" width=100%>
+.center[<img src="figs/coexist_petri.svg" width=100%>]
 
 ---
 
@@ -240,10 +271,10 @@ prob = ODEProblem(coexist_petri,u0,tspan,β)
 sol = solve(prob,Tsit5())
 
 plot(sol)
-savefig("sol_plot.svg")
+savefig(joinpath("figs","sol_plot.svg"))
 ```
 
-.center[![](sol_plot.svg)]
+.center[![](figs/sol_plot.svg)]
 
 ---
 
@@ -278,7 +309,7 @@ save_wd(twogen′, "twogen_overview_wd.svg")
 ```
 
 <br/><br/>
-.center[![](twogen_overview_wd.svg)]
+.center[![](figs/twogen_overview_wd.svg)]
 
 ---
 
@@ -292,7 +323,16 @@ save_wd(twogen, "twogen_wd.svg")
 save_graph(Graph(twogen_petri), "twogen_petri.svg")
 ```
 
-.center[<img src="twogen_petri.svg" width=90%>]
+.center[<img src="figs/twogen_petri.svg" width=90%>]
+
+---
+
+# Petri Nets with Rates
+
+.center[
+<br/>
+<img src="assets/petri\_with\_rates.png" width=50%>
+]
 
 ---
 
@@ -303,6 +343,14 @@ save_graph(Graph(twogen_petri), "twogen_petri.svg")
 
 <br/>
 <img src="assets/twogen\_coexist\_uwd.png" width=50%>
+]
+
+---
+
+# $\mathcal{N}$-Generational COEXIST Model
+
+.center[
+<img src="assets/threegen\_coexist\_uwd.png" width=45%>
 ]
 
 ---
@@ -318,3 +366,33 @@ save_graph(Graph(twogen_petri), "twogen_petri.svg")
 .center[
 <img src="assets/crossexposure\_uwd.png" width=50%>
 ]
+
+---
+
+# Relation Syntax
+
+```julia
+coexist = @relation (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::D) begin
+    exposure(s, i, e)
+    exposure(s, i2, e)
+    exposure(s, a, e)
+    exposure(s, e, e)
+    illness(e, a)
+    illness(e, i)
+    progression(i, i2)
+    death(i2, d)
+    recovery(a, r)
+    recovery(i2, r)
+    progression(r, r2)
+end
+```
+
+```julia
+crossexposure = @relation (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::D,
+                           s′::S, e′::E, i′::I, i2′::I2, a′::A, r′::R, r2′::R2, d′::D) begin
+    exposure(s, i′, e)
+    exposure(s, i2′, e)
+    exposure(s, a′, e)
+    exposure(s, e′, e)
+end
+```
