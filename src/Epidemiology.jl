@@ -8,9 +8,9 @@ using Catlab.Theories
 export InfectiousDiseases, FunctorGenerators, F_epi, S, E, I, R, D, transmission, exposure, illness, recovery, death
 
 ob = PetriCospanOb(1)
-spontaneous_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1), Dict(2=>1))]), [2])
-transmission_petri = PetriCospan([1,2], Petri.Model(1:2, [(Dict(1=>1, 2=>1), Dict(2=>2))]), [2])
-exposure_petri = PetriCospan([1, 2], Petri.Model(1:3, [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))]), [3])
+spontaneous_petri = PetriCospan([1], PetriWithRates(1:2, [(Dict(1=>1), Dict(2=>1))], [0], [0,0]), [2])
+transmission_petri = PetriCospan([1,2], PetriWithRates(1:2, [(Dict(1=>1, 2=>1), Dict(2=>2))], [0], [0,0]), [2])
+exposure_petri = PetriCospan([1, 2], PetriWithRates(1:3, [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))], [0], [0,0,0]), [3])
 
 """ InfectiousDiseases
 """

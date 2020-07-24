@@ -35,7 +35,17 @@ save_graph(g, fname::AbstractString) = begin
 end
 dictreplace(f::Dict{K,N}, d::Dict{K,V}) where {K,N,V} = Dict{N,V}(Base.map(x->Pair(f[x[1]], x[2]), collect(d))) # hide
 dictreplace(f::Dict, ts::Vector{Tuple{S,T}}) where {S<:Dict, T<:Dict} = [(dictreplace(f, t[1]), dictreplace(f, t[2])) for t in ts] # hide
-statereplace(m::Model, f::Dict{K,N}) where {K,N} = Petri.Model(map(s->f[s], m.S), dictreplace(f, m.Δ)) # hide
+statereplace(p::PetriWithRates, f::Dict{K,N}) where {K,N} = begin
+    S = map(s->f[s], p.m.S)
+    u0 = LVector(;zip(S, zeros(length(S)))...)
+    map(k->u0[f[k]] = p.u0[k], keys(p.u0))
+    PetriWithRates(S, dictreplace(f, p.m.Δ), p.rates, u0) # hide
+end
+
+pob = PetriCospanOb(1)
+spontaneous_petri(rate, u0) = PetriCospan([1], PetriWithRates(1:2, [(Dict(1=>1), Dict(2=>1))], [rate], u0), [2])
+transmission_petri(rate, u0) = PetriCospan([1,2], PetriWithRates(1:2, [(Dict(1=>1, 2=>1), Dict(2=>2))], [rate], u0), [2])
+exposure_petri(rate, u0) = PetriCospan([1, 2], PetriWithRates(1:3, [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))], [rate], u0), [3])
 
 # Extend the Infectious Disease presentation,
 # get the new generators, and update the functor
@@ -55,24 +65,36 @@ statereplace(m::Model, f::Dict{K,N}) where {K,N} = Petri.Model(map(s->f[s], m.S)
     death2::Hom(I2,D)
 end;
 
-generators(EpiCoexist)
-
 S,E,I,R,D,I2,A,R2,transmission,exposure,illness,recovery,death,exposure_e,exposure_i2,exposure_a,progression,asymptomatic_infection,recover_late,asymptomatic_recovery,recovery2, death2 = generators(EpiCoexist);
-new_functor = copy(FunctorGenerators)
-new_functor[I2] = new_functor[I]
-new_functor[A] = new_functor[E]
-new_functor[R2] = new_functor[R]
-new_functor[exposure_e] = new_functor[exposure]
-new_functor[exposure_i2] = new_functor[exposure]
-new_functor[exposure_a] = new_functor[exposure]
-new_functor[progression] = new_functor[illness]
-new_functor[asymptomatic_infection] = new_functor[illness]
-new_functor[asymptomatic_recovery] = new_functor[recovery]
-new_functor[recover_late] = new_functor[recovery]
-new_functor[recovery2] = new_functor[recovery]
-new_functor[death2] = new_functor[death]
 
-F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=new_functor);
+pop = [33540260 - 4*1000, 30895128 - 4*1000, 0]
+N = sum(pop) + 2*4*1000
+social_mixing_rate = [2.3276/N, 1.2015/N, .93828/N]
+fatality_rate = [0.0281, 0.1868, 0]
+
+F(ex, n) = functor((PetriCospanOb, PetriCospan), ex, generators=Dict(
+    S=>pob,
+    E=>pob,
+    A=>pob,
+    I=>pob,
+    I2=>pob,
+    R=>pob,
+    R2=>pob,
+    D=>pob,
+    transmission=>transmission_petri(0, [0,0]),
+    exposure=>exposure_petri(.1*social_mixing_rate[n], [pop[n],1000, 0]),
+    exposure_e=>exposure_petri(.001*social_mixing_rate[n], [0,1000,0]),
+    exposure_i2=>exposure_petri(.6*social_mixing_rate[n], [0,1000,0]),
+    exposure_a=>exposure_petri(.5*social_mixing_rate[n], [0,1000,0]),
+    progression=>spontaneous_petri(.25, [0,0]),
+    asymptomatic_infection=>spontaneous_petri(.86/.14*.2, [0,0]),
+    illness=>spontaneous_petri(.2, [0,0]),
+    asymptomatic_recovery=>spontaneous_petri(1/15,[0,0]),
+    recovery=>spontaneous_petri(0,[0,0]),
+    recovery2=>spontaneous_petri(1/6,[0,0]),
+    recover_late=>spontaneous_petri(1/15,[0,0]),
+    death=>spontaneous_petri(0,[0,0]),
+    death2=>spontaneous_petri((1/15)*(fatality_rate[n]/(1-fatality_rate[n])),[0,0])))
 
 coexist = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::D) begin
     e_2 = exposure(s, i)
@@ -99,7 +121,13 @@ end
 # save_wd(coexist, "coexist_wd.svg")
 coexist = to_hom_expr(FreeBiproductCategory, coexist)
 
-#Graph(decoration(F(coexist)))
+coexist_petri = decoration(F(coexist, 1))
+coexist_petri = statereplace(coexist_petri, Dict(1=>:S,2=>:E,3=>:R2,4=>:D,5=>:I2,6=>:A,7=>:R,8=>:I))
+tspan = (0.0,150.0)
+prob = ODEProblem(coexist_petri.m,coexist_petri.u0,tspan,coexist_petri.rates)
+sol = solve(prob,Tsit5())
+
+plot(sol)
 
 crossexposure = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::D,
                                s′::S, e′::E, i′::I, i2′::I2, a′::A, r′::R, r2′::R2, d′::D) begin
@@ -111,12 +139,30 @@ crossexposure = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R
     return s, e_all, i, i2, a, r, r2, d,
            s′, e′, i′, i2′, a′, r′, r2′, d′
 end
-#display_wd(crossexposure)
-# save_wd(crossexposure, "crossexposure_wd.svg")
 crossexposure = to_hom_expr(FreeBiproductCategory, crossexposure)
 
+#display_wd(crossexposure)
+# save_wd(crossexposure, "crossexposure_wd.svg")
+
 # 2 generation cross exposure + coexist model
-twogen = (coexist ⊗ coexist) ⋅ crossexposure
+population = otimes(S, E, I, I2, A, R, R2, D)
+pop_hom = F(population, 1)
+co_1 = F(coexist, 1)
+co_2 = F(coexist, 2)
+cross = F(crossexposure, 3)
+twogen = cross ⋅ σ(pop_hom, pop_hom) ⋅ cross ⋅ (co_1 ⊗ co_2)
+
+twogen_petri = decoration(twogen)
+twogen_petri = statereplace(twogen_petri, Dict(1=>:S,2=>:E,3=>:I,4=>:I2,5=>:A,6=>:R,7=>:R2,8=>:D,
+                                               9=>:S′,10=>:E′,11=>:I′,12=>:I2′,13=>:A′,14=>:R′,15=>:R2′,16=>:D′))
+tspan = (0.0,150.0)
+prob = ODEProblem(twogen_petri.m,twogen_petri.u0,tspan,twogen_petri.rates)
+sol = solve(prob,Tsit5())
+
+plot(sol)
+
+sol_total = transpose(hcat([[s[:S] + s[:S′], s[:E] + s[:E′], s[:A] + s[:A′], s[:I] + s[:I′], s[:I2] + s[:I2′], s[:R] + s[:R′], s[:R2] + s[:R2′], s[:D] + s[:D′]] for s in sol.u]...))
+plot(sol.t, sol_total, label=["S" "E" "A" "I" "I2" "R" "R2" "D"])
 # display_wd(twogen)
 # Graph(decoration(F(twogen)))
 
@@ -137,7 +183,7 @@ ngen_coexist = ngen_exposure ⋅ foldl(⊗, [coexist for i in 1:n])
 # display_wd(ngen_coexist)
 #save_wd(ngen_coexist, "$(n)gen_coexist_wd.svg")
 
-ngen_coexist_petri = decoration(F(ngen_coexist))
+ngen_coexist_petri = decoration(F(ngen_coexist, 1))
 #Graph(ngen_coexist_petri)
 #save_graph(Graph(ngen_coexist_petri), "$(n)gen_coexist_petri.svg")
 
@@ -173,49 +219,42 @@ all_coexist = allcrossexposure ⋅ allcoexist
 
 # Attempt to compute solution to single generation COEXIST model
 
-# identify states and transitions
-# S_1 = S
-# S_2 = E
-# S_3 = R2
-# S_4 = D
-# S_5 = I2
-# S_6 = A
-# S_7 = R1
-# S_8 = I1
-
-# T_1 = exposure_e
-# T_2 = exposure_i1
-# T_3 = exposure_i2
-# T_4 = exposure_a
-# T_5 = progression = 1/4
-# T_6 = asymptomatic_infection = 0.86/0.14 * .2
-# T_7 = recovery2 = 1/(10-4)
-# T_8 = asymptomatic_recovery = 1/15
-# T_9 = illness = 1/5
-# T_10 = recover_late = 1/15
-# T_11 = death2 = recovery2 * fatality_hospital_ratio / 1 - fatality_hospital_ratio
 
 # Define time frame and initial parameters
-coexist_petri = statereplace(decoration(F(coexist)), Dict(1=>:S,2=>:E,3=>:R2,4=>:D,5=>:I2,6=>:A,7=>:R,8=>:I))
-# Graph(coexist_petri)
+coexist_pc = F(coexist)
+coexist_petri = decoration(coexist_pc)
+#Graph(coexist_petri)
 
 tspan = (0.0,150.0)
-u0 = Dict([Pair(s, 0) for s in coexist_petri.S])
-u0[:S]  = 57345080
-u0[:E]  = 1000
-u0[:I]  = 1000
-u0[:I2] = 1000
-u0[:A]  = 1000
-N = sum(values(u0))
+u0 = zeros(Float64, base(coexist_pc).n)
+u0[2]  = 13000000
 
-social_mixing_rate = 1.2232/N
-social_mixing_rate_with_distancing = 0.7748/N
 fatality_rate = 0.146
-β = [.001*social_mixing_rate,0.1*social_mixing_rate,0.6*social_mixing_rate,0.5*social_mixing_rate,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))]
+β = [0,0,0,0,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))]
 
+# Generate, solve, and visualize resulting ODE
 prob = ODEProblem(coexist_petri,u0,tspan,β);
 sol = solve(prob,Tsit5());
 
 plot(sol)
 
-map(x->x.D, sol.u)
+map(x->x[4], sol.u)
+
+coexist_petri2 = statereplace(coexist_petri, Dict(1=>:S,2=>:E,3=>:R2,4=>:D,5=>:I2,6=>:A,7=>:R,8=>:I))
+Graph(coexist_petri2)
+u0 = LVector([s=0 for s in coexist_petri2.S]...)
+u0[:S]  = 57345080
+u0[:E]  = 1000
+u0[:I]  = 1000
+u0[:I2] = 1000
+u0[:A]  = 1000
+N = sum(u0)
+
+β = [.001*social_mixing_rate,0.1*social_mixing_rate,0.6*social_mixing_rate,0.5*social_mixing_rate,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))] # hide
+
+tspan = (0.0,150.0)
+prob = ODEProblem(coexist_petri2,u0,tspan,β); # hide
+sol = solve(prob,Tsit5()); # hide
+
+coexist_petri2.Δ
+u0

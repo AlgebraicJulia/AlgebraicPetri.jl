@@ -1,7 +1,7 @@
 """ Computing in the category of finite sets and Petri cospans
 """
 module AlgebraicPetri
-export PetriCospanOb, PetriFunctor, PetriCospan, PetriWithRates
+export PetriCospanOb, PetriFunctor, PetriCospan
 
 using Catlab.GAT
 using Catlab.Theories: BiproductCategory
@@ -27,15 +27,6 @@ Base.eachindex(X::PetriCospanOb) = 1:X.n
 struct PetriDecorator <: AbstractFunctor end
 struct PetriLaxator <: AbstractLaxator end
 
-@auto_hash_equals struct PetriWithRates
-    m::Petri.Model
-    rates
-    u0
-end
-
-PetriWithRates(s, Δ, rates, u0) = PetriWithRates(Petri.Model(s, Δ), rates, u0)
-EmptyPetriWithRates(n::Int) = PetriWithRates(EmptyPetri(n), [], zeros(Number, n))
-
 """ Petri Functor
 
 A functor from FinOrd to Petri defined as a PetriDecorator and a PetriLaxator
@@ -53,7 +44,7 @@ element is in the set. Here we take any julia value and test whether it is a
 Petri net on n states.
 """
 function (pd::PetriDecorator)(n::FinOrd)
-    return p -> typeof(p) <: PetriWithRates && length(p.m.S) == n.n
+    return p -> typeof(p) <: Petri.Model && length(p.S) == n.n
 end
 
 map(f::Function, d::Dict{K,V}) where {K,V} = begin
@@ -78,11 +69,7 @@ here we implement this as a function that takes a Petri net of size n to a Petri
 net of size m, such that the transitions are mapped appropriately.
 """
 function (pd::PetriDecorator)(f::FinOrdFunction)
-    u0 = zeros(Int, codom(f).n)
-    return (p::PetriWithRates) -> begin
-        Base.map(x->u0[f(x)] += p.u0[x], keys(p.u0))
-        PetriWithRates(collect(1:codom(f).n), map(x->f(x), p.m.Δ), p.rates, u0)
-    end
+    return (p::Petri.Model) -> Petri.Model(collect(1:codom(f).n), map(x->f(x), p.Δ))
 end
 
 """ AlgebraicPetri.PetriLaxator(p::Petri.Model, q::Petri.Model)
@@ -91,12 +78,9 @@ The laxitor takes a pair of decorations and returns the coproduct decoration
 For Petri nets, this encodes the idea that you shift the states of q up by the
 number of states in p.
 """
-function (l::PetriLaxator)(p::PetriWithRates, q::PetriWithRates)
-    return PetriWithRates(collect(1:(length(p.m.S)+length(q.m.S))),
-                          vcat(p.m.Δ, map(x->x+length(p.m.S), q.m.Δ)),
-                          vcat(p.rates, q.rates),
-                          vcat(p.u0, q.u0),
-                         )
+function (l::PetriLaxator)(p::Petri.Model, q::Petri.Model)
+    return Petri.Model(collect(1:(length(p.S)+length(q.S))),
+                       vcat(p.Δ, map(x->x+length(p.S), q.Δ)))
 end
 
 """ Petri Cospan
@@ -105,7 +89,7 @@ A morphism in the category of Open Petri Nets defined as a decorated cospan with
 a [`PetriFunctor`](@ref) as the decorator which maps the category of finite
 ordinals to the category Petri and a Petri.Model as the decoration
 """
-const PetriCospan = DecoratedCospan{PetriFunctor, PetriWithRates}
+const PetriCospan = DecoratedCospan{PetriFunctor, Petri.Model}
 
 """ AlgebraicPetri.PetriCospan(l::Vector{Int}, m::Petri.Model, r::Vector{Int})
 
@@ -114,10 +98,10 @@ Petri.Model `m`, and `r` is a vector of the output states from Petri.Model `m`
 
 Constructs the cospan: l → m ← r
 """
-function (::Type{PetriCospan})(l::AbstractVector, p::PetriWithRates, r::AbstractVector)
-    return PetriCospan(Cospan(FinOrdFunction(l, length(p.m.S)),
-                              FinOrdFunction(r, length(p.m.S))),
-                       id(PetriFunctor), p)
+function (::Type{PetriCospan})(l::AbstractVector, m::Petri.Model, r::AbstractVector)
+    return PetriCospan(Cospan(FinOrdFunction(l, length(m.S)),
+                              FinOrdFunction(r, length(m.S))),
+                       id(PetriFunctor), m)
 end
 
 @instance BiproductCategory(PetriCospanOb, PetriCospan) begin
@@ -140,7 +124,7 @@ end
     id(X::PetriCospanOb) = PetriCospan(
         Cospan(id(FinOrd(X.n)), id(FinOrd(X.n))),
         id(PetriFunctor),
-        EmptyPetriWithRates(X.n))
+        EmptyPetri(X.n))
 
     otimes(X::PetriCospanOb, Y::PetriCospanOb) = PetriCospanOb(X.n + Y.n)
 
@@ -167,28 +151,28 @@ end
             Cospan(
                 id(FinOrd(Z.n)),
                 FinOrdFunction(vcat(X.n+1:Z.n, 1:X.n), Z.n, Z.n)
-            ), id(PetriFunctor), EmptyPetriWithRates(Z.n))
+            ), id(PetriFunctor), EmptyPetri(Z.n))
     end
 
     mcopy(X::PetriCospanOb) = PetriCospan(
         Cospan(
             id(FinOrd(X.n)),
             FinOrdFunction(vcat(1:X.n,1:X.n), 2*X.n, X.n)
-        ), id(PetriFunctor), EmptyPetriWithRates(X.n))
+        ), id(PetriFunctor), EmptyPetri(X.n))
 
     mmerge(X::PetriCospanOb) = PetriCospan(
         Cospan(
             FinOrdFunction(vcat(1:X.n,1:X.n), 2*X.n, X.n),
             id(FinOrd(X.n))
-        ), id(PetriFunctor), EmptyPetriWithRates(X.n))
+        ), id(PetriFunctor), EmptyPetri(X.n))
 
     create(X::PetriCospanOb) = PetriCospan(
         Cospan(FinOrdFunction(Int[], 0, X.n), id(FinOrd(X.n))),
-        id(PetriFunctor), EmptyPetriWithRates(X.n))
+        id(PetriFunctor), EmptyPetri(X.n))
 
     delete(X::PetriCospanOb) = PetriCospan(
         Cospan(id(FinOrd(X.n)), FinOrdFunction(Int[], 0, X.n)),
-        id(PetriFunctor), EmptyPetriWithRates(X.n))
+        id(PetriFunctor), EmptyPetri(X.n))
 
     pair(f::PetriCospan, g::PetriCospan) = compose(mcopy(dom(f)), otimes(f, g))
     copair(f::PetriCospan, g::PetriCospan) = compose(otimes(f, g), mmerge(codom(f)))
