@@ -1,20 +1,20 @@
+class: title, no-footer
 
-class: center, middle
+# AlgebraicPetri: COEXIST COVID-19 Model
 
-# AlgebraicPetri.jl
+## Micah Halter <br/> Evan Patterson <br/> *James Fairbanks* <br/> Georgia Tech Research Institute (GTRI)
 
-## COEXIST COVID-19 Model
-
-<br/><br/><br/>
-Georgia Tech Research Institute
+### July 23, 2020
 
 ---
 
+class: roomy
+
 # Agenda
 
-1. Defining the theory of Epidemiology
-1. Basic Epidemiology models
-1. Extend basic Epidemiology models
+1. Defining the theory of epidemiology
+1. Basic epidemiology models
+1. Extend basic epidemiology models
 1. Build and simulate COEXIST COVID-19 model
 
 ---
@@ -94,6 +94,7 @@ save_wd(exposure, "exposure_wd.svg");
 ```
 
 # Defining the Theory of Epidemiology
+
 ```julia
 @present InfectiousDiseases(FreeBiproductCategory) begin
     S::Ob
@@ -107,48 +108,44 @@ save_wd(exposure, "exposure_wd.svg");
     recovery::Hom(I,R)
     death::Hom(I,D)
 end
-
-ob = PetriCospanOb(1)
-spontaneous_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1), Dict(2=>1))]), [2])
-transmission_petri = PetriCospan([1,2], Petri.Model(1:2, [(Dict(1=>1, 2=>1), Dict(2=>2))]), [2])
-exposure_petri = PetriCospan([1, 2], Petri.Model(1:3, [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))]), [3])
-
-FunctorGenerators = Dict(S=>ob, E=>ob, I=>ob, R=>ob, D=>ob,
-    transmission=>transmission_petri, exposure=>exposure_petri,
-    illness=>spontaneous_petri, recovery=>spontaneous_petri, death=>spontaneous_petri)
 ```
 
 ---
 
-### Epidemiology Building Blocks
+class: compact
 
-|    Algebraic Expression   |                 Wiring Diagram                |                     Petri Net                    |
-|:-------------------------:|:---------------------------------------------:|:------------------------------------------------:|
-|      $illness: E → I$     |    <img width=50 />![](figs/illness_wd.svg)   |    <img width=50 />![](figs/illness_petri.svg)   |
-| $transmission: S ⊗ I → I$ | <img width=50 />![](figs/transmission_wd.svg) | <img width=50 />![](figs/transmission_petri.svg) |
-|   $exposure: S ⊗ I → E$   |   <img width=50 />![](figs/exposure_wd.svg)   |   <img width=50 />![](figs/exposure_petri.svg)   |
-|     $recovery: I → R$     |   <img width=50 />![](figs/recovery_wd.svg)   |   <img width=50 />![](figs/recovery_petri.svg)   |
+# Epidemiology Building Blocks
+
+|    Algebraic Expression   |         Wiring Diagram         |                     Petri Net                    |
+|:-------------------------:|:------------------------------:|:------------------------------------------------:|
+|      $illness: E → I$     | ![](figs/illness_wd.svg# mh-5) |    ![](figs/illness_petri.svg# mh-5)   |
+| $transmission: S ⊗ I → I$ |  ![](figs/transmission_wd.svg# mh-5) | ![](figs/transmission_petri.svg# mh-5) |
+|   $exposure: S ⊗ I → E$   |    ![](figs/exposure_wd.svg# mh-5)   |   ![](figs/exposure_petri.svg# mh-5)   |
+|     $recovery: I → R$     |    ![](figs/recovery_wd.svg# mh-5)   |   ![](figs/recovery_petri.svg# mh-5)   |
 
 ---
 
 # Basic SIR Model
 
-```@example coexist
-sir = transmission ⋅ recovery
-nothing # hide
-```
-
 ```@setup coexist
+sir = transmission ⋅ recovery
 sir_petri = statereplace(decoration(F_epi(sir)), Dict(1=>:S,2=>:I,3=>:R))
 save_graph(Graph(sir_petri), "sir_petri.svg")
 save_wd(sir, "sir_wd.svg")
 ```
 
-<br/><br/>.center[![](figs/sir_wd.svg)]
+.center[
+$$sir = transmission ⋅ recovery$$
 
-<br/><br/>.center[![](figs/sir_petri.svg)]
+<br/>
+![](figs/sir_wd.svg)
+
+![](figs/sir_petri.svg# pt-4)
+]
 
 ---
+
+class: compact
 
 # SEIR Model
 
@@ -169,18 +166,15 @@ save_graph(Graph(seir_petri), "seir_petri.svg")
 save_wd(seir, "seir_wd.svg")
 ```
 
-.center[![](figs/seir_wd.svg)]
+![](figs/seir_wd.svg# center)
 
-.center[![](figs/seir_petri.svg)]
+![](figs/seir_petri.svg# center)
 
 ---
 
 # COEXIST COVID-19 Model
 
-.center[
-<br/>
-<img src="assets/coexist.png" width=80%>
-]
+![COEXIST Model](assets/coexist.png# maxw-80pct center pt-4)
 
 ---
 
@@ -200,10 +194,12 @@ save_wd(seir, "seir_wd.svg")
     asymptomatic_recovery::Hom(A,R)
     recovery2::Hom(I2,R)
     death2::Hom(I2,D)
-end;
+end
 ```
 
 ---
+
+class: compact
 
 # Defining COEXIST
 
@@ -244,9 +240,11 @@ save_graph(Graph(coexist_petri), "coexist_petri.svg")
 
 # COEXIST SEIRD Model Petri Net
 
-.center[<img src="figs/coexist_petri.svg" width=100%>]
+![COEXIST Petri Net](figs/coexist_petri.svg# center)
 
 ---
+
+class: compact
 
 # Simulate the Model
 
@@ -274,9 +272,11 @@ plot(sol)
 savefig(joinpath("figs","sol_plot.svg"))
 ```
 
-.center[![](figs/sol_plot.svg)]
+![](figs/sol_plot.svg# center)
 
 ---
+
+class: compact
 
 # Define Inter-Generational Cross Exposure
 
@@ -308,8 +308,7 @@ twogen′ = crossexposure′ ⋅ σ(pop′, pop′) ⋅ crossexposure′ ⋅ (co
 save_wd(twogen′, "twogen_overview_wd.svg")
 ```
 
-<br/><br/>
-.center[![](figs/twogen_overview_wd.svg)]
+![](figs/twogen_overview_wd.svg# center pt-5)
 
 ---
 
@@ -323,51 +322,41 @@ save_wd(twogen, "twogen_wd.svg")
 save_graph(Graph(twogen_petri), "twogen_petri.svg")
 ```
 
-.center[<img src="figs/twogen_petri.svg" width=90%>]
+![Two Generation Petri Net](figs/twogen_petri.svg# maxw-80pct center)
 
 ---
 
 # Petri Nets with Rates
 
-.center[
-<br/>
-<img src="assets/petri\_with\_rates.png" width=50%>
-]
+![Formalization of Petri Nets with Rates](assets/petri_with_rates.png# maxw-50pct center pt-5)
 
 ---
 
 # Undirected Wiring Diagrams
 
-.center[
-![](twogen_overview_wd.svg)
+![](figs/twogen_overview_wd.svg# center)
 
-<br/>
-<img src="assets/twogen\_coexist\_uwd.png" width=50%>
-]
+![Two Generation Undirected Wiring Diagram](assets/twogen_coexist_uwd.png# maxw-50pct center)
 
 ---
 
-# $\mathcal{N}$-Generational COEXIST Model
+# $\mathcal{n}$-Generational COEXIST Model
 
-.center[
-<img src="assets/threegen\_coexist\_uwd.png" width=45%>
-]
+![Three Generation Undirected Wiring Diagram](assets/threegen_coexist_uwd.png# maxw-50pct center)
 
 ---
 
-### Coexist:
+**Coexist:**
 
-.center[
-<img src="assets/coexist\_uwd.png" width=50%>
-]
+![Coexist Undirected Wiring Diagram](assets/coexist_uwd.png# maxw-50pct center)
 
-### Cross Exposure:
+**Cross Exposure:**
 
-.center[
-<img src="assets/crossexposure\_uwd.png" width=50%>
-]
+![Cross Exposure Undirected Wiring Diagram](assets/crossexposure_uwd.png# maxw-50pct center)
 
 ---
+
+class: compact
 
 # Relation Syntax
 
