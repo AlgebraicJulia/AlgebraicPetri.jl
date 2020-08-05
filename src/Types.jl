@@ -91,10 +91,11 @@ end
 ###############
 
 @present TheoryReactionNet <: TheoryPetri begin
-  number::Ob
+  Rate::Ob
+  Concentration::Ob
 
-  rate::Hom(T, number)
-  u0::Hom(S, number)
+  rate::Hom(T, Rate)
+  concentration::Hom(S, Concentration)
 end
 
 const AbstractReactionNet = AbstractCSetType(TheoryReactionNet, data=[:number])
