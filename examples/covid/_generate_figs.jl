@@ -93,7 +93,7 @@ pltdims = [4,9, 14]
 # Define time frame, 3 months
 tspan = (0.0,90.0)
 # Define initial states
-u0 = zeros(Float64, base(pc_seird_3).n)
+u0 = zeros(Float64, length(base(pc_seird_3)))
 u0[1]  = 10000
 u0[6]  = 10000
 u0[11] = 10000
