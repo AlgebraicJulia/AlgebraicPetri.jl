@@ -10,6 +10,8 @@ using Catlab.CategoricalAlgebra.FinSets
 using Petri
 using AutoHashEquals
 
+import Petri: EmptyPetri
+using Catlab.CategoricalAlgebra.FinSets: FinSet
 import Catlab.Theories: dom, codom, id, compose, ⋅, ∘, otimes, ⊗, munit,
                         braid, σ, mcopy, Δ, mmerge, ∇, create, □, delete, ◊,
                         pair, copair, proj1, proj2, coproj1, coproj2
@@ -22,29 +24,36 @@ An object in the category of Open Petri Nets.
 @auto_hash_equals struct PetriCospanOb
     n::Int
 end
-Base.eachindex(X::PetriCospanOb) = 1:X.n
+PetriCospanOb(X::FinSet) = PetriCospanOb(length(X))
+FinSet(X::PetriCospanOb) = FinSet(length(X))
+EmptyPetri(X::PetriCospanOb) = EmptyPetri(length(X))
+
+Base.iterate(X::PetriCospanOb, args...) = iterate(iterable(X), args...)
+Base.length(X::PetriCospanOb) = length(iterable(X))
+
+iterable(X::PetriCospanOb) = 1:X.n
 
 struct PetriDecorator <: AbstractFunctor end
 struct PetriLaxator <: AbstractLaxator end
 
 """ Petri Functor
 
-A functor from FinOrd to Petri defined as a PetriDecorator and a PetriLaxator
+A functor from FinSet to Petri defined as a PetriDecorator and a PetriLaxator
 """
 const PetriFunctor = LaxMonoidalFunctor{PetriDecorator, PetriLaxator}
 
 id(::Type{PetriFunctor}) = PetriFunctor(PetriDecorator(), PetriLaxator())
 
-""" AlgebraicPetri.PetriDecorator(n::FinOrd)
+""" AlgebraicPetri.PetriDecorator(n::FinSet)
 
-A functor from FinOrd to Set has an objects part, which given an object n in
-FinOrd (a natural number) should return a representation of F(n)::Set, sets can
+A functor from FinSet to Set has an objects part, which given an object n in
+FinSet (a natural number) should return a representation of F(n)::Set, sets can
 be represented as a predicate that takes an element and returns true if the
 element is in the set. Here we take any julia value and test whether it is a
 Petri net on n states.
 """
-function (pd::PetriDecorator)(n::FinOrd)
-    return p -> typeof(p) <: Petri.Model && length(p.S) == n.n
+function (pd::PetriDecorator)(n::FinSet)
+    return p -> typeof(p) <: Petri.Model && length(p.S) == length(n)
 end
 
 map(f::Function, d::Dict{K,V}) where {K,V} = begin
@@ -61,15 +70,15 @@ end
 
 map(f::Function, ts::Vector{Tuple{S,T}}) where {S<:Dict, T<:Dict} = [(map(f, t[1]), map(f, t[2])) for t in ts]
 
-""" AlgebraicPetri.PetriDecorator(f::FinOrdFunction)
+""" AlgebraicPetri.PetriDecorator(f::FinFunction)
 
-A functor from FinOrd to Set has a hom part, which given a hom f in FinOrd
+A functor from FinSet to Set has a hom part, which given a hom f in FinSet
 (a function n::Int->m::Int) should return a representation of F(f)::F(n)->F(m),
 here we implement this as a function that takes a Petri net of size n to a Petri
 net of size m, such that the transitions are mapped appropriately.
 """
-function (pd::PetriDecorator)(f::FinOrdFunction)
-    return (p::Petri.Model) -> Petri.Model(collect(1:codom(f).n), map(x->f(x), p.Δ))
+function (pd::PetriDecorator)(f::FinFunction)
+    return (p::Petri.Model) -> Petri.Model(collect(codom(f)), map(x->f(x), p.Δ))
 end
 
 """ AlgebraicPetri.PetriLaxator(p::Petri.Model, q::Petri.Model)
@@ -99,17 +108,17 @@ Petri.Model `m`, and `r` is a vector of the output states from Petri.Model `m`
 Constructs the cospan: l → m ← r
 """
 function (::Type{PetriCospan})(l::AbstractVector, m::Petri.Model, r::AbstractVector)
-    return PetriCospan(Cospan(FinOrdFunction(l, length(m.S)),
-                              FinOrdFunction(r, length(m.S))),
+    return PetriCospan(Cospan(FinFunction(l, length(m.S)),
+                              FinFunction(r, length(m.S))),
                        id(PetriFunctor), m)
 end
 
 @instance BiproductCategory(PetriCospanOb, PetriCospan) begin
-    dom(f::PetriCospan) = PetriCospanOb(dom(left(f)).n)
-    codom(f::PetriCospan) = PetriCospanOb(dom(right(f)).n)
+    dom(f::PetriCospan) = PetriCospanOb(dom(left(f)))
+    codom(f::PetriCospan) = PetriCospanOb(dom(right(f)))
 
     compose(p::PetriCospan, q::PetriCospan) = begin
-        # reimplementation of pushout of Span{FinOrdFunc, FinOrdFun}
+        # reimplementation of pushout of Span{FinSetFunc, FinSetFun}
         # to save the value of coeq
         f, g = right(p), left(q)
         coprod = coproduct(codom(f), codom(g))
@@ -122,11 +131,11 @@ end
     end
 
     id(X::PetriCospanOb) = PetriCospan(
-        Cospan(id(FinOrd(X.n)), id(FinOrd(X.n))),
+        Cospan(id(FinSet(X)), id(FinSet(X))),
         id(PetriFunctor),
-        EmptyPetri(X.n))
+        EmptyPetri(X))
 
-    otimes(X::PetriCospanOb, Y::PetriCospanOb) = PetriCospanOb(X.n + Y.n)
+    otimes(X::PetriCospanOb, Y::PetriCospanOb) = PetriCospanOb(length(X) + length(Y))
 
     otimes(f::PetriCospan, g::PetriCospan) = begin
         fl, fr = left(f), right(f)
@@ -134,12 +143,12 @@ end
         # TODO: Replace with universal properties once implemented
         PetriCospan(
             Cospan(
-                FinOrdFunction(x->x > dom(fl).n ? gl(x-dom(fl).n)+codom(fl).n : fl(x),
-                               FinOrd(dom(fl).n + dom(gl).n),
-                               FinOrd(codom(fl).n + codom(gl).n)),
-                FinOrdFunction(x->x > dom(fr).n ? gr(x-dom(fr).n)+codom(fr).n : fr(x),
-                               FinOrd(dom(fr).n + dom(gr).n),
-                               FinOrd(codom(fr).n + codom(gr).n))
+                FinFunction(x->x > length(dom(fl)) ? gl(x-length(dom(fl)))+length(codom(fl)) : fl(x),
+                               FinSet(length(dom(fl)) + length(dom(gl))),
+                               FinSet(length(codom(fl)) + length(codom(gl)))),
+                FinFunction(x->x > length(dom(fr)) ? gr(x-length(dom(fr)))+length(codom(fr)) : fr(x),
+                               FinSet(length(dom(fr)) + length(dom(gr))),
+                               FinSet(length(codom(fr)) + length(codom(gr))))
             ), decorator(f), decorator(f).L(decoration(f), decoration(g)))
     end
 
@@ -149,30 +158,30 @@ end
         Z = otimes(X, Y)
         PetriCospan(
             Cospan(
-                id(FinOrd(Z.n)),
-                FinOrdFunction(vcat(X.n+1:Z.n, 1:X.n), Z.n, Z.n)
-            ), id(PetriFunctor), EmptyPetri(Z.n))
+                id(FinSet(Z)),
+                FinFunction(vcat(length(X)+1:length(Z), iterable(X)), length(Z), length(Z))
+            ), id(PetriFunctor), EmptyPetri(Z))
     end
 
     mcopy(X::PetriCospanOb) = PetriCospan(
         Cospan(
-            id(FinOrd(X.n)),
-            FinOrdFunction(vcat(1:X.n,1:X.n), 2*X.n, X.n)
-        ), id(PetriFunctor), EmptyPetri(X.n))
+            id(FinSet(X)),
+            FinFunction(vcat(iterable(X),iterable(X)), 2*length(X), length(X))
+        ), id(PetriFunctor), EmptyPetri(X))
 
     mmerge(X::PetriCospanOb) = PetriCospan(
         Cospan(
-            FinOrdFunction(vcat(1:X.n,1:X.n), 2*X.n, X.n),
-            id(FinOrd(X.n))
-        ), id(PetriFunctor), EmptyPetri(X.n))
+            FinFunction(vcat(iterable(X),iterable(X)), 2*length(X), length(X)),
+            id(FinSet(X))
+        ), id(PetriFunctor), EmptyPetri(X))
 
     create(X::PetriCospanOb) = PetriCospan(
-        Cospan(FinOrdFunction(Int[], 0, X.n), id(FinOrd(X.n))),
-        id(PetriFunctor), EmptyPetri(X.n))
+        Cospan(FinFunction(Int[], 0, length(X)), id(FinSet(X))),
+        id(PetriFunctor), EmptyPetri(X))
 
     delete(X::PetriCospanOb) = PetriCospan(
-        Cospan(id(FinOrd(X.n)), FinOrdFunction(Int[], 0, X.n)),
-        id(PetriFunctor), EmptyPetri(X.n))
+        Cospan(id(FinSet(X)), FinFunction(Int[], 0, length(X))),
+        id(PetriFunctor), EmptyPetri(X))
 
     pair(f::PetriCospan, g::PetriCospan) = compose(mcopy(dom(f)), otimes(f, g))
     copair(f::PetriCospan, g::PetriCospan) = compose(otimes(f, g), mmerge(codom(f)))
