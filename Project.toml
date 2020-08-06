@@ -12,7 +12,7 @@ Petri = "4259d249-1051-49fa-8328-3f8ab9391c33"
 [compat]
 AutoHashEquals = "^0.2.0"
 Catlab = "0.7.3"
-Petri = "^1.0.0"
+Petri = "^1.1.0"
 julia = "1.0"
 
 [extras]
