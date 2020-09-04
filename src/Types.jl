@@ -26,8 +26,8 @@ using Petri
   os::Hom(O,S)
 end
 
-const AbstractPetri = AbstractCSet{CatDescType(TheoryPetri)}
-const Petri = CSet{CatDescType(TheoryPetri),(:is,:it,:os,:ot)}
+const AbstractPetri = AbstractCSetType(TheoryPetri)
+const Petri = CSetType(TheoryPetri,index=[:is,:it,:os,:ot])
 
 (pt::typeof(Petri))(n,ts...) = begin
   p = pt()
@@ -113,7 +113,7 @@ end
   concentration::Attr(S, Concentration)
 end
 
-const AbstractReactionNet{RateT,ConcentrationT} = AbstractACSet{SchemaType(TheoryReactionNet)...,Tuple{RateT,ConcentrationT}}
-const ReactionNet{RateT,ConcentrationT} = ACSet{SchemaType(TheoryReactionNet)..., Tuple{RateT,ConcentrationT},(:is,:it,:os,:ot)}
+const AbstractReactionNet = AbstractACSetType(TheoryReactionNet)
+const ReactionNet = ACSetType(TheoryReactionNet, index=[:is,:it,:os,:ot])
 
 end
