@@ -8,11 +8,12 @@ using Catlab
 using Catlab.CategoricalAlgebra.CSets
 using Catlab.Present
 using Catlab.Theories
+using Petri
 
 # Petri Nets
 ############
 
-@present TheoryPetri(FreeCategory) begin
+@present TheoryPetri(FreeSchema) begin
   T::Ob
   S::Ob
   I::Ob
@@ -24,8 +25,8 @@ using Catlab.Theories
   os::Hom(O,S)
 end
 
-const AbstractPetri = AbstractCSetType(TheoryPetri)
-const Petri = CSetType(TheoryPetri, index=[:is,:it,:os,:ot])
+const AbstractPetri = AbstractCSet{CatDescType(TheoryPetri)}
+const Petri = CSet{CatDescType(TheoryPetri),(:is,:it,:os,:ot)}
 
 ns(p::AbstractPetri) = nparts(p,:S)
 nt(p::AbstractPetri) = nparts(p,:T)
@@ -38,11 +39,11 @@ add_species!(p::AbstractPetri,n) = add_parts!(p,:S,n)
 add_transition!(p::AbstractPetri) = add_part!(p,:T)
 add_transitions!(p::AbstractPetri,n) = add_parts!(p,:T,n)
 
-add_input!(p::AbstractPetri,t,s) = add_part!(p,:I,(is=s,it=t))
-add_inputs!(p::AbstractPetri,n,t,s) = add_parts!(p,:I,n,(is=s,it=t))
+add_input!(p::AbstractPetri,t,s) = add_part!(p,:I;is=s,it=t)
+add_inputs!(p::AbstractPetri,n,t,s) = add_parts!(p,:I,n;is=s,it=t)
 
-add_output!(p::AbstractPetri,t,s) = add_part!(p,:O,(os=s,ot=t))
-add_output!(p::AbstractPetri,n,t,s) = add_parts!(p,:O,n,(os=s,ot=t))
+add_output!(p::AbstractPetri,t,s) = add_part!(p,:O;os=s,ot=t)
+add_output!(p::AbstractPetri,n,t,s) = add_parts!(p,:O,n;os=s,ot=t)
 
 # Note: although indexing makes this pretty fast, it is often faster to bulk-convert
 # the Petri net into a transition matrix, if you are working with all of the transitions
@@ -64,7 +65,7 @@ struct TransitionMatrices
   end
 end
 
-Petri(tm::TransitionMatrices) =
+Petri(tm::TransitionMatrices) = begin
   (m,n) = size(tm.input)
   p = Petri()
   add_species!(p,n)
@@ -91,14 +92,14 @@ end
 ###############
 
 @present TheoryReactionNet <: TheoryPetri begin
-  Rate::Ob
-  Concentration::Ob
+  Rate::Data
+  Concentration::Data
 
-  rate::Hom(T, Rate)
-  concentration::Hom(S, Concentration)
+  rate::Attr(T, Rate)
+  concentration::Attr(S, Concentration)
 end
 
-const AbstractReactionNet = AbstractCSetType(TheoryReactionNet, data=[:number])
-const ReactionNet = CSetType(TheoryReactionNet, index=[:is,:it,:os,:ot], data=[:number])
+const AbstractReactionNet{RateT,ConcentrationT} = AbstractACSet{SchemaType(TheoryReactionNet)...,Tuple{RateT,ConcentrationT}}
+const ReactionNet{RateT,ConcentrationT} = ACSet{SchemaType(TheoryReactionNet)..., Tuple{RateT,ConcentrationT},(:is,:it,:os,:ot)}
 
 end
