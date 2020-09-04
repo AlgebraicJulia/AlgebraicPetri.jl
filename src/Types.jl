@@ -3,7 +3,9 @@ export TheoryPetri, Petri, AbstractPetri, ns, nt, ni, no,
   add_species!, add_transition!, add_transitions!,
   add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs,
   TransitionMatrices, rate_eq,
-  TheoryReactionNet, ReactionNet, AbstractReactionNet
+  TheoryLabelledPetri, LabelledPetri, AbstractLabelledPetri, sname, tname,
+  TheoryReactionNet, ReactionNet, AbstractReactionNet, concentration, rate,
+  TheoryLabelledReactionNet, LabelledReactionNet, AbstractLabelledReactionNet
 
 using Catlab
 using Catlab.CategoricalAlgebra.CSets
@@ -102,6 +104,19 @@ rate_eq(p::AbstractPetri) = begin
   f
 end
 
+@present TheoryLabelledPetri <: TheoryPetri begin
+  Name::Data
+
+  tname::Attr(T, Name)
+  sname::Attr(S, Name)
+end
+
+const AbstractLabelledPetri = AbstractACSetType(TheoryLabelledPetri)
+const LabelledPetri = ACSetType(TheoryLabelledPetri, index=[:it,:is,:ot,:os]){Symbol}
+
+sname(p::AbstractLabelledPetri,s) = subpart(p,s,:sname)
+tname(p::AbstractLabelledPetri,t) = subpart(p,t,:tname)
+
 # Reaction Nets
 ###############
 
@@ -115,5 +130,18 @@ end
 
 const AbstractReactionNet = AbstractACSetType(TheoryReactionNet)
 const ReactionNet = ACSetType(TheoryReactionNet, index=[:it,:is,:ot,:os])
+
+concentration(p::AbstractReactionNet,s) = subpart(p,s,:concentration)
+rate(p::AbstractReactionNet,t) = subpart(p,t,:rate)
+
+@present TheoryLabelledReactionNet <: TheoryReactionNet begin
+  Name::Data
+
+  tname::Attr(T, Name)
+  sname::Attr(S, Name)
+end
+
+const AbstractLabelledReactionNet = AbstractACSetType(TheoryLabelledReactionNet)
+const LabelledReactionNet{R,C} = ACSetType(TheoryLabelledReactionNet, index=[:it,:is,:ot,:os]){R,C,Symbol}
 
 end
