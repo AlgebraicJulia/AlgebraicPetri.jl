@@ -184,7 +184,7 @@ end
 const AbstractLabelledReactionNet = AbstractACSetType(TheoryLabelledReactionNet)
 const LabelledReactionNet{R,C} = ACSetType(TheoryLabelledReactionNet, index=[:it,:is,:ot,:os]){R,C,Symbol}
 
-# Ex. LabelledReactionNet{Number, Int}((:S=>1, :I=>2, :R=>0), (:inf, .3)=>((:S, :I)=>:R), (:rec, .5)=>(:I=>:R))
+# Ex. LabelledReactionNet{Number, Int}((:S=>990, :I=>10, :R=>0), (:inf, .3/1000)=>((:S, :I)=>(:I,:I)), (:rec, .2)=>(:I=>:R))
 LabelledReactionNet{R,C}(n,ts...) where {R,C} = begin
   p = LabelledReactionNet{R,C}()
   n = vectorify(n)
