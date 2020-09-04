@@ -31,13 +31,15 @@ end
 const AbstractPetri = AbstractACSetType(TheoryPetri)
 const Petri = CSetType(TheoryPetri,index=[:it,:is,:ot,:os])
 
-(pt::typeof(Petri))(n,ts...) = begin
-  p = pt()
+# Petri([:S, :I, :R], :infection=>((1, 2), 3))
+
+Petri(n,ts...) = begin
+  p = Petri()
   add_species!(p, n)
   add_transitions!(p, length(ts))
   for (i,(ins,outs)) in enumerate(ts)
-    if length(ins) == 1 ins = [ins] end
-    if length(outs) == 1 outs = [outs] end
+    if !(typeof(ins) <: Union{Vector,Tuple}) || length(ins) == 1 ins = [ins] end
+    if !(typeof(outs) <: Union{Vector,Tuple}) || length(outs) == 1 outs = [outs] end
     add_inputs!(p, length(ins), repeat([i], length(ins)), collect(ins))
     add_outputs!(p, length(outs), repeat([i], length(outs)), collect(outs))
   end
@@ -114,6 +116,20 @@ end
 const AbstractLabelledPetri = AbstractACSetType(TheoryLabelledPetri)
 const LabelledPetri = ACSetType(TheoryLabelledPetri, index=[:it,:is,:ot,:os]){Symbol}
 
+LabelledPetri(n::N,ts...) where N<:Vector{Symbol} = begin
+  p = LabelledPetri()
+  state_idx = Dict(s=>i for (i, s) in enumerate(n))
+  add_species!(p, length(n), sname=n)
+  for (name,(ins,outs)) in ts
+    i = add_transition!(p, tname=name)
+    if !(typeof(ins) <: Union{Vector,Tuple}) || length(ins) == 1 ins = [ins] end
+    if !(typeof(outs) <: Union{Vector,Tuple}) || length(outs) == 1 outs = [outs] end
+    add_inputs!(p, length(ins), repeat([i], length(ins)), map(x->state_idx[x], collect(ins)))
+    add_outputs!(p, length(outs), repeat([i], length(outs)), map(x->state_idx[x], collect(outs)))
+  end
+  p
+end
+
 sname(p::AbstractLabelledPetri,s) = subpart(p,s,:sname)
 tname(p::AbstractLabelledPetri,t) = subpart(p,t,:tname)
 
@@ -131,6 +147,19 @@ end
 const AbstractReactionNet = AbstractACSetType(TheoryReactionNet)
 const ReactionNet = ACSetType(TheoryReactionNet, index=[:it,:is,:ot,:os])
 
+ReactionNet{R,C}(n,ts...) where {R, C} = begin
+  p = ReactionNet{R,C}()
+  add_species!(p, length(n), concentration=n)
+  for (i, (rate,(ins,outs))) in enumerate(ts)
+    i = add_transition!(p, rate=rate)
+    if !(typeof(ins) <: Union{Vector,Tuple}) || length(ins) == 1 ins = [ins] end
+    if !(typeof(outs) <: Union{Vector,Tuple}) || length(outs) == 1 outs = [outs] end
+    add_inputs!(p, length(ins), repeat([i], length(ins)), collect(ins))
+    add_outputs!(p, length(outs), repeat([i], length(outs)), collect(outs))
+  end
+  p
+end
+
 concentration(p::AbstractReactionNet,s) = subpart(p,s,:concentration)
 rate(p::AbstractReactionNet,t) = subpart(p,t,:rate)
 
@@ -143,5 +172,8 @@ end
 
 const AbstractLabelledReactionNet = AbstractACSetType(TheoryLabelledReactionNet)
 const LabelledReactionNet{R,C} = ACSetType(TheoryLabelledReactionNet, index=[:it,:is,:ot,:os]){R,C,Symbol}
+
+# TODO implement new constructor for labelled reaction petri net
+# LabelledReactionNet{Number, Int}([(:S=>1, :I=>2, :R=>0), (:inf, .3)=>((:S, :I)=>:R), (:rec, .5)=>(:I=>:R))
 
 end
