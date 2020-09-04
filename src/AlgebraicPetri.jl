@@ -5,7 +5,9 @@ export PetriCospanOb, PetriFunctor, PetriCospan
 
 using Catlab.GAT
 using Catlab.Theories: BiproductCategory
-using Catlab.CategoricalAlgebra.ShapeDiagrams
+using Catlab.CategoricalAlgebra.FreeDiagrams
+using Catlab.Theories
+using Catlab.CategoricalAlgebra.Limits
 using Catlab.CategoricalAlgebra.FinSets
 using Petri
 using AutoHashEquals
@@ -121,13 +123,12 @@ end
         # reimplementation of pushout of Span{FinSetFunc, FinSetFun}
         # to save the value of coeq
         f, g = right(p), left(q)
-        coprod = coproduct(codom(f), codom(g))
-        ι1, ι2 = left(coprod), right(coprod)
-        coeq = coequalizer(f⋅ι1, g⋅ι2)
-        f′, g′ = ι1⋅coeq, ι2⋅coeq
+        ι1, ι2 = coproduct(codom(f), codom(g))
+        π = proj(coequalizer(f⋅ι1, g⋅ι2))
+        f′, g′ = ι1⋅π, ι2⋅π
         composite = Cospan(left(p)⋅f′, right(q)⋅g′)
         dpuq = decorator(p).L(decoration(p), decoration(q))
-        return PetriCospan(composite, decorator(p), decorator(p).F(coeq)(dpuq))
+        return PetriCospan(composite, decorator(p), decorator(p).F(π)(dpuq))
     end
 
     id(X::PetriCospanOb) = PetriCospan(
@@ -194,5 +195,6 @@ end
 end
 
 include("Epidemiology.jl")
+include("Types.jl")
 
 end

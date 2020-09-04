@@ -3,7 +3,7 @@ using Test
 using Petri
 using AlgebraicPetri
 using Catlab.Theories
-using Catlab.CategoricalAlgebra.ShapeDiagrams
+using Catlab.CategoricalAlgebra.FreeDiagrams
 using Catlab.CategoricalAlgebra.FinSets
 
 function compare_petricospan(p₁::PetriCospan, p₂::PetriCospan)
