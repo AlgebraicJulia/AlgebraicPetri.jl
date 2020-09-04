@@ -13,6 +13,16 @@ using Catlab.Present
 using Catlab.Theories
 using Petri
 
+vectorify(n) = begin
+  if !(typeof(n) <: Union{Vector,Tuple}) || (typeof(n) <: Tuple && length(n) == 1)
+    [n]
+  else
+    n
+  end
+end
+
+state_dict(n) = Dict(s=>i for (i, s) in enumerate(n))
+
 # Petri Nets
 ############
 
@@ -116,14 +126,15 @@ end
 const AbstractLabelledPetri = AbstractACSetType(TheoryLabelledPetri)
 const LabelledPetri = ACSetType(TheoryLabelledPetri, index=[:it,:is,:ot,:os]){Symbol}
 
-LabelledPetri(n::N,ts...) where N<:Vector{Symbol} = begin
+LabelledPetri(n,ts...) = begin
   p = LabelledPetri()
-  state_idx = Dict(s=>i for (i, s) in enumerate(n))
+  n = vectorify(n)
+  state_idx = state_dict(n)
   add_species!(p, length(n), sname=n)
   for (name,(ins,outs)) in ts
     i = add_transition!(p, tname=name)
-    if !(typeof(ins) <: Union{Vector,Tuple}) || length(ins) == 1 ins = [ins] end
-    if !(typeof(outs) <: Union{Vector,Tuple}) || length(outs) == 1 outs = [outs] end
+    ins = vectorify(ins)
+    outs = vectorify(outs)
     add_inputs!(p, length(ins), repeat([i], length(ins)), map(x->state_idx[x], collect(ins)))
     add_outputs!(p, length(outs), repeat([i], length(outs)), map(x->state_idx[x], collect(outs)))
   end
@@ -147,13 +158,13 @@ end
 const AbstractReactionNet = AbstractACSetType(TheoryReactionNet)
 const ReactionNet = ACSetType(TheoryReactionNet, index=[:it,:is,:ot,:os])
 
-ReactionNet{R,C}(n,ts...) where {R, C} = begin
+ReactionNet{R,C}(n,ts...) where {R,C} = begin
   p = ReactionNet{R,C}()
   add_species!(p, length(n), concentration=n)
   for (i, (rate,(ins,outs))) in enumerate(ts)
     i = add_transition!(p, rate=rate)
-    if !(typeof(ins) <: Union{Vector,Tuple}) || length(ins) == 1 ins = [ins] end
-    if !(typeof(outs) <: Union{Vector,Tuple}) || length(outs) == 1 outs = [outs] end
+    ins = vectorify(ins)
+    outs = vectorify(outs)
     add_inputs!(p, length(ins), repeat([i], length(ins)), collect(ins))
     add_outputs!(p, length(outs), repeat([i], length(outs)), collect(outs))
   end
@@ -173,7 +184,22 @@ end
 const AbstractLabelledReactionNet = AbstractACSetType(TheoryLabelledReactionNet)
 const LabelledReactionNet{R,C} = ACSetType(TheoryLabelledReactionNet, index=[:it,:is,:ot,:os]){R,C,Symbol}
 
-# TODO implement new constructor for labelled reaction petri net
-# LabelledReactionNet{Number, Int}([(:S=>1, :I=>2, :R=>0), (:inf, .3)=>((:S, :I)=>:R), (:rec, .5)=>(:I=>:R))
+# Ex. LabelledReactionNet{Number, Int}((:S=>1, :I=>2, :R=>0), (:inf, .3)=>((:S, :I)=>:R), (:rec, .5)=>(:I=>:R))
+LabelledReactionNet{R,C}(n,ts...) where {R,C} = begin
+  p = LabelledReactionNet{R,C}()
+  n = vectorify(n)
+  states = map(first, collect(n))
+  concentrations = map(last, collect(n))
+  state_idx = state_dict(states)
+  add_species!(p, length(states), concentration=concentrations, sname=states)
+  for (i, ((name,rate),(ins,outs))) in enumerate(ts)
+    i = add_transition!(p,rate=rate, tname=name)
+    ins = vectorify(ins)
+    outs = vectorify(outs)
+    add_inputs!(p, length(ins), repeat([i], length(ins)), map(x->state_idx[x], collect(ins)))
+    add_outputs!(p, length(outs), repeat([i], length(outs)), map(x->state_idx[x], collect(outs)))
+  end
+  p
+end
 
 end
