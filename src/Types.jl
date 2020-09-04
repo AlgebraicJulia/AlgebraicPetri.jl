@@ -26,8 +26,8 @@ using Petri
   os::Hom(O,S)
 end
 
-const AbstractPetri = AbstractCSetType(TheoryPetri)
-const Petri = CSetType(TheoryPetri,index=[:is,:it,:os,:ot])
+const AbstractPetri = AbstractACSetType(TheoryPetri)
+const Petri = CSetType(TheoryPetri,index=[:it,:is,:ot,:os])
 
 (pt::typeof(Petri))(n,ts...) = begin
   p = pt()
@@ -48,16 +48,16 @@ ni(p::AbstractPetri) = nparts(p,:I)
 no(p::AbstractPetri) = nparts(p,:O)
 
 add_species!(p::AbstractPetri;kw...) = add_part!(p,:S;kw...)
-add_species!(p::AbstractPetri,n) = add_parts!(p,:S,n)
+add_species!(p::AbstractPetri,n;kw...) = add_parts!(p,:S,n;kw...)
 
-add_transition!(p::AbstractPetri) = add_part!(p,:T)
-add_transitions!(p::AbstractPetri,n) = add_parts!(p,:T,n)
+add_transition!(p::AbstractPetri;kw...) = add_part!(p,:T;kw...)
+add_transitions!(p::AbstractPetri,n;kw...) = add_parts!(p,:T,n;kw...)
 
-add_input!(p::AbstractPetri,t,s) = add_part!(p,:I;it=t,is=s)
-add_inputs!(p::AbstractPetri,n,t,s) = add_parts!(p,:I,n;it=t,is=s)
+add_input!(p::AbstractPetri,t,s;kw...) = add_part!(p,:I;it=t,is=s,kw...)
+add_inputs!(p::AbstractPetri,n,t,s;kw...) = add_parts!(p,:I,n;it=t,is=s,kw...)
 
-add_output!(p::AbstractPetri,t,s) = add_part!(p,:O;ot=t,os=s)
-add_outputs!(p::AbstractPetri,n,t,s) = add_parts!(p,:O,n;ot=t,os=s)
+add_output!(p::AbstractPetri,t,s;kw...) = add_part!(p,:O;ot=t,os=s,kw...)
+add_outputs!(p::AbstractPetri,n,t,s;kw...) = add_parts!(p,:O,n;ot=t,os=s,kw...)
 
 # Note: although indexing makes this pretty fast, it is often faster to bulk-convert
 # the Petri net into a transition matrix, if you are working with all of the transitions
@@ -114,6 +114,6 @@ end
 end
 
 const AbstractReactionNet = AbstractACSetType(TheoryReactionNet)
-const ReactionNet = ACSetType(TheoryReactionNet, index=[:is,:it,:os,:ot])
+const ReactionNet = ACSetType(TheoryReactionNet, index=[:it,:is,:ot,:os])
 
 end
