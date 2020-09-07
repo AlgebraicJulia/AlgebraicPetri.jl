@@ -1,9 +1,9 @@
 module Types
-export TheoryPetri, Petri, AbstractPetri, ns, nt, ni, no,
+export TheoryPetriNet, PetriNet, AbstractPetriNet, ns, nt, ni, no,
   add_species!, add_transition!, add_transitions!,
   add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs,
   TransitionMatrices, rate_eq,
-  TheoryLabelledPetri, LabelledPetri, AbstractLabelledPetri, sname, tname,
+  TheoryLabelledPetriNet, LabelledPetriNet, AbstractLabelledPetriNet, sname, tname,
   TheoryReactionNet, ReactionNet, AbstractReactionNet, concentration, rate,
   TheoryLabelledReactionNet, LabelledReactionNet, AbstractLabelledReactionNet
 
@@ -12,6 +12,7 @@ using Catlab.CategoricalAlgebra.CSets
 using Catlab.Present
 using Catlab.Theories
 using Petri
+import Petri: Model
 
 vectorify(n) = begin
   if !(typeof(n) <: Union{Vector,Tuple}) || (typeof(n) <: Tuple && length(n) == 1)
@@ -26,7 +27,7 @@ state_dict(n) = Dict(s=>i for (i, s) in enumerate(n))
 # Petri Nets
 ############
 
-@present TheoryPetri(FreeSchema) begin
+@present TheoryPetriNet(FreeSchema) begin
   T::Ob
   S::Ob
   I::Ob
@@ -38,13 +39,13 @@ state_dict(n) = Dict(s=>i for (i, s) in enumerate(n))
   os::Hom(O,S)
 end
 
-const AbstractPetri = AbstractACSetType(TheoryPetri)
-const Petri = CSetType(TheoryPetri,index=[:it,:is,:ot,:os])
+const AbstractPetriNet = AbstractACSetType(TheoryPetriNet)
+const PetriNet = CSetType(TheoryPetriNet,index=[:it,:is,:ot,:os])
 
-# Petri([:S, :I, :R], :infection=>((1, 2), 3))
+# PetriNet([:S, :I, :R], :infection=>((1, 2), 3))
 
-Petri(n,ts...) = begin
-  p = Petri()
+PetriNet(n,ts...) = begin
+  p = PetriNet()
   add_species!(p, n)
   add_transitions!(p, length(ts))
   for (i,(ins,outs)) in enumerate(ts)
@@ -56,32 +57,32 @@ Petri(n,ts...) = begin
   p
 end
 
-ns(p::AbstractPetri) = nparts(p,:S)
-nt(p::AbstractPetri) = nparts(p,:T)
-ni(p::AbstractPetri) = nparts(p,:I)
-no(p::AbstractPetri) = nparts(p,:O)
+ns(p::AbstractPetriNet) = nparts(p,:S)
+nt(p::AbstractPetriNet) = nparts(p,:T)
+ni(p::AbstractPetriNet) = nparts(p,:I)
+no(p::AbstractPetriNet) = nparts(p,:O)
 
-add_species!(p::AbstractPetri;kw...) = add_part!(p,:S;kw...)
-add_species!(p::AbstractPetri,n;kw...) = add_parts!(p,:S,n;kw...)
+add_species!(p::AbstractPetriNet;kw...) = add_part!(p,:S;kw...)
+add_species!(p::AbstractPetriNet,n;kw...) = add_parts!(p,:S,n;kw...)
 
-add_transition!(p::AbstractPetri;kw...) = add_part!(p,:T;kw...)
-add_transitions!(p::AbstractPetri,n;kw...) = add_parts!(p,:T,n;kw...)
+add_transition!(p::AbstractPetriNet;kw...) = add_part!(p,:T;kw...)
+add_transitions!(p::AbstractPetriNet,n;kw...) = add_parts!(p,:T,n;kw...)
 
-add_input!(p::AbstractPetri,t,s;kw...) = add_part!(p,:I;it=t,is=s,kw...)
-add_inputs!(p::AbstractPetri,n,t,s;kw...) = add_parts!(p,:I,n;it=t,is=s,kw...)
+add_input!(p::AbstractPetriNet,t,s;kw...) = add_part!(p,:I;it=t,is=s,kw...)
+add_inputs!(p::AbstractPetriNet,n,t,s;kw...) = add_parts!(p,:I,n;it=t,is=s,kw...)
 
-add_output!(p::AbstractPetri,t,s;kw...) = add_part!(p,:O;ot=t,os=s,kw...)
-add_outputs!(p::AbstractPetri,n,t,s;kw...) = add_parts!(p,:O,n;ot=t,os=s,kw...)
+add_output!(p::AbstractPetriNet,t,s;kw...) = add_part!(p,:O;ot=t,os=s,kw...)
+add_outputs!(p::AbstractPetriNet,n,t,s;kw...) = add_parts!(p,:O,n;ot=t,os=s,kw...)
 
 # Note: although indexing makes this pretty fast, it is often faster to bulk-convert
-# the Petri net into a transition matrix, if you are working with all of the transitions
-inputs(p::AbstractPetri,t) = subpart(p,incident(p,t,:it),:is)
-outputs(p::AbstractPetri,t) = subpart(p,incident(p,t,:ot),:os)
+# the PetriNet net into a transition matrix, if you are working with all of the transitions
+inputs(p::AbstractPetriNet,t) = subpart(p,incident(p,t,:it),:is)
+outputs(p::AbstractPetriNet,t) = subpart(p,incident(p,t,:ot),:os)
 
 struct TransitionMatrices
   input::Matrix{Int}
   output::Matrix{Int}
-  TransitionMatrices(p::AbstractPetri) = begin
+  TransitionMatrices(p::AbstractPetriNet) = begin
     input, output = zeros(Int,(nt(p),ns(p))), zeros(Int,(nt(p),ns(p)))
     for i in 1:ni(p)
       input[subpart(p,i,:it),subpart(p,i,:is)] += 1
@@ -93,9 +94,9 @@ struct TransitionMatrices
   end
 end
 
-Petri(tm::TransitionMatrices) = begin
+PetriNet(tm::TransitionMatrices) = begin
   (m,n) = size(tm.input)
-  p = Petri()
+  p = PetriNet()
   add_species!(p,n)
   add_transitions!(p,m)
   for i in 1:m
@@ -107,7 +108,7 @@ Petri(tm::TransitionMatrices) = begin
   p
 end
 
-rate_eq(p::AbstractPetri) = begin
+rate_eq(p::AbstractPetriNet) = begin
   tm = TransitionMatrices(p)
   f(du,u,p,t) = begin
     log_rates = log.(p) .+ tm.input * log.(u)
@@ -116,18 +117,18 @@ rate_eq(p::AbstractPetri) = begin
   f
 end
 
-@present TheoryLabelledPetri <: TheoryPetri begin
+@present TheoryLabelledPetriNet <: TheoryPetriNet begin
   Name::Data
 
   tname::Attr(T, Name)
   sname::Attr(S, Name)
 end
 
-const AbstractLabelledPetri = AbstractACSetType(TheoryLabelledPetri)
-const LabelledPetri = ACSetType(TheoryLabelledPetri, index=[:it,:is,:ot,:os]){Symbol}
+const AbstractLabelledPetriNet = AbstractACSetType(TheoryLabelledPetriNet)
+const LabelledPetriNet = ACSetType(TheoryLabelledPetriNet, index=[:it,:is,:ot,:os]){Symbol}
 
-LabelledPetri(n,ts...) = begin
-  p = LabelledPetri()
+LabelledPetriNet(n,ts...) = begin
+  p = LabelledPetriNet()
   n = vectorify(n)
   state_idx = state_dict(n)
   add_species!(p, length(n), sname=n)
@@ -141,13 +142,13 @@ LabelledPetri(n,ts...) = begin
   p
 end
 
-sname(p::AbstractLabelledPetri,s) = subpart(p,s,:sname)
-tname(p::AbstractLabelledPetri,t) = subpart(p,t,:tname)
+sname(p::AbstractLabelledPetriNet,s) = subpart(p,s,:sname)
+tname(p::AbstractLabelledPetriNet,t) = subpart(p,t,:tname)
 
 # Reaction Nets
 ###############
 
-@present TheoryReactionNet <: TheoryPetri begin
+@present TheoryReactionNet <: TheoryPetriNet begin
   Rate::Data
   Concentration::Data
 
@@ -200,6 +201,22 @@ LabelledReactionNet{R,C}(n,ts...) where {R,C} = begin
     add_outputs!(p, length(outs), repeat([i], length(outs)), map(x->state_idx[x], collect(outs)))
   end
   p
+end
+
+# Interface to Petri.jl
+Petri.Model(p::Union{PetriNet,ReactionNet}) = begin
+  ts = TransitionMatrices(p)
+  return Petri.Model(1:ns(p), collect(zip(eachrow(ts.input), eachrow(ts.output))))
+end
+
+Petri.Model(p::Union{LabelledPetriNet,LabelledReactionNet}) = begin
+  snames = Dict(s=>sname(p,s) for s in 1:ns(p))
+  tnames = Dict(t=>tname(p,t) for t in 1:nt(p))
+  ts = TransitionMatrices(p)
+  t_in = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i)), eachrow(ts.input))
+  t_out = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i)), eachrow(ts.output))
+  Δ = Dict(tnames[k]=>v for (k,v) in enumerate(zip(t_in, t_out)))
+  return Petri.Model(collect(values(snames)), Δ)
 end
 
 end
