@@ -15,21 +15,12 @@ using Catlab.Graphics
 
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
-# #### SIR Model:
-
-# define model
-
 sir = transmission ⋅ recovery
-
-# get resulting petri net and visualize model
 
 p_sir = decoration(F_epi(sir));
 display_wd(sir)
 #-
 Graph(p_sir)
-
-# define initial states and transition rates, then
-# create, solve, and visualize ODE problem
 
 β(S,γ,contact_rate,policy_days,t) = begin
     pol = findfirst(x->t<=x, policy_days) # array of days when policy changes
