@@ -34,13 +34,14 @@ contact_rate = 0.05
 
 u0 = [990.0, 10, 0];
 p = [t->β(u0[1],γ,contact_rate,policy_days,t), γ];
+t_span = (17.0,120.0)
 
-prob = ODEProblem(p_sir,u0,(17.0,120.0),p)
+prob = ODEProblem(p_sir,u0,t_span,p)
 sol = OrdinaryDiffEq.solve(prob,Tsit5())
 
 plot(sol)
 
-prob,cb = SDEProblem(p_sir,u0,(17.0,120.0),p);
+prob,cb = SDEProblem(p_sir,u0,t_span,p);
 sol = solve(prob,SRA1(),callback=cb)
 
 plot(sol)
