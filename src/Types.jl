@@ -203,7 +203,7 @@ LabelledReactionNet{R,C}(n,ts...) where {R,C} = begin
   p
 end
 
-# Interface to Petri.jl
+# Interoperability with Petri.jl
 Petri.Model(p::Union{PetriNet,ReactionNet}) = begin
   ts = TransitionMatrices(p)
   return Petri.Model(1:ns(p), collect(zip(eachrow(ts.input), eachrow(ts.output))))
@@ -213,8 +213,8 @@ Petri.Model(p::Union{LabelledPetriNet,LabelledReactionNet}) = begin
   snames = Dict(s=>sname(p,s) for s in 1:ns(p))
   tnames = Dict(t=>tname(p,t) for t in 1:nt(p))
   ts = TransitionMatrices(p)
-  t_in = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i)), eachrow(ts.input))
-  t_out = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i)), eachrow(ts.output))
+  t_in = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i) if v != 0), eachrow(ts.input))
+  t_out = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i) if v != 0), eachrow(ts.output))
   Δ = Dict(tnames[k]=>v for (k,v) in enumerate(zip(t_in, t_out)))
   return Petri.Model(collect(values(snames)), Δ)
 end
