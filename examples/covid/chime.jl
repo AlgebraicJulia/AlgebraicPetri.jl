@@ -68,4 +68,4 @@ plot(sol)
 
 sir_cset_string = LabelledReactionNet{String, Int}((:S=>990, :I=>10, :R=>0), (:inf, β_text)=>((:S, :I)=>(:I,:I)), (:rec, γ_text)=>(:I=>:R))
 out = JSON.json(sir_cset_string.tables)
-JSON.print(sir_cset_string, 2)
+JSON.print(sir_cset_string.tables, 2)
