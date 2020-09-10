@@ -27,8 +27,8 @@ Once the project has been instantiated, both of these models can be run easily
 from within this folder with `julia --project chime.jl` or `julia --project
 chime-cset.jl`.
 
-These models represented as a JSON format for interoperability purposes can be
-found in
+These models can be represented as a JSON format for interoperability purposes
+which can be found in
 [`chime.json`](https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/petset/examples/covid/chime/chime.json).
 An explanation on how to read this schema can be found in
 [`cset-json-schema.pdf`](https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/petset/examples/covid/chime/cset-json-schema.pdf).
