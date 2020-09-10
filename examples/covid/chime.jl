@@ -42,10 +42,10 @@ t_span = (17.0,120.0)
 
 @capture γ γ_text 1/14
 @capture β β_text t->begin
-    policy_days = [20,60,120]
+    policy_days = [20,60,120] .+ 17
     contact_rate = 0.05
     pol = findfirst(x->t<=x, policy_days) # array of days when policy changes
-    growth_rate = ifelse(pol == 1, 0.0, 2^(1/((pol-1)*5)) - 1) # growth rate depending on policy
+    growth_rate = pol == 1 ? 0.0 : (2^(1/((pol-1)*5)) - 1) # growth rate depending on policy
     return (growth_rate + γ) / 990 * (1-contact_rate) # calculate rate of infection
 end
 p = [β, γ];
@@ -62,9 +62,12 @@ plot(sol)
 
 # Using AlgebraicPetri.Types
 
-sir_cset= LabelledReactionNet{Function, Int}((:S=>990, :I=>10, :R=>0), (:inf, β)=>((:S, :I)=>(:I,:I)), (:rec, (t)->γ)=>(:I=>:R))
+import OrdinaryDiffEq: ODEProblem
+ODEProblem(p::LabelledReactionNet, t) = ODEProblem(Petri.Model(p), concentrations(p), t, rates(p))
 
-prob = ODEProblem(Petri.Model(sir_cset), concentrations(sir_cset), (0.0, 120.0), rates(sir_cset))
+sir_cset= LabelledReactionNet{Function, Int}((:S=>990, :I=>10, :R=>0), (:inf, β)=>((:S, :I)=>(:I,:I)), (:rec, t->γ)=>(:I=>:R))
+
+prob = ODEProblem(sir_cset, (17.0, 120.0))
 sol = OrdinaryDiffEq.solve(prob,Tsit5())
 plot(sol)
 
