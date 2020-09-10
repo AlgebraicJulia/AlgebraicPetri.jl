@@ -3,6 +3,7 @@
 #md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/covid/chime.ipynb)
 
 using AlgebraicPetri.Epidemiology
+using AlgebraicPetri.Types
 
 using Petri
 using OrdinaryDiffEq
@@ -27,6 +28,8 @@ macro capture(funcname, exname, ex)
     end
 end
 
+# Using AlgebraicPetri.Epidemiology
+
 sir = transmission ⋅ recovery
 
 p_sir = decoration(F_epi(sir));
@@ -43,7 +46,7 @@ t_span = (17.0,120.0)
     contact_rate = 0.05
     pol = findfirst(x->t<=x, policy_days) # array of days when policy changes
     growth_rate = ifelse(pol == 1, 0.0, 2^(1/((pol-1)*5)) - 1) # growth rate depending on policy
-    return (growth_rate + γ) / u0[1] * (1-contact_rate) # calculate rate of infection
+    return (growth_rate + γ) / 990 * (1-contact_rate) # calculate rate of infection
 end
 p = [β, γ];
 
@@ -57,8 +60,16 @@ sol = solve(prob,SRA1(),callback=cb)
 
 plot(sol)
 
-using AlgebraicPetri.Types
+# Using AlgebraicPetri.Types
 
-cssir = LabelledReactionNet{String, Int}((:S=>990, :I=>10, :R=>0), (:inf, β_text)=>((:S, :I)=>(:I,:I)), (:rec, γ_text)=>(:I=>:R))
-json = JSON.json(cssir.tables)
-println(json)
+sir_cset= LabelledReactionNet{Function, Int}((:S=>990, :I=>10, :R=>0), (:inf, β)=>((:S, :I)=>(:I,:I)), (:rec, (t)->γ)=>(:I=>:R))
+
+prob = ODEProblem(Petri.Model(sir_cset), concentrations(sir_cset), (0.0, 120.0), rates(sir_cset))
+sol = OrdinaryDiffEq.solve(prob,Tsit5())
+plot(sol)
+
+## Getting Sharable JSON
+
+sir_cset_string = LabelledReactionNet{String, Int}((:S=>990, :I=>10, :R=>0), (:inf, β_text)=>((:S, :I)=>(:I,:I)), (:rec, γ_text)=>(:I=>:R))
+out = JSON.json(sir_cset_string.tables)
+JSON.print(sir_cset_string, 2)

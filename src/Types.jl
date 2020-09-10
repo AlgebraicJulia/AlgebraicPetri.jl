@@ -4,13 +4,14 @@ export TheoryPetriNet, PetriNet, AbstractPetriNet, ns, nt, ni, no,
   add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs,
   TransitionMatrices, rate_eq,
   TheoryLabelledPetriNet, LabelledPetriNet, AbstractLabelledPetriNet, sname, tname,
-  TheoryReactionNet, ReactionNet, AbstractReactionNet, concentration, rate,
+  TheoryReactionNet, ReactionNet, AbstractReactionNet, concentration, concentrations, rate, rates,
   TheoryLabelledReactionNet, LabelledReactionNet, AbstractLabelledReactionNet
 
 using Catlab
 using Catlab.CategoricalAlgebra.CSets
 using Catlab.Present
 using Catlab.Theories
+using LabelledArrays
 using Petri
 import Petri: Model
 
@@ -175,6 +176,9 @@ end
 concentration(p::AbstractReactionNet,s) = subpart(p,s,:concentration)
 rate(p::AbstractReactionNet,t) = subpart(p,t,:rate)
 
+concentrations(p::ReactionNet) = map(s->concentration(p, s), 1:ns(p))
+rates(p::ReactionNet) = map(t->rate(p, t), 1:nt(p))
+
 @present TheoryLabelledReactionNet <: TheoryReactionNet begin
   Name::Data
 
@@ -210,13 +214,17 @@ Petri.Model(p::Union{PetriNet,ReactionNet}) = begin
 end
 
 Petri.Model(p::Union{LabelledPetriNet,LabelledReactionNet}) = begin
-  snames = Dict(s=>sname(p,s) for s in 1:ns(p))
-  tnames = Dict(t=>tname(p,t) for t in 1:nt(p))
+  snames = [sname(p, s) for s in 1:ns(p)]
+  tnames = [tname(p, t) for t in 1:nt(p)]
   ts = TransitionMatrices(p)
-  t_in = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i) if v != 0), eachrow(ts.input))
-  t_out = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i) if v != 0), eachrow(ts.output))
-  Δ = Dict(tnames[k]=>v for (k,v) in enumerate(zip(t_in, t_out)))
+  t_in = map(i->LVector(;[(snames[k],v) for (k,v) in enumerate(i) if v != 0]...), eachrow(ts.input))
+  t_out = map(i->LVector(;[(snames[k],v) for (k,v) in enumerate(i) if v != 0]...), eachrow(ts.output))
+
+  Δ = LVector(;zip(tnames, zip(t_in, t_out))...)
   return Petri.Model(collect(values(snames)), Δ)
 end
+
+concentrations(p::LabelledReactionNet) = LVector(; [(sname(p, s), concentration(p, s)) for s in 1:ns(p)]...)
+rates(p::LabelledReactionNet) = LVector(; [(tname(p, t), rate(p, t)) for t in 1:nt(p)]...)
 
 end
