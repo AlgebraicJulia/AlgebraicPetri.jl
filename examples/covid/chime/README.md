@@ -40,7 +40,7 @@ When running these models,
 ODEs, SDEs, and Gillespie discrete simulations. Some example outputs are shown
 below with the following initial conditions and parameters:
 
-- Policy changing every 20, 40, and then 60 days
+- Enacted policy changing after 20, 40, and then 60 days
 - A relative contact rate of 0.05
 - an infectious day length of 14
 - And initial conditions of 990 susceptible, 10 infected, and 0 recovered
