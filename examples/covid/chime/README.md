@@ -1,6 +1,9 @@
 # CHIME Model
 
-The folder contains implementations of the [CHIME COVID-19 Model](https://github.com/CodeForPhilly/chime).
+The folder contains implementations of the [CHIME COVID-19
+Model](https://github.com/CodeForPhilly/chime). This model is an SIR
+epidemiological model where the rate of infection changes over time to represent
+policy changes such as shelter in place orders or masking requirements.
 
 Both `chime.jl` and `chime-cset.jl` implement the same model. Here `chime.jl`
 represents building the model out of the composition of open systems using
