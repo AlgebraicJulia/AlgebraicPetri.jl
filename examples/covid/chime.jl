@@ -4,12 +4,10 @@
 
 using AlgebraicPetri.Epidemiology
 using AlgebraicPetri.Types
-
 using Petri
 using OrdinaryDiffEq
 using StochasticDiffEq
 using Plots
-
 using Catlab.Meta
 using Catlab.Theories
 using Catlab.CategoricalAlgebra.FreeDiagrams
@@ -18,12 +16,10 @@ using Catlab.Graphics
 using JSON
 
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
-
 # help capture JSON of defined functions
 macro capture(funcname, exname, ex)
     quote
         $(esc(exname)) = $(repr(strip_lines(ex, recurse=true)))
-        # $(esc(exname)) = $(JSON.json(strip_lines(ex, recurse=true)))
         $(esc(funcname)) = $ex
     end
 end
@@ -52,16 +48,13 @@ p = [β, γ];
 
 prob = ODEProblem(p_sir,u0,t_span,p)
 sol = OrdinaryDiffEq.solve(prob,Tsit5())
-
 plot(sol)
 
 prob,cb = SDEProblem(p_sir,u0,t_span,p);
 sol = solve(prob,SRA1(),callback=cb)
-
 plot(sol)
 
 # Using AlgebraicPetri.Types
-
 import OrdinaryDiffEq: ODEProblem
 ODEProblem(p::LabelledReactionNet, t) = ODEProblem(Petri.Model(p), concentrations(p), t, rates(p))
 
