@@ -143,8 +143,8 @@ LabelledPetriNet(n,ts...) = begin
   p
 end
 
-sname(p::AbstractLabelledPetriNet,s) = subpart(p,s,:sname)
-tname(p::AbstractLabelledPetriNet,t) = subpart(p,t,:tname)
+sname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},s) = subpart(p,s,:sname)
+tname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},t) = subpart(p,t,:tname)
 
 # Reaction Nets
 ###############
@@ -176,8 +176,8 @@ end
 concentration(p::AbstractReactionNet,s) = subpart(p,s,:concentration)
 rate(p::AbstractReactionNet,t) = subpart(p,t,:rate)
 
-concentrations(p::ReactionNet) = map(s->concentration(p, s), 1:ns(p))
-rates(p::ReactionNet) = map(t->rate(p, t), 1:nt(p))
+concentrations(p::AbstractReactionNet) = map(s->concentration(p, s), 1:ns(p))
+rates(p::AbstractReactionNet) = map(t->rate(p, t), 1:nt(p))
 
 @present TheoryLabelledReactionNet <: TheoryReactionNet begin
   Name::Data
@@ -208,12 +208,12 @@ LabelledReactionNet{R,C}(n,ts...) where {R,C} = begin
 end
 
 # Interoperability with Petri.jl
-Petri.Model(p::Union{PetriNet,ReactionNet}) = begin
+Petri.Model(p::AbstractPetriNet) = begin
   ts = TransitionMatrices(p)
   return Petri.Model(1:ns(p), collect(zip(eachrow(ts.input), eachrow(ts.output))))
 end
 
-Petri.Model(p::Union{LabelledPetriNet,LabelledReactionNet}) = begin
+Petri.Model(p::Union{AbstractLabelledPetriNet,AbstractLabelledReactionNet}) = begin
   snames = [sname(p, s) for s in 1:ns(p)]
   tnames = [tname(p, t) for t in 1:nt(p)]
   ts = TransitionMatrices(p)
@@ -224,7 +224,7 @@ Petri.Model(p::Union{LabelledPetriNet,LabelledReactionNet}) = begin
   return Petri.Model(collect(values(snames)), Δ)
 end
 
-concentrations(p::LabelledReactionNet) = LVector(; [(sname(p, s), concentration(p, s)) for s in 1:ns(p)]...)
-rates(p::LabelledReactionNet) = LVector(; [(tname(p, t), rate(p, t)) for t in 1:nt(p)]...)
+concentrations(p::AbstractLabelledReactionNet) = LVector(; [(sname(p, s), concentration(p, s)) for s in 1:ns(p)]...)
+rates(p::AbstractLabelledReactionNet) = LVector(; [(tname(p, t), rate(p, t)) for t in 1:nt(p)]...)
 
 end
