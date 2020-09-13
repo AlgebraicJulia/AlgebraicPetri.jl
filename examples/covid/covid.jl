@@ -12,7 +12,7 @@ using Plots
 using Catlab
 using Catlab.Theories
 using Catlab.Programs
-using Catlab.CategoricalAlgebra.ShapeDiagrams
+using Catlab.CategoricalAlgebra.FreeDiagrams
 using Catlab.WiringDiagrams
 using Catlab.Graphics
 

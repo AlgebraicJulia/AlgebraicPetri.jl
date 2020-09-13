@@ -14,7 +14,7 @@ version = "2.0.2"
 
 [[AlgebraicPetri]]
 deps = ["AutoHashEquals", "Catlab", "LabelledArrays", "Petri"]
-git-tree-sha1 = "9e4b026a175ebd0a0205cab70556db2379d36129"
+git-tree-sha1 = "2a42386fdeca63d499f54b992362ffad4e53f18c"
 repo-rev = "petset"
 repo-url = "https://github.com/AlgebraicJulia/AlgebraicPetri.jl.git"
 uuid = "4f99eebe-17bf-4e98-b6a1-2c4f205a959b"
@@ -53,18 +53,16 @@ uuid = "a603d957-0e48-4f86-8fbd-0b7bc66df689"
 version = "0.2.2"
 
 [[Catlab]]
-deps = ["AutoHashEquals", "Compat", "Compose", "DataStructures", "FunctionWrappers", "GeneralizedGenerated", "JSON", "LightGraphs", "LightXML", "LinearAlgebra", "Logging", "MLStyle", "MetaGraphs", "Parameters", "Pkg", "Random", "Reexport", "Requires", "SparseArrays", "StaticArrays", "Statistics", "StructArrays"]
-git-tree-sha1 = "08bc7bd955fac73281361aec04b1cc082090b4ab"
-repo-rev = "master"
-repo-url = "https://github.com/AlgebraicJulia/Catlab.jl.git"
+deps = ["AutoHashEquals", "Compat", "Compose", "DataStructures", "GeneralizedGenerated", "JSON", "LabelledArrays", "LightGraphs", "LightXML", "LinearAlgebra", "Logging", "MLStyle", "MetaGraphs", "Parameters", "Pkg", "Random", "Reexport", "Requires", "SparseArrays", "StaticArrays", "Statistics"]
+git-tree-sha1 = "b1a9a214a41c7d6f0e209ed2b2c5de00863f2a43"
 uuid = "134e5e36-593f-5add-ad60-77f754baafbe"
 version = "0.7.4"
 
 [[ChainRulesCore]]
-deps = ["MuladdMacro"]
-git-tree-sha1 = "cd464e38276e956cd1112c5df96851659f888b11"
+deps = ["LinearAlgebra", "MuladdMacro"]
+git-tree-sha1 = "ac64a416997ae87eb86550020d0607ff608253d1"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "0.9.8"
+version = "0.9.10"
 
 [[CodecZlib]]
 deps = ["TranscodingStreams", "Zlib_jll"]
@@ -578,9 +576,9 @@ version = "1.0.10"
 
 [[Petri]]
 deps = ["AutoHashEquals", "Catlab", "DiffEqBase", "DiffEqJump", "OrdinaryDiffEq", "SparseArrays", "SteadyStateDiffEq", "StochasticDiffEq"]
-git-tree-sha1 = "6b514aca3c72610114e9ab23b3a1618b997e25aa"
+git-tree-sha1 = "3efa81ec2ef855af06309326f31e4d75ca158737"
 uuid = "4259d249-1051-49fa-8328-3f8ab9391c33"
-version = "1.2.0"
+version = "1.2.1"
 
 [[Pkg]]
 deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]

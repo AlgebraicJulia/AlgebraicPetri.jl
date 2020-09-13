@@ -143,9 +143,6 @@ LabelledPetriNet(n,ts...) = begin
   p
 end
 
-sname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},s) = subpart(p,s,:sname)
-tname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},t) = subpart(p,t,:tname)
-
 # Reaction Nets
 ###############
 
@@ -207,6 +204,9 @@ LabelledReactionNet{R,C}(n,ts...) where {R,C} = begin
   p
 end
 
+sname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},s) = subpart(p,s,:sname)
+tname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},t) = subpart(p,t,:tname)
+
 # Interoperability with Petri.jl
 Petri.Model(p::AbstractPetriNet) = begin
   ts = TransitionMatrices(p)
@@ -223,6 +223,9 @@ Petri.Model(p::Union{AbstractLabelledPetriNet,AbstractLabelledReactionNet}) = be
   Δ = LVector(;zip(tnames, zip(t_in, t_out))...)
   return Petri.Model(collect(values(snames)), Δ)
 end
+
+concentration(p::AbstractLabelledReactionNet,s) = subpart(p,s,:concentration)
+rate(p::AbstractLabelledReactionNet,t) = subpart(p,t,:rate)
 
 concentrations(p::AbstractLabelledReactionNet) = LVector(; [(sname(p, s), concentration(p, s)) for s in 1:ns(p)]...)
 rates(p::AbstractLabelledReactionNet) = LVector(; [(tname(p, t), rate(p, t)) for t in 1:nt(p)]...)

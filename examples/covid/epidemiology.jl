@@ -9,7 +9,7 @@ using StochasticDiffEq
 using Plots
 
 using Catlab.Theories
-using Catlab.CategoricalAlgebra.ShapeDiagrams
+using Catlab.CategoricalAlgebra.FreeDiagrams
 using Catlab.Graphics
 
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
