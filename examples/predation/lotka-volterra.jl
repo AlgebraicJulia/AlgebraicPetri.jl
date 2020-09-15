@@ -19,14 +19,14 @@ display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
 # #### Step 1: Define the building block Petri nets needed to construct the model
 
-birth_petri = PetriCospan([1], Petri.Model([1], [(Dict(1=>1), Dict(1=>2))]), [1]);
-Graph(decoration(birth_petri))
+birth_petri = PetriCospan([1], PetriNet(1, (1, (1,1))), [1]);
+Graph(Petri.Model(decoration(birth_petri)))
 #-
-predation_petri = PetriCospan([1,2], Petri.Model(1:2, [(Dict(1=>1,2=>1), Dict(2=>1.15))]), [2]);
-Graph(decoration(predation_petri))
+predation_petri = PetriCospan([1,2], PetriNet(2, ((1,2), (2,2))), [2]);
+Graph(Petri.Model(decoration(predation_petri)))
 #-
-death_petri = PetriCospan([1], Petri.Model([1], [(Dict(1=>1), Dict{Int,Int}())]), [1]);
-Graph(decoration(death_petri))
+death_petri = PetriCospan([1], PetriNet(1, (1, ())), [1]);
+Graph(Petri.Model(decoration(death_petri)))
 
 # #### Step 2: Define a presentation of the free biproduct category
 # that encodes the domain specific information
@@ -48,7 +48,7 @@ F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=Dict(
 # #### Step 3: Generate models using the hom expression or program notations
 
 lotka_volterra = (birth ⊗ id(wolves)) ⋅ predation ⋅ death
-lotka_petri = decoration(F(lotka_volterra))
+lotka_petri = Petri.Model(decoration(F(lotka_volterra)))
 display_wd(lotka_volterra)
 #-
 Graph(lotka_petri)
@@ -70,7 +70,7 @@ lotka_volterra2 = @program Predation (r::prey, w::predator) begin
   w_2 = predation(r_2, w)
   return death(w_2)
 end
-lotka_petri2 = decoration(F(to_hom_expr(FreeBiproductCategory, lotka_volterra2)))
+lotka_petri2 = Petri.Model(decoration(F(to_hom_expr(FreeBiproductCategory, lotka_volterra2))))
 lotka_petri == lotka_petri2
 
 # #### Step 4: Extend your presentation to handle more complex phenomena
@@ -100,7 +100,7 @@ dual_lv = @program DualPredation (fish::prey, Fish::predator, Shark::Predator) b
 end
 display_wd(dual_lv)
 #-
-dual_lv_petri = decoration(F(to_hom_expr(FreeBiproductCategory, dual_lv)))
+dual_lv_petri = Petri.Model(decoration(F(to_hom_expr(FreeBiproductCategory, dual_lv))))
 Graph(dual_lv_petri)
 
 # Generate a new solver, provide parameters, and analyze results

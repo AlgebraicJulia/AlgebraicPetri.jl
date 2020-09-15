@@ -25,7 +25,7 @@ id(args...) = foldl((x,y)->id(x) ⊗ id(y), args);
 
 travel_petri = PetriCospan(
         [1,2,3],
-        Petri.Model(1:6, [(Dict(1=>1), Dict(4=>1)), (Dict(2=>1), Dict(5=>1)), (Dict(3=>1), Dict(6=>1))]),
+        PetriNet(6, (1,4), (2,5), (3,6)),
         [4,5,6]);
 
 # #### Step 2: Extend the Infectious Disease presentation,
@@ -62,7 +62,7 @@ seird_city = to_hom_expr(FreeBiproductCategory, seird_city)
 
 display_wd(seird_city)
 # -
-Graph(decoration(F(seird_city)))
+Graph(Petri.Model(decoration(F(seird_city))))
 
 # create a multi-city SEIRD models
 
@@ -70,7 +70,7 @@ ncities(city,n::Int) = compose([city for i in 1:n]...)
 
 seird_3 = ncities(seird_city, 3)
 pc_seird_3 = F(seird_3)
-p_seird_3 = decoration(pc_seird_3)
+p_seird_3 = Petri.Model(decoration(pc_seird_3))
 display_wd(seird_3)
 # -
 Graph(p_seird_3)

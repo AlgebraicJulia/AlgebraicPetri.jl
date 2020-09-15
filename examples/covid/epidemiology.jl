@@ -22,7 +22,7 @@ sir = transmission ⋅ recovery
 
 # get resulting petri net and visualize model
 
-p_sir = decoration(F_epi(sir));
+p_sir = Petri.Model(decoration(F_epi(sir)));
 display_wd(sir)
 #-
 Graph(p_sir)
@@ -48,7 +48,7 @@ seir = sei ⋅ recovery
 
 # get resulting petri net and visualize model
 
-p_seir = decoration(F_epi(seir));
+p_seir = Petri.Model(decoration(F_epi(seir)));
 
 display_wd(seir)
 #-
@@ -73,7 +73,7 @@ seird = sei ⋅ Δ(I) ⋅ (death ⊗ recovery)
 
 # get resulting petri net and visualize model
 
-p_seird = decoration(F_epi(seird));
+p_seird = Petri.Model(decoration(F_epi(seird)));
 
 display_wd(seird)
 #-

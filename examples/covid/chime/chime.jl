@@ -7,13 +7,11 @@ using Catlab.Theories
 using Catlab.CategoricalAlgebra.FreeDiagrams
 using Catlab.Graphics
 
-using JSON
-
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
 sir = transmission ⋅ recovery
 
-p_sir = decoration(F_epi(sir));
+p_sir = Petri.Model(decoration(F_epi(sir)));
 display_wd(sir)
 #-
 Graph(p_sir)
