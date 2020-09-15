@@ -1,4 +1,4 @@
-using AlgebraicPetri.Types
+using AlgebraicPetri
 using Petri
 using OrdinaryDiffEq
 using Plots
