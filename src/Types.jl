@@ -1,4 +1,3 @@
-module Types
 export TheoryPetriNet, PetriNet, AbstractPetriNet, ns, nt, ni, no,
   add_species!, add_transition!, add_transitions!,
   add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs,
@@ -50,8 +49,8 @@ PetriNet(n,ts...) = begin
   add_species!(p, n)
   add_transitions!(p, length(ts))
   for (i,(ins,outs)) in enumerate(ts)
-    if !(typeof(ins) <: Union{Vector,Tuple}) || length(ins) == 1 ins = [ins] end
-    if !(typeof(outs) <: Union{Vector,Tuple}) || length(outs) == 1 outs = [outs] end
+    ins = vectorify(ins)
+    outs = vectorify(outs)
     add_inputs!(p, length(ins), repeat([i], length(ins)), collect(ins))
     add_outputs!(p, length(outs), repeat([i], length(outs)), collect(outs))
   end
@@ -229,5 +228,3 @@ rate(p::AbstractLabelledReactionNet,t) = subpart(p,t,:rate)
 
 concentrations(p::AbstractLabelledReactionNet) = LVector(; [(sname(p, s), concentration(p, s)) for s in 1:ns(p)]...)
 rates(p::AbstractLabelledReactionNet) = LVector(; [(tname(p, t), rate(p, t)) for t in 1:nt(p)]...)
-
-end
