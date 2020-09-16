@@ -55,10 +55,10 @@ Graph(lotka_petri)
 
 # Generate appropriate vector fields, define parameters, and visualize solution
 
-u0 = [40, 2];
-p = [4.0, 1.0, 2.0];
-prob = ODEProblem(lotka_petri,u0,(0.0,8.0),p);
-sol = solve(prob,Tsit5(),abstol=1e-6);
+u0 = [100, 10];
+p = [.3, .015, .7];
+prob = ODEProblem(lotka_petri,u0,(0.0,100.0),p);
+sol = solve(prob,Tsit5(),abstol=1e-8);
 plot(sol)
 
 # There is also a second syntax that is easier to write for programmers
@@ -105,8 +105,8 @@ Graph(dual_lv_petri)
 
 # Generate a new solver, provide parameters, and analyze results
 
-u0 = [40, 2, 1];
-p = [4.0, 1.0, 2.0, 2.5, 1.5];
-prob = ODEProblem(dual_lv_petri,u0,(0.0,8.0),p);
+u0 = [100, 10, 2];
+p = [.3, .015, .7, .017, .35];
+prob = ODEProblem(dual_lv_petri,u0,(0.0,100.0),p);
 sol = solve(prob,Tsit5(),abstol=1e-6);
 plot(sol)

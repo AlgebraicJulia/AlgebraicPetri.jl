@@ -10,7 +10,6 @@ using Catlab
 using Catlab.CategoricalAlgebra.CSets
 using Catlab.Present
 using Catlab.Theories
-using LabelledArrays
 using Petri
 import Petri: Model
 
@@ -208,23 +207,38 @@ tname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},t) = subpa
 
 # Interoperability with Petri.jl
 Petri.Model(p::AbstractPetriNet) = begin
+  if typeof(p) <: Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}
+    snames = [sname(p, s) for s in 1:ns(p)]
+    tnames = [tname(p, t) for t in 1:nt(p)]
+  else
+    snames = 1:ns(p)
+    tnames = 1:nt(p)
+  end
   ts = TransitionMatrices(p)
-  return Petri.Model(1:ns(p), collect(zip(eachrow(ts.input), eachrow(ts.output))))
-end
+  t_in = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i) if v != 0), eachrow(ts.input))
+  t_out = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i) if v != 0), eachrow(ts.output))
 
-Petri.Model(p::Union{AbstractLabelledPetriNet,AbstractLabelledReactionNet}) = begin
-  snames = [sname(p, s) for s in 1:ns(p)]
-  tnames = [tname(p, t) for t in 1:nt(p)]
-  ts = TransitionMatrices(p)
-  t_in = map(i->LVector(;[(snames[k],v) for (k,v) in enumerate(i) if v != 0]...), eachrow(ts.input))
-  t_out = map(i->LVector(;[(snames[k],v) for (k,v) in enumerate(i) if v != 0]...), eachrow(ts.output))
-
-  Δ = LVector(;zip(tnames, zip(t_in, t_out))...)
+  Δ = Dict(tnames[i]=>t for (i,t) in enumerate(zip(t_in, t_out)))
   return Petri.Model(collect(values(snames)), Δ)
 end
 
 concentration(p::AbstractLabelledReactionNet,s) = subpart(p,s,:concentration)
 rate(p::AbstractLabelledReactionNet,t) = subpart(p,t,:rate)
 
-concentrations(p::AbstractLabelledReactionNet) = LVector(; [(sname(p, s), concentration(p, s)) for s in 1:ns(p)]...)
-rates(p::AbstractLabelledReactionNet) = LVector(; [(tname(p, t), rate(p, t)) for t in 1:nt(p)]...)
+concentrations(p::Union{AbstractReactionNet, AbstractLabelledReactionNet}) = begin
+  if typeof(p) <: AbstractLabelledReactionNet
+    snames = [sname(p, s) for s in 1:ns(p)]
+  else
+    snames = 1:ns(p)
+  end
+  Dict(snames[s]=>concentration(p, s) for s in 1:ns(p))
+end
+
+rates(p::Union{AbstractReactionNet, AbstractLabelledReactionNet}) = begin
+  if typeof(p) <: AbstractLabelledReactionNet
+    tnames = [tname(p, s) for s in 1:nt(p)]
+  else
+    tnames = 1:nt(p)
+  end
+  Dict(tnames[t]=>rate(p, t) for t in 1:nt(p))
+end
