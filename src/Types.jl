@@ -215,8 +215,8 @@ Petri.Model(p::AbstractPetriNet) = begin
     tnames = 1:nt(p)
   end
   ts = TransitionMatrices(p)
-  t_in = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i) if v != 0), eachrow(ts.input))
-  t_out = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i) if v != 0), eachrow(ts.output))
+  t_in = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i) if v != 0), [ts.input[i,:] for i in 1:nt(p)])
+  t_out = map(i->Dict(snames[k]=>v for (k,v) in enumerate(i) if v != 0), [ts.output[i,:] for i in 1:nt(p)])
 
   Δ = Dict(tnames[i]=>t for (i,t) in enumerate(zip(t_in, t_out)))
   return Petri.Model(collect(values(snames)), Δ)
