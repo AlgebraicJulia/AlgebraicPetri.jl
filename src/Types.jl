@@ -107,13 +107,19 @@ PetriNet(tm::TransitionMatrices) = begin
   p
 end
 
+valueat(x::Number, u, t) = x
+valueat(f::Function, u, t) = try f(u,t) catch e f(t) end
+
 rate_eq(p::AbstractPetriNet) = begin
   tm = TransitionMatrices(p)
   f(du,u,p,t) = begin
-    log_rates = log.(p) .+ tm.input * log.(u)
-    du = (tm.output - tm.input) * exp.(log_rates)
+    log_rates = log.(p) .+ tm.input * [i <= 0 ? 0 : log(i) for i in u]
+    # println(log_rates)
+    du = transpose(tm.output - tm.input) * exp.(log_rates)
+    println(du)
+    return du
   end
-  f
+  return f
 end
 
 @present TheoryLabelledPetriNet <: TheoryPetriNet begin
