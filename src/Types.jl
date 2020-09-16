@@ -247,20 +247,12 @@ end
 concentration(p::AbstractLabelledReactionNet,s) = subpart(p,s,:concentration)
 rate(p::AbstractLabelledReactionNet,t) = subpart(p,t,:rate)
 
-concentrations(p::Union{AbstractReactionNet, AbstractLabelledReactionNet}) = begin
-  if typeof(p) <: AbstractLabelledReactionNet
-    snames = [sname(p, s) for s in 1:ns(p)]
-  else
-    snames = 1:ns(p)
-  end
+concentrations(p::AbstractLabelledReactionNet) = begin
+  snames = [sname(p, s) for s in 1:ns(p)]
   Dict(snames[s]=>concentration(p, s) for s in 1:ns(p))
 end
 
-rates(p::Union{AbstractReactionNet, AbstractLabelledReactionNet}) = begin
-  if typeof(p) <: AbstractLabelledReactionNet
-    tnames = [tname(p, s) for s in 1:nt(p)]
-  else
-    tnames = 1:nt(p)
-  end
+rates(p::AbstractLabelledReactionNet) = begin
+  tnames = [tname(p, s) for s in 1:nt(p)]
   Dict(tnames[t]=>rate(p, t) for t in 1:nt(p))
 end
