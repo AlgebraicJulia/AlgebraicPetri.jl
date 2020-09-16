@@ -1,7 +1,7 @@
 export TheoryPetriNet, PetriNet, AbstractPetriNet, ns, nt, ni, no,
   add_species!, add_transition!, add_transitions!,
   add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs,
-  TransitionMatrices, rate_eq,
+  TransitionMatrices, vectorfield,
   TheoryLabelledPetriNet, LabelledPetriNet, AbstractLabelledPetriNet, sname, tname,
   TheoryReactionNet, ReactionNet, AbstractReactionNet, concentration, concentrations, rate, rates,
   TheoryLabelledReactionNet, LabelledReactionNet, AbstractLabelledReactionNet
@@ -11,6 +11,7 @@ using Catlab.CategoricalAlgebra.CSets
 using Catlab.Present
 using Catlab.Theories
 using Petri
+using LinearAlgebra: mul!
 import Petri: Model
 
 vectorify(n) = begin
@@ -110,13 +111,28 @@ end
 valueat(x::Number, u, t) = x
 valueat(f::Function, u, t) = try f(u,t) catch e f(t) end
 
-rate_eq(p::AbstractPetriNet) = begin
-  tm = TransitionMatrices(p)
+vectorfield(pn::AbstractPetriNet) = begin
+  tm = TransitionMatrices(pn)
+  dt_T = transpose(tm.output - tm.input)
   f(du,u,p,t) = begin
-    log_rates = log.(p) .+ tm.input * [i <= 0 ? 0 : log(i) for i in u]
-    # println(log_rates)
-    du = transpose(tm.output - tm.input) * exp.(log_rates)
-    println(du)
+    u_m = u
+    p_m = p
+    # normalize to correctly ordered vectors
+    if typeof(pn) <: Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}
+      u_m = [u[sname(pn, i)] for i in 1:ns(pn)]
+      p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
+    end
+    log_rates = log.(map(i->valueat(i,u,t), p_m)) .+ tm.input * [i <= 0 ? 0 : log(i) for i in u_m]
+    # if labelled, store in the correctly named value of du
+    if typeof(pn) <: Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}
+      new_du = dt_T * exp.(log_rates)
+      for s in 1:ns(pn)
+        du[sname(pn, s)] = new_du[s]
+      end
+    else
+      # if not labelled we can use mul! for a performance gain
+      mul!(du, dt_T, exp.(log_rates))
+    end
     return du
   end
   return f
