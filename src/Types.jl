@@ -115,24 +115,8 @@ vectorfield(pn::AbstractPetriNet) = begin
   tm = TransitionMatrices(pn)
   dt_T = transpose(tm.output - tm.input)
   f(du,u,p,t) = begin
-    u_m = u
-    p_m = p
-    # normalize to correctly ordered vectors
-    if typeof(pn) <: Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}
-      u_m = [u[sname(pn, i)] for i in 1:ns(pn)]
-      p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
-    end
-    log_rates = log.(map(i->valueat(i,u,t), p_m)) .+ tm.input * [i <= 0 ? 0 : log(i) for i in u_m]
-    # if labelled, store in the correctly named value of du
-    if typeof(pn) <: Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}
-      new_du = dt_T * exp.(log_rates)
-      for s in 1:ns(pn)
-        du[sname(pn, s)] = new_du[s]
-      end
-    else
-      # if not labelled we can use mul! for a performance gain
-      mul!(du, dt_T, exp.(log_rates))
-    end
+    log_rates = log.(map(i->valueat(i,u,t), p)) .+ tm.input * [i <= 0 ? 0 : log(i) for i in u]
+    mul!(du, dt_T, exp.(log_rates))
     return du
   end
   return f
@@ -226,6 +210,22 @@ end
 
 sname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},s) = subpart(p,s,:sname)
 tname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},t) = subpart(p,t,:tname)
+
+vectorfield(pn::Union{AbstractLabelledPetriNet,AbstractLabelledReactionNet}) = begin
+  tm = TransitionMatrices(pn)
+  dt_T = transpose(tm.output - tm.input)
+  f(du,u,p,t) = begin
+    u_m = [u[sname(pn, i)] for i in 1:ns(pn)]
+    p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
+    log_rates = log.(map(i->valueat(i,u,t), p_m)) .+ tm.input * [i <= 0 ? 0 : log(i) for i in u_m]
+    new_du = dt_T * exp.(log_rates)
+    for s in 1:ns(pn)
+      du[sname(pn, s)] = new_du[s]
+    end
+    return du
+  end
+  return f
+end
 
 # Interoperability with Petri.jl
 Petri.Model(p::AbstractPetriNet) = begin
