@@ -5,7 +5,12 @@ sir_lrxn = LabelledReactionNet{Number, Int}((:S=>990, :I=>10, :R=>0), (:inf, .00
 
 sir_tpetri= PetriNet(TransitionMatrices(sir_petri))
 
-@test collect(PetriCospanOb(5)) == [1,2,3,4,5]
+next = iterate(PetriCospanOb(5))
+while next !== nothing
+    (i, state) = next
+    @test i == state && i <= 5
+    global next = iterate(PetriCospanOb(5), state)
+end
 
 @test id(PetriFunctor).F(FinSet(3))(sir_petri)
 @test !(id(PetriFunctor).F(FinSet(5))(sir_petri))
