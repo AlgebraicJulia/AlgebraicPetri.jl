@@ -1,12 +1,12 @@
 using AlgebraicPetri
-using Petri
+using Petri: Model, Graph
 using OrdinaryDiffEq
 using Plots
 using Catlab.Meta
 using JSON
 
 import OrdinaryDiffEq: ODEProblem
-ODEProblem(p::LabelledReactionNet, t) = ODEProblem(Petri.Model(p), concentrations(p), t, rates(p))
+ODEProblem(p::LabelledReactionNet, t) = ODEProblem(vectorfield(p), concentrations(p), t, rates(p))
 
 # help capture JSON of defined functions
 macro capture(funcname, exname, ex)
@@ -25,7 +25,9 @@ end
     return (growth_rate + γ) / 990 * (1-contact_rate) # calculate rate of infection
 end
 
-sir_cset= LabelledReactionNet{Function, Int}((:S=>990, :I=>10, :R=>0), (:inf, β)=>((:S, :I)=>(:I,:I)), (:rec, t->γ)=>(:I=>:R))
+sir_cset= LabelledReactionNet{Function, Float64}((:S=>990, :I=>10, :R=>0), (:inf, β)=>((:S, :I)=>(:I,:I)), (:rec, t->γ)=>(:I=>:R))
+
+Graph(Model(sir_cset))
 
 prob = ODEProblem(sir_cset, (17.0, 120.0))
 sol = OrdinaryDiffEq.solve(prob,Tsit5())

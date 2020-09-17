@@ -5,7 +5,7 @@
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 
-using Petri
+using Petri: Model, Graph
 using OrdinaryDiffEq
 using Plots
 
@@ -62,7 +62,7 @@ seird_city = to_hom_expr(FreeBiproductCategory, seird_city)
 
 display_wd(seird_city)
 # -
-Graph(Petri.Model(decoration(F(seird_city))))
+Graph(Model(decoration(F(seird_city))))
 
 # create a multi-city SEIRD models
 
@@ -70,10 +70,10 @@ ncities(city,n::Int) = compose([city for i in 1:n]...)
 
 seird_3 = ncities(seird_city, 3)
 pc_seird_3 = F(seird_3)
-p_seird_3 = Petri.Model(decoration(pc_seird_3))
+p_seird_3 = decoration(pc_seird_3)
 display_wd(seird_3)
 # -
-Graph(p_seird_3)
+Graph(Model(p_seird_3))
 
 # Define time frame and initial parameters
 
@@ -94,7 +94,7 @@ params = seirdparams(3, 5);
 
 # Generate, solve, and visualize resulting ODE
 
-prob = ODEProblem(p_seird_3,u0,tspan,params);
+prob = ODEProblem(vectorfield(p_seird_3),u0,tspan,params);
 sol = solve(prob,Tsit5());
 
 plot(sol)
@@ -125,7 +125,7 @@ a,b,p = 10, 1, 1/6
 
 dynparams = waveparams(asymptotic, a/sum(u0), b/sum(u0),p)
 
-prob = ODEProblem(p_seird_3,u0,tspan, dynparams)
+prob = ODEProblem(vectorfield(p_seird_3),u0,tspan, dynparams)
 sol = solve(prob,Tsit5(), saveat=1:1:tspan[2])
 
 plot(sol)

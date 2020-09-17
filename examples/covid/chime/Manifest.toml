@@ -8,15 +8,13 @@ version = "0.3.3"
 
 [[Adapt]]
 deps = ["LinearAlgebra"]
-git-tree-sha1 = "0fac443759fa829ed8066db6cf1077d888bb6573"
+git-tree-sha1 = "95f8bda0555209f122bc796b0382ea4a3a121720"
 uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
-version = "2.0.2"
+version = "2.1.0"
 
 [[AlgebraicPetri]]
-deps = ["AutoHashEquals", "Catlab", "LabelledArrays", "Petri"]
-git-tree-sha1 = "8dabc78f264d52c48c7db09d491c20e6de88c061"
-repo-rev = "petset"
-repo-url = "https://github.com/AlgebraicJulia/AlgebraicPetri.jl.git"
+deps = ["AutoHashEquals", "Catlab", "LabelledArrays", "LinearAlgebra", "Petri"]
+path = "../../.."
 uuid = "4f99eebe-17bf-4e98-b6a1-2c4f205a959b"
 version = "0.3.2"
 
@@ -255,9 +253,9 @@ version = "0.8.14"
 
 [[FiniteDiff]]
 deps = ["ArrayInterface", "LinearAlgebra", "Requires", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "c98c1b5c2b5eeb6d867ec77b936132b8e7c978c0"
+git-tree-sha1 = "a78ee56e4636c20c2db9ccde8afe57065f6ab387"
 uuid = "6a86dc24-6348-571c-b903-95158fe2bd41"
-version = "2.6.0"
+version = "2.7.0"
 
 [[FixedPointNumbers]]
 deps = ["Statistics"]
@@ -320,9 +318,9 @@ version = "0.8.3"
 
 [[HTTP]]
 deps = ["Base64", "Dates", "IniFile", "MbedTLS", "Sockets"]
-git-tree-sha1 = "2ac03263ce44be4222342bca1c51c36ce7566161"
+git-tree-sha1 = "c7ec02c4c6a039a98a15f955462cd7aea5df4508"
 uuid = "cd3eb016-35fb-5094-929b-558a96fad6f3"
-version = "0.8.17"
+version = "0.8.19"
 
 [[Inflate]]
 git-tree-sha1 = "f5fc07d4e706b84f72d54eedcc1c13d92fb0871c"
@@ -582,9 +580,9 @@ version = "1.0.10"
 
 [[Petri]]
 deps = ["AutoHashEquals", "Catlab", "DiffEqBase", "DiffEqJump", "OrdinaryDiffEq", "SparseArrays", "SteadyStateDiffEq", "StochasticDiffEq"]
-git-tree-sha1 = "3efa81ec2ef855af06309326f31e4d75ca158737"
+git-tree-sha1 = "39ef72184e048c853162d4086ae2ddcc0cc6046f"
 uuid = "4259d249-1051-49fa-8328-3f8ab9391c33"
-version = "1.2.1"
+version = "1.2.2"
 
 [[Pkg]]
 deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]

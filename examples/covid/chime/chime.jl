@@ -1,5 +1,6 @@
+using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
-using Petri
+using Petri: Model, Graph
 using OrdinaryDiffEq
 using StochasticDiffEq
 using Plots
@@ -11,10 +12,10 @@ display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
 sir = transmission ⋅ recovery
 
-p_sir = Petri.Model(decoration(F_epi(sir)));
+p_sir = decoration(F_epi(sir));
 display_wd(sir)
 #-
-Graph(p_sir)
+Graph(Model(p_sir))
 
 u0 = [990.0, 10, 0];
 t_span = (17.0,120.0)
@@ -29,12 +30,12 @@ t_span = (17.0,120.0)
 end
 p = [β, γ];
 
-prob = ODEProblem(p_sir,u0,t_span,p)
+prob = ODEProblem(vectorfield(p_sir),u0,t_span,p)
 sol = OrdinaryDiffEq.solve(prob,Tsit5())
 plot(sol)
 png("ode-chime.png")
 
-prob,cb = SDEProblem(p_sir,u0,t_span,p);
+prob,cb = SDEProblem(Model(p_sir),u0,t_span,p);
 sol = solve(prob,SRA1(),callback=cb)
 plot(sol)
 png("sde-chime.png")

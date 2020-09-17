@@ -18,8 +18,7 @@ for (root, dirs, files) in walkdir(literate_dir)
   out_dir = joinpath(generated_dir, relpath(root, literate_dir))
   for file in files
     f,l = splitext(file)
-    depth = count(i->(i=='/'), relpath(root, literate_dir))
-    if depth == 0 && l == ".jl" && !startswith(f, "_")
+    if l == ".jl" && !startswith(f, "_")
       Literate.markdown(joinpath(root, file), out_dir;
         config=config, documenter=true, credit=false)
       Literate.notebook(joinpath(root, file), out_dir;

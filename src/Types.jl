@@ -11,8 +11,9 @@ using Catlab.CategoricalAlgebra.CSets
 using Catlab.Present
 using Catlab.Theories
 using Petri
+using LabelledArrays
 using LinearAlgebra: mul!
-import Petri: Model
+import Petri: Model, vectorfield
 
 vectorify(n) = begin
   if !(typeof(n) <: Union{Vector,Tuple}) || (typeof(n) <: Tuple && length(n) == 1)
@@ -135,7 +136,7 @@ const LabelledPetriNet = ACSetType(TheoryLabelledPetriNet, index=[:it,:is,:ot,:o
 LabelledPetriNet(n,ts...) = begin
   p = LabelledPetriNet()
   n = vectorify(n)
-  state_idx = state_dict(n)
+  state_idx = state_/(n)
   add_species!(p, length(n), sname=n)
   for (name,(ins,outs)) in ts
     i = add_transition!(p, tname=name)
@@ -212,6 +213,7 @@ sname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},s) = subpa
 tname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},t) = subpart(p,t,:tname)
 
 vectorfield(pn::Union{AbstractLabelledPetriNet,AbstractLabelledReactionNet}) = begin
+  println("HELLO")
   tm = TransitionMatrices(pn)
   dt_T = transpose(tm.output - tm.input)
   f(du,u,p,t) = begin
@@ -229,18 +231,22 @@ end
 
 # Interoperability with Petri.jl
 Petri.Model(p::AbstractPetriNet) = begin
-  if typeof(p) <: Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}
-    snames = [sname(p, s) for s in 1:ns(p)]
-    tnames = [tname(p, t) for t in 1:nt(p)]
-  else
-    snames = 1:ns(p)
-    tnames = 1:nt(p)
-  end
   ts = TransitionMatrices(p)
-  t_in = map(i->Dict(snames[k]=>v for (k,v) in enumerate(ts.input[i,:]) if v != 0), 1:nt(p))
-  t_out = map(i->Dict(snames[k]=>v for (k,v) in enumerate(ts.output[i,:]) if v != 0), 1:nt(p))
+  t_in = map(i->Dict(k=>v for (k,v) in enumerate(ts.input[i,:]) if v != 0), 1:nt(p))
+  t_out = map(i->Dict(k=>v for (k,v) in enumerate(ts.output[i,:]) if v != 0), 1:nt(p))
 
-  Δ = Dict(tnames[i]=>t for (i,t) in enumerate(zip(t_in, t_out)))
+  Δ = Dict(i=>t for (i,t) in enumerate(zip(t_in, t_out)))
+  return Petri.Model(ns(p), Δ)
+end
+
+Petri.Model(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}) = begin
+  snames = [sname(p, s) for s in 1:ns(p)]
+  tnames = [tname(p, t) for t in 1:nt(p)]
+  ts = TransitionMatrices(p)
+  t_in = map(i->LVector(;[(snames[k]=>v) for (k,v) in enumerate(ts.input[i,:]) if v != 0]...), 1:nt(p))
+  t_out = map(i->LVector(;[(snames[k]=>v) for (k,v) in enumerate(ts.output[i,:]) if v != 0]...), 1:nt(p))
+
+  Δ = LVector(;[(tnames[i]=>t) for (i,t) in enumerate(zip(t_in, t_out))]...)
   return Petri.Model(collect(values(snames)), Δ)
 end
 
@@ -249,10 +255,10 @@ rate(p::AbstractLabelledReactionNet,t) = subpart(p,t,:rate)
 
 concentrations(p::AbstractLabelledReactionNet) = begin
   snames = [sname(p, s) for s in 1:ns(p)]
-  Dict(snames[s]=>concentration(p, s) for s in 1:ns(p))
+  LVector(;[(snames[s]=>concentration(p, s)) for s in 1:ns(p)]...)
 end
 
 rates(p::AbstractLabelledReactionNet) = begin
   tnames = [tname(p, s) for s in 1:nt(p)]
-  Dict(tnames[t]=>rate(p, t) for t in 1:nt(p))
+  LVector(;[(tnames[t]=>rate(p, t)) for t in 1:nt(p)]...)
 end

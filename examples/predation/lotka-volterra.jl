@@ -4,7 +4,7 @@
 
 using AlgebraicPetri
 
-using Petri
+using Petri: Model, Graph
 using OrdinaryDiffEq
 using Plots
 
@@ -20,13 +20,13 @@ display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 # #### Step 1: Define the building block Petri nets needed to construct the model
 
 birth_petri = PetriCospan([1], PetriNet(1, (1, (1,1))), [1]);
-Graph(Petri.Model(decoration(birth_petri)))
+Graph(Model(decoration(birth_petri)))
 #-
 predation_petri = PetriCospan([1,2], PetriNet(2, ((1,2), (2,2))), [2]);
-Graph(Petri.Model(decoration(predation_petri)))
+Graph(Model(decoration(predation_petri)))
 #-
 death_petri = PetriCospan([1], PetriNet(1, (1, ())), [1]);
-Graph(Petri.Model(decoration(death_petri)))
+Graph(Model(decoration(death_petri)))
 
 # #### Step 2: Define a presentation of the free biproduct category
 # that encodes the domain specific information
@@ -48,16 +48,16 @@ F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=Dict(
 # #### Step 3: Generate models using the hom expression or program notations
 
 lotka_volterra = (birth ⊗ id(wolves)) ⋅ predation ⋅ death
-lotka_petri = Petri.Model(decoration(F(lotka_volterra)))
+lotka_petri = decoration(F(lotka_volterra))
 display_wd(lotka_volterra)
 #-
-Graph(lotka_petri)
+Graph(Model(lotka_petri))
 
 # Generate appropriate vector fields, define parameters, and visualize solution
 
 u0 = [100, 10];
 p = [.3, .015, .7];
-prob = ODEProblem(lotka_petri,u0,(0.0,100.0),p);
+prob = ODEProblem(vectorfield(lotka_petri),u0,(0.0,100.0),p);
 sol = solve(prob,Tsit5(),abstol=1e-8);
 plot(sol)
 
@@ -70,7 +70,7 @@ lotka_volterra2 = @program Predation (r::prey, w::predator) begin
   w_2 = predation(r_2, w)
   return death(w_2)
 end
-lotka_petri2 = Petri.Model(decoration(F(to_hom_expr(FreeBiproductCategory, lotka_volterra2))))
+lotka_petri2 = decoration(F(to_hom_expr(FreeBiproductCategory, lotka_volterra2)))
 lotka_petri == lotka_petri2
 
 # #### Step 4: Extend your presentation to handle more complex phenomena
@@ -100,13 +100,13 @@ dual_lv = @program DualPredation (fish::prey, Fish::predator, Shark::Predator) b
 end
 display_wd(dual_lv)
 #-
-dual_lv_petri = Petri.Model(decoration(F(to_hom_expr(FreeBiproductCategory, dual_lv))))
-Graph(dual_lv_petri)
+dual_lv_petri = decoration(F(to_hom_expr(FreeBiproductCategory, dual_lv)))
+Graph(Model(dual_lv_petri))
 
 # Generate a new solver, provide parameters, and analyze results
 
 u0 = [100, 10, 2];
 p = [.3, .015, .7, .017, .35];
-prob = ODEProblem(dual_lv_petri,u0,(0.0,100.0),p);
+prob = ODEProblem(vectorfield(dual_lv_petri),u0,(0.0,100.0),p);
 sol = solve(prob,Tsit5(),abstol=1e-6);
 plot(sol)
