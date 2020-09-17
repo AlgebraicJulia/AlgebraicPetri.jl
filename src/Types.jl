@@ -213,7 +213,6 @@ sname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},s) = subpa
 tname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},t) = subpart(p,t,:tname)
 
 vectorfield(pn::Union{AbstractLabelledPetriNet,AbstractLabelledReactionNet}) = begin
-  println("HELLO")
   tm = TransitionMatrices(pn)
   dt_T = transpose(tm.output - tm.input)
   f(du,u,p,t) = begin
