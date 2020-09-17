@@ -7,7 +7,6 @@ using AlgebraicPetri.Epidemiology
 
 using Petri: Model, Graph
 using OrdinaryDiffEq
-using StochasticDiffEq
 using Plots
 
 using Catlab.Theories
@@ -56,11 +55,11 @@ seir = sei ⋅ recovery
 # here we convert the C-Set decoration to a Petri.jl model
 # to use its StochasticDifferentialEquations support
 
-p_seir = Model(decoration(F_epi(seir)));
+p_seir = decoration(F_epi(seir));
 
 display_wd(seir)
 #-
-Graph(p_seir)
+Graph(Model(p_seir))
 
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
@@ -68,8 +67,8 @@ Graph(p_seir)
 u0 = [10.0, 1, 0, 0];
 p = [.9, .2, .5];
 
-prob,cb = SDEProblem(p_seir,u0,(0.0,15.0),p);
-sol = solve(prob,SRA1(),callback=cb)
+prob = ODEProblem(vectorfield(p_seir),u0,(0.0,15.0),p);
+sol = solve(prob,Tsit5())
 
 plot(sol)
 
@@ -81,11 +80,11 @@ seird = sei ⋅ Δ(I) ⋅ (death ⊗ recovery)
 
 # get resulting petri net and visualize model
 
-p_seird = Model(decoration(F_epi(seird)));
+p_seird = decoration(F_epi(seird));
 
 display_wd(seird)
 #-
-Graph(p_seird)
+Graph(Model(p_seird))
 
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
@@ -93,7 +92,7 @@ Graph(p_seird)
 u0 = [10.0, 1, 0, 0, 0];
 p = [0.9, 0.2, 0.5, 0.1];
 
-prob,cb = SDEProblem(p_seird,u0,(0.0,15.0),p);
-sol = solve(prob,SRA1(),callback=cb)
+prob = ODEProblem(vectorfield(p_seird),u0,(0.0,15.0),p);
+sol = solve(prob,Tsit5())
 
 plot(sol)
