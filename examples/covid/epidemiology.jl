@@ -2,14 +2,16 @@
 #
 #md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/covid/epidemiology.ipynb)
 
+using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 
-using Petri
+using Petri: Model, Graph
+using OrdinaryDiffEq
 using StochasticDiffEq
 using Plots
 
 using Catlab.Theories
-using Catlab.CategoricalAlgebra.ShapeDiagrams
+using Catlab.CategoricalAlgebra.FreeDiagrams
 using Catlab.Graphics
 
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
@@ -20,12 +22,15 @@ display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
 sir = transmission ⋅ recovery
 
-# get resulting petri net and visualize model
+# get resulting petri net as a C-Set
 
-p_sir = decoration(F_epi(sir));
+cset_sir = decoration(F_epi(sir));
 display_wd(sir)
 #-
-Graph(p_sir)
+
+# Use Petri.jl to visualize the C-Set
+
+Graph(Model(cset_sir))
 
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
@@ -33,8 +38,10 @@ Graph(p_sir)
 u0 = [10.0, 1, 0];
 p = [0.4, 0.4];
 
-prob,cb = SDEProblem(p_sir,u0,(0.0,7.5),p);
-sol = solve(prob,SRA1(),callback=cb)
+# The C-Set representation has direct support for generating a DiffEq vector field
+
+prob = ODEProblem(vectorfield(cset_sir),u0,(0.0,7.5),p);
+sol = solve(prob,Tsit5())
 
 plot(sol)
 
@@ -46,9 +53,10 @@ sei = exposure ⋅ (illness ⊗ id(I)) ⋅ ∇(I)
 
 seir = sei ⋅ recovery
 
-# get resulting petri net and visualize model
+# here we convert the C-Set decoration to a Petri.jl model
+# to use its StochasticDifferentialEquations support
 
-p_seir = decoration(F_epi(seir));
+p_seir = Model(decoration(F_epi(seir)));
 
 display_wd(seir)
 #-
@@ -58,7 +66,7 @@ Graph(p_seir)
 # create, solve, and visualize ODE problem
 
 u0 = [10.0, 1, 0, 0];
-p = [0.9, 0.2, 0.5];
+p = [.9, .2, .5];
 
 prob,cb = SDEProblem(p_seir,u0,(0.0,15.0),p);
 sol = solve(prob,SRA1(),callback=cb)
@@ -73,7 +81,7 @@ seird = sei ⋅ Δ(I) ⋅ (death ⊗ recovery)
 
 # get resulting petri net and visualize model
 
-p_seird = decoration(F_epi(seird));
+p_seird = Model(decoration(F_epi(seird)));
 
 display_wd(seird)
 #-

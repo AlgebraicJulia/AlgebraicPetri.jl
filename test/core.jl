@@ -16,5 +16,10 @@ compare_petricospan(σ(p1, p2), braid(p1,p2))
 @test codom(◊(p1)) == I
 
 compare_petricospan(pair(pc1,pc1), Δ(p1) ⋅ (pc1 ⊗ pc1))
+compare_petricospan(copair(pc1,pc1), (pc1 ⊗ pc1) ⋅ ∇(p1))
+
 compare_petricospan(proj1(p1,p2), pc1 ⊗ ◊(p2))
 compare_petricospan(proj2(p1,p2), ◊(p1) ⊗ pc2)
+
+compare_petricospan(coproj1(p1,p2), pc1 ⊗ □(p2))
+compare_petricospan(coproj2(p1,p2), □(p1) ⊗ pc2)

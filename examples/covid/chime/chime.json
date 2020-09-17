@@ -1,0 +1,27 @@
+{
+  "T": [
+    {
+      "rate": ":(t->begin\n          policy_days = [20, 60, 120] .+ 17\n          contact_rate = 0.05\n          pol = findfirst((x->begin\n                          t <= x\n                      end), policy_days)\n          growth_rate = if pol == 1\n                  0.0\n              else\n                  2 ^ (1 / ((pol - 1) * 5)) - 1\n              end\n          return ((growth_rate + γ) / 990) * (1 - contact_rate)\n      end)",
+      "tname": "inf"
+    },
+    {
+      "rate": ":(1 / 14)",
+      "tname": "rec"
+    }
+  ],
+  "S": [
+    { "concentration": 990, "sname": "S" },
+    { "concentration": 10, "sname": "I" },
+    { "concentration": 0, "sname": "R" }
+  ],
+  "I": [
+    { "it": 1, "is": 1 },
+    { "it": 1, "is": 2 },
+    { "it": 2, "is": 2 }
+  ],
+  "O": [
+    { "ot": 1, "os": 2 },
+    { "ot": 1, "os": 2 },
+    { "ot": 2, "os": 3 }
+  ]
+}

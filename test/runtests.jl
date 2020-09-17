@@ -1,9 +1,11 @@
 using Test
 
 using Petri
+using LabelledArrays
 using AlgebraicPetri
+using AlgebraicPetri.Epidemiology
 using Catlab.Theories
-using Catlab.CategoricalAlgebra.ShapeDiagrams
+using Catlab.CategoricalAlgebra.FreeDiagrams
 using Catlab.CategoricalAlgebra.FinSets
 
 function compare_petricospan(p₁::PetriCospan, p₂::PetriCospan)
@@ -18,6 +20,14 @@ end
     include("core.jl")
 end
 
+@testset "Types" begin
+    include("types.jl")
+end
+
 @testset "Petri" begin
     include("petri.jl")
+end
+
+@testset "Epidemiology" begin
+    include("epidemiology.jl")
 end

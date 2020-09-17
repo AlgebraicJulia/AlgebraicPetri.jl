@@ -1,10 +1,10 @@
-f = PetriCospan([1, 2], Petri.Model(1:4, [(Dict(1=>1), Dict(3=>1)), (Dict(2=>1), Dict(4=>1))]), [3, 4])
+f = PetriCospan([1, 2], PetriNet(4, (1,3), (2,4)), [3, 4])
 
-g = PetriCospan([1,2], Petri.Model(1:3, [(Dict(1=>1, 2=>1), Dict(3=>1))]), [3])
+g = PetriCospan([1,2], PetriNet(3, ((1,2),3)), [3])
 
 h = f ⋅ g
 
-h′ = PetriCospan([1,2], Petri.Model(1:5, [(Dict(1=>1), Dict(3=>1)), (Dict(2=>1), Dict(4=>1)), (Dict(3=>1, 4=>1), Dict(5=>1))]), [5])
+h′ = PetriCospan([1,2], PetriNet(5, (1,3), (2,4), ((3,4), 5)), [5])
 
 h_id = h ⋅ id(PetriCospanOb(1))
 

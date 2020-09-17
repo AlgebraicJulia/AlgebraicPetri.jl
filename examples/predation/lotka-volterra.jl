@@ -4,14 +4,14 @@
 
 using AlgebraicPetri
 
-using Petri
+using Petri: Model, Graph
 using OrdinaryDiffEq
 using Plots
 
 using Catlab
 using Catlab.Theories
 using Catlab.Programs
-using Catlab.CategoricalAlgebra.ShapeDiagrams
+using Catlab.CategoricalAlgebra.FreeDiagrams
 using Catlab.WiringDiagrams
 using Catlab.Graphics
 
@@ -19,14 +19,14 @@ display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
 # #### Step 1: Define the building block Petri nets needed to construct the model
 
-birth_petri = PetriCospan([1], Petri.Model([1], [(Dict(1=>1), Dict(1=>2))]), [1]);
-Graph(decoration(birth_petri))
+birth_petri = PetriCospan([1], PetriNet(1, (1, (1,1))), [1]);
+Graph(Model(decoration(birth_petri)))
 #-
-predation_petri = PetriCospan([1,2], Petri.Model(1:2, [(Dict(1=>1,2=>1), Dict(2=>1.15))]), [2]);
-Graph(decoration(predation_petri))
+predation_petri = PetriCospan([1,2], PetriNet(2, ((1,2), (2,2))), [2]);
+Graph(Model(decoration(predation_petri)))
 #-
-death_petri = PetriCospan([1], Petri.Model([1], [(Dict(1=>1), Dict{Int,Int}())]), [1]);
-Graph(decoration(death_petri))
+death_petri = PetriCospan([1], PetriNet(1, (1, ())), [1]);
+Graph(Model(decoration(death_petri)))
 
 # #### Step 2: Define a presentation of the free biproduct category
 # that encodes the domain specific information
@@ -51,14 +51,14 @@ lotka_volterra = (birth ⊗ id(wolves)) ⋅ predation ⋅ death
 lotka_petri = decoration(F(lotka_volterra))
 display_wd(lotka_volterra)
 #-
-Graph(lotka_petri)
+Graph(Model(lotka_petri))
 
 # Generate appropriate vector fields, define parameters, and visualize solution
 
-u0 = [40, 2];
-p = [4.0, 1.0, 2.0];
-prob = ODEProblem(lotka_petri,u0,(0.0,8.0),p);
-sol = solve(prob,Tsit5(),abstol=1e-6);
+u0 = [100, 10];
+p = [.3, .015, .7];
+prob = ODEProblem(vectorfield(lotka_petri),u0,(0.0,100.0),p);
+sol = solve(prob,Tsit5(),abstol=1e-8);
 plot(sol)
 
 # There is also a second syntax that is easier to write for programmers
@@ -101,12 +101,12 @@ end
 display_wd(dual_lv)
 #-
 dual_lv_petri = decoration(F(to_hom_expr(FreeBiproductCategory, dual_lv)))
-Graph(dual_lv_petri)
+Graph(Model(dual_lv_petri))
 
 # Generate a new solver, provide parameters, and analyze results
 
-u0 = [40, 2, 1];
-p = [4.0, 1.0, 2.0, 2.5, 1.5];
-prob = ODEProblem(dual_lv_petri,u0,(0.0,8.0),p);
+u0 = [100, 10, 2];
+p = [.3, .015, .7, .017, .35];
+prob = ODEProblem(vectorfield(dual_lv_petri),u0,(0.0,100.0),p);
 sol = solve(prob,Tsit5(),abstol=1e-6);
 plot(sol)
