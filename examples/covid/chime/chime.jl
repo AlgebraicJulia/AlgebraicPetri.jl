@@ -2,7 +2,6 @@ using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 using Petri: Model, Graph
 using OrdinaryDiffEq
-using StochasticDiffEq
 using Plots
 using Catlab.Theories
 using Catlab.CategoricalAlgebra.FreeDiagrams
@@ -34,8 +33,3 @@ prob = ODEProblem(vectorfield(p_sir),u0,t_span,p)
 sol = OrdinaryDiffEq.solve(prob,Tsit5())
 plot(sol)
 png("ode-chime.png")
-
-prob,cb = SDEProblem(Model(p_sir),u0,t_span,p);
-sol = solve(prob,SRA1(),callback=cb)
-plot(sol)
-png("sde-chime.png")
