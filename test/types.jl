@@ -12,8 +12,8 @@ sir_tpetri= PetriNet(TransitionMatrices(sir_petri))
 @test concentrations(sir_rxn) == [990, 10, 0]
 @test rates(sir_rxn) == [.0001, .25]
 
-@test concentrations(sir_lrxn) == Dict(:S=>990, :I=>10, :R=>0)
-@test rates(sir_lrxn) == Dict(:inf=>.0001, :rec=>.25)
+@test concentrations(sir_lrxn) == LVector(S=990, I=10, R=0)
+@test rates(sir_lrxn) == LVector(inf=.0001, rec=.25)
 
 @test ns(sir_petri) == 3
 add_species!(sir_petri)

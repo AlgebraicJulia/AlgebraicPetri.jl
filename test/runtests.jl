@@ -1,6 +1,7 @@
 using Test
 
 using Petri
+using LabelledArrays
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 using Catlab.Theories

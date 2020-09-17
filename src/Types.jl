@@ -136,7 +136,7 @@ const LabelledPetriNet = ACSetType(TheoryLabelledPetriNet, index=[:it,:is,:ot,:o
 LabelledPetriNet(n,ts...) = begin
   p = LabelledPetriNet()
   n = vectorify(n)
-  state_idx = state_/(n)
+  state_idx = state_dict(n)
   add_species!(p, length(n), sname=n)
   for (name,(ins,outs)) in ts
     i = add_transition!(p, tname=name)
