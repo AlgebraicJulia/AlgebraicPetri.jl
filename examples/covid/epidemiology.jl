@@ -55,7 +55,7 @@ seir = sei ⋅ recovery
 # here we convert the C-Set decoration to a Petri.jl model
 # to use its StochasticDifferentialEquations support
 
-p_seir = decoration(F_epi(seir));
+p_seir = Model(decoration(F_epi(seir)));
 
 display_wd(seir)
 #-
@@ -80,7 +80,7 @@ seird = sei ⋅ Δ(I) ⋅ (death ⊗ recovery)
 
 # get resulting petri net and visualize model
 
-p_seird = decoration(F_epi(seird));
+p_seird = Model(decoration(F_epi(seird)));
 
 display_wd(seird)
 #-
