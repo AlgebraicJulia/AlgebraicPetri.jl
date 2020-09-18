@@ -109,7 +109,7 @@ PetriNet(tm::TransitionMatrices) = begin
   p
 end
 
-valueat(x::Number, u, t) = x
+@noinline valueat(x::Number, u, t) = x
 valueat(f::Function, u, t) = try f(u,t) catch e f(t) end
 
 vectorfield(pn::AbstractPetriNet) = begin

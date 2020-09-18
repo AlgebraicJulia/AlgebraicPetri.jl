@@ -44,7 +44,7 @@ A functor from FinSet to Petri defined as a PetriDecorator and a PetriLaxator
 """
 const PetriFunctor = LaxMonoidalFunctor{PetriDecorator, PetriLaxator}
 
-id(::Type{PetriFunctor}) = PetriFunctor(PetriDecorator(), PetriLaxator())
+@noinline id(::Type{PetriFunctor}) = PetriFunctor(PetriDecorator(), PetriLaxator())
 
 """ AlgebraicPetri.PetriDecorator(n::FinSet)
 
@@ -76,7 +76,7 @@ For Petri nets, this encodes the idea that you shift the states of q up by the
 number of states in p.
 """
 function (l::PetriLaxator)(p::PetriNet, q::PetriNet) # TODO: MOVE TO AbstractPetriNet
-    return PetriNet(ns(p)+ns(q), [(inputs(p, t), outputs(p, t)) for t in 1:nt(p)]..., 
+    return PetriNet(ns(p)+ns(q), [(inputs(p, t), outputs(p, t)) for t in 1:nt(p)]...,
         [(map(x->x+ns(p), inputs(q, t)), (map(x->x+ns(p), outputs(q, t)))) for t in 1:nt(q)]...)
 end
 
