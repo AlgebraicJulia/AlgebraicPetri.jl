@@ -33,8 +33,7 @@ plot(sol)
 
 # Getting Sharable JSON
 sir_cset_string = LabelledReactionNet{String, Int}((:S=&gt;990, :I=&gt;10, :R=&gt;0), (:inf, β_text)=&gt;((:S, :I)=&gt;(:I,:I)), (:rec, γ_text)=&gt;(:I=&gt;:R))
-JSON.print(sir_cset_string.tables, 2)</code></pre><pre class="documenter-example-output">HELLO
-{
+JSON.print(sir_cset_string.tables, 2)</code></pre><pre class="documenter-example-output">{
   &quot;T&quot;: [
     {
       &quot;rate&quot;: &quot;:(t-&gt;begin\n          policy_days = [20, 60, 120] .+ 17\n          contact_rate = 0.05\n          pol = findfirst((x-&gt;begin\n                          t &lt;= x\n                      end), policy_days)\n          growth_rate = if pol == 1\n                  0.0\n              else\n                  2 ^ (1 / ((pol - 1) * 5)) - 1\n              end\n          return ((growth_rate + γ) / 990) * (1 - contact_rate)\n      end)&quot;,
@@ -87,4 +86,4 @@ JSON.print(sir_cset_string.tables, 2)</code></pre><pre class="documenter-example
       &quot;os&quot;: 3
     }
   ]
-}</pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 17 September 2020 21:06">Thursday 17 September 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+}</pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Friday 18 September 2020 13:42">Friday 18 September 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
