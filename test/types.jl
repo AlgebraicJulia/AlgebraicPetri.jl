@@ -12,12 +12,16 @@ while next !== nothing
     global next = iterate(PetriCospanOb(5), state)
 end
 
-@test id(PetriFunctor).F(FinSet(3))(sir_petri)
-@test !(id(PetriFunctor).F(FinSet(5))(sir_petri))
+pf = id(PetriFunctor)
+@test pf.F(FinSet(3))(sir_petri)
+@test !(pf.F(FinSet(5))(sir_petri))
 
 @test sir_tpetri == sir_petri
 @test Petri.Model(sir_petri) == Petri.Model(sir_rxn)
 @test Petri.Model(sir_lpetri) == Petri.Model(sir_lrxn)
+
+@test concentration(sir_rxn, 1) == 990
+@test rate(sir_lrxn, 2) == .25
 
 @test concentrations(sir_rxn) == [990, 10, 0]
 @test typeof(rates(sir_rxn)) <: Array{Function}
