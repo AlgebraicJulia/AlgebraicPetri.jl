@@ -5,7 +5,7 @@
 [![Code Coverage](https://codecov.io/gh/AlgebraicJulia/AlgebraicPetri.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/AlgebraicJulia/AlgebraicPetri.jl)
 [![DOI](https://zenodo.org/badge/275202510.svg)](https://zenodo.org/badge/latestdoi/275202510)
 
-`AlgebraicPetri.jl` is a Julia library for building Petri net agent based models
+`AlgebraicPetri.jl` is a Julia library for building Petri Net models
 compositionally. This library acts as a bridge between
 [Catlab.jl](https://github.com/AlgebraicJulia/Catlab.jl) and
 [Petri.jl](https://github.com/mehalter/Petri.jl). This package defines the
