@@ -7,17 +7,6 @@ sir_lrxn = LabelledReactionNet{Number, Int}((:S=>990, :I=>10, :R=>0), (:inf, .00
 
 sir_tpetri= PetriNet(TransitionMatrices(sir_petri))
 
-next = iterate(PetriCospanOb(5))
-while next !== nothing
-    (i, state) = next
-    @test i == state && i <= 5
-    global next = iterate(PetriCospanOb(5), state)
-end
-
-pf = id(PetriFunctor)
-@test pf.F(FinSet(3))(sir_petri)
-@test !(pf.F(FinSet(5))(sir_petri))
-
 @test sir_tpetri == sir_petri
 @test Petri.Model(sir_petri) == Petri.Model(sir_rxn)
 @test Petri.Model(sir_lpetri) == Petri.Model(sir_lrxn)

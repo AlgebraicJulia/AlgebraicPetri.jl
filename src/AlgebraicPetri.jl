@@ -1,186 +1,297 @@
 """ Computing in the category of finite sets and Petri cospans
 """
 module AlgebraicPetri
-export PetriCospanOb, PetriFunctor, PetriCospan
 
-using Catlab.GAT
-using Catlab.Theories: BiproductCategory
-using Catlab.CategoricalAlgebra.FreeDiagrams
-using Catlab.Theories
-using Catlab.CategoricalAlgebra.Limits
+export TheoryPetriNet, PetriNet, OpenPetriNetOb, AbstractPetriNet, ns, nt, ni, no,
+  add_species!, add_transition!, add_transitions!,
+  add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs,
+  TransitionMatrices, vectorfield,
+  TheoryLabelledPetriNet, LabelledPetriNet, AbstractLabelledPetriNet, sname, tname,
+  TheoryReactionNet, ReactionNet, AbstractReactionNet, concentration, concentrations, rate, rates,
+  TheoryLabelledReactionNet, LabelledReactionNet, AbstractLabelledReactionNet,
+  Open, OpenPetriNet, OpenLabelledPetriNet, OpenReactionNet, OpenLabelledReactionNet,
+  OpenPetriNetOb, OpenLabelledPetriNetOb, OpenReactionNetOb, OpenLabelledReactionNetOb
+
+using Catlab
+using Catlab.CategoricalAlgebra
 using Catlab.CategoricalAlgebra.FinSets
-using AutoHashEquals
+using Catlab.Present
+using Catlab.Theories
+using Petri
+using LabelledArrays
+using LinearAlgebra: mul!
+import Petri: Model, vectorfield
 
-using Catlab.CategoricalAlgebra.FinSets: FinSet
-import Catlab.Theories: dom, codom, id, compose, ⋅, ∘, otimes, ⊗, munit,
-                        braid, σ, mcopy, Δ, mmerge, ∇, create, □, delete, ◊,
-                        pair, copair, proj1, proj2, coproj1, coproj2
-
-include("Types.jl")
-
-""" Finite ordinal (natural number)
-
-An object in the category of Open Petri Nets.
-"""
-@auto_hash_equals struct PetriCospanOb
-    n::Int
-end
-PetriCospanOb(X::FinSet) = PetriCospanOb(length(X))
-FinSet(X::PetriCospanOb) = FinSet(length(X))
-# TODO: Extend to a type parameter for arbitrary petri net types (petri net, reaction net, labelled, etc)
-EmptyPetriNet(X::PetriCospanOb) = PetriNet(length(X))
-
-Base.iterate(X::PetriCospanOb, args...) = iterate(iterable(X), args...)
-Base.length(X::PetriCospanOb) = length(iterable(X))
-
-iterable(X::PetriCospanOb) = 1:X.n
-
-struct PetriDecorator <: AbstractFunctor end
-struct PetriLaxator <: AbstractLaxator end
-
-""" Petri Functor
-
-A functor from FinSet to Petri defined as a PetriDecorator and a PetriLaxator
-"""
-const PetriFunctor = LaxMonoidalFunctor{PetriDecorator, PetriLaxator}
-
-id(::Type{PetriFunctor}) = PetriFunctor(PetriDecorator(), PetriLaxator())
-
-""" AlgebraicPetri.PetriDecorator(n::FinSet)
-
-A functor from FinSet to Set has an objects part, which given an object n in
-FinSet (a natural number) should return a representation of F(n)::Set, sets can
-be represented as a predicate that takes an element and returns true if the
-element is in the set. Here we take any julia value and test whether it is a
-Petri net on n states.
-"""
-function (pd::PetriDecorator)(n::FinSet)
-    return p -> typeof(p) <: AbstractPetriNet && ns(p) == length(n)
+vectorify(n) = begin
+  if !(typeof(n) <: Union{Vector,Tuple}) || (typeof(n) <: Tuple && length(n) == 1)
+    [n]
+  else
+    n
+  end
 end
 
-""" AlgebraicPetri.PetriDecorator(f::FinFunction)
+state_dict(n) = Dict(s=>i for (i, s) in enumerate(n))
 
-A functor from FinSet to Set has a hom part, which given a hom f in FinSet
-(a function n::Int->m::Int) should return a representation of F(f)::F(n)->F(m),
-here we implement this as a function that takes a Petri net of size n to a Petri
-net of size m, such that the transitions are mapped appropriately.
-"""
-function (pd::PetriDecorator)(f::FinFunction) # TODO: MOVE TO AbstractPetriNet
-    return (p::PetriNet) -> PetriNet(length(codom(f)), [(map(f, inputs(p, t)), map(f, outputs(p, t))) for t in 1:nt(p)]...)
+# Petri Nets
+############
+
+@present TheoryPetriNet(FreeSchema) begin
+  T::Ob
+  S::Ob
+  I::Ob
+  O::Ob
+
+  it::Hom(I,T)
+  is::Hom(I,S)
+  ot::Hom(O,T)
+  os::Hom(O,S)
 end
 
-""" AlgebraicPetri.PetriLaxator(p::Petri.Model, q::Petri.Model)
+const AbstractPetriNet = AbstractACSetType(TheoryPetriNet)
+const PetriNet = CSetType(TheoryPetriNet,index=[:it,:is,:ot,:os])
+const OpenPetriNetOb, OpenPetriNet = OpenCSetTypes(PetriNet,:S)
 
-The laxitor takes a pair of decorations and returns the coproduct decoration
-For Petri nets, this encodes the idea that you shift the states of q up by the
-number of states in p.
-"""
-function (l::PetriLaxator)(p::PetriNet, q::PetriNet) # TODO: MOVE TO AbstractPetriNet
-    return PetriNet(ns(p)+ns(q), [(inputs(p, t), outputs(p, t)) for t in 1:nt(p)]..., 
-        [(map(x->x+ns(p), inputs(q, t)), (map(x->x+ns(p), outputs(q, t)))) for t in 1:nt(q)]...)
+Open(n, p::AbstractPetriNet, m) = OpenPetriNet(p, FinFunction(n, ns(p)), FinFunction(m, ns(p)))
+
+# PetriNet([:S, :I, :R], :infection=>((1, 2), 3))
+
+PetriNet(n,ts...) = begin
+  p = PetriNet()
+  add_species!(p, n)
+  add_transitions!(p, length(ts))
+  for (i,(ins,outs)) in enumerate(ts)
+    ins = vectorify(ins)
+    outs = vectorify(outs)
+    add_inputs!(p, length(ins), repeat([i], length(ins)), collect(ins))
+    add_outputs!(p, length(outs), repeat([i], length(outs)), collect(outs))
+  end
+  p
 end
 
-""" Petri Cospan
+ns(p::AbstractPetriNet) = nparts(p,:S)
+nt(p::AbstractPetriNet) = nparts(p,:T)
+ni(p::AbstractPetriNet) = nparts(p,:I)
+no(p::AbstractPetriNet) = nparts(p,:O)
 
-A morphism in the category of Open Petri Nets defined as a decorated cospan with
-a [`PetriFunctor`](@ref) as the decorator which maps the category of finite
-ordinals to the category Petri and an AbstractPetriNet as the decoration
-"""
-const PetriCospan = DecoratedCospan{PetriFunctor, AbstractPetriNet}
+add_species!(p::AbstractPetriNet;kw...) = add_part!(p,:S;kw...)
+add_species!(p::AbstractPetriNet,n;kw...) = add_parts!(p,:S,n;kw...)
 
-""" AlgebraicPetri.PetriCospan(l::Vector{Int}, m::AbstractPetriNet, r::Vector{Int})
+add_transition!(p::AbstractPetriNet;kw...) = add_part!(p,:T;kw...)
+add_transitions!(p::AbstractPetriNet,n;kw...) = add_parts!(p,:T,n;kw...)
 
-A constructor for Petri Cospans where `l` is a vector of the input states from
-AbstractPetriNet `m`, and `r` is a vector of the output states from AbstractPetriNet `m`
+add_input!(p::AbstractPetriNet,t,s;kw...) = add_part!(p,:I;it=t,is=s,kw...)
+add_inputs!(p::AbstractPetriNet,n,t,s;kw...) = add_parts!(p,:I,n;it=t,is=s,kw...)
 
-Constructs the cospan: l → m ← r
-"""
-function (::Type{PetriCospan})(l::AbstractVector, p::AbstractPetriNet, r::AbstractVector)
-    return PetriCospan(Cospan(FinFunction(l, ns(p)),
-                              FinFunction(r, ns(p))),
-                       id(PetriFunctor), p)
-end
+add_output!(p::AbstractPetriNet,t,s;kw...) = add_part!(p,:O;ot=t,os=s,kw...)
+add_outputs!(p::AbstractPetriNet,n,t,s;kw...) = add_parts!(p,:O,n;ot=t,os=s,kw...)
 
-@instance BiproductCategory(PetriCospanOb, PetriCospan) begin
-    dom(f::PetriCospan) = PetriCospanOb(dom(left(f)))
-    codom(f::PetriCospan) = PetriCospanOb(dom(right(f)))
+# Note: although indexing makes this pretty fast, it is often faster to bulk-convert
+# the PetriNet net into a transition matrix, if you are working with all of the transitions
+inputs(p::AbstractPetriNet,t) = subpart(p,incident(p,t,:it),:is)
+outputs(p::AbstractPetriNet,t) = subpart(p,incident(p,t,:ot),:os)
 
-    compose(p::PetriCospan, q::PetriCospan) = begin
-        # reimplementation of pushout of Span{FinSetFunc, FinSetFun}
-        # to save the value of coeq
-        f, g = right(p), left(q)
-        ι1, ι2 = coproduct(codom(f), codom(g))
-        π = proj(coequalizer(f⋅ι1, g⋅ι2))
-        f′, g′ = ι1⋅π, ι2⋅π
-        composite = Cospan(left(p)⋅f′, right(q)⋅g′)
-        dpuq = decorator(p).L(decoration(p), decoration(q))
-        return PetriCospan(composite, decorator(p), decorator(p).F(π)(dpuq))
+struct TransitionMatrices
+  input::Matrix{Int}
+  output::Matrix{Int}
+  TransitionMatrices(p::AbstractPetriNet) = begin
+    input, output = zeros(Int,(nt(p),ns(p))), zeros(Int,(nt(p),ns(p)))
+    for i in 1:ni(p)
+      input[subpart(p,i,:it),subpart(p,i,:is)] += 1
     end
-
-    id(X::PetriCospanOb) = PetriCospan(
-        Cospan(id(FinSet(X)), id(FinSet(X))),
-        id(PetriFunctor),
-        EmptyPetriNet(X))
-
-    otimes(X::PetriCospanOb, Y::PetriCospanOb) = PetriCospanOb(length(X) + length(Y))
-
-    otimes(f::PetriCospan, g::PetriCospan) = begin
-        fl, fr = left(f), right(f)
-        gl, gr = left(g), right(g)
-        # TODO: Replace with universal properties once implemented
-        PetriCospan(
-            Cospan(
-                FinFunction(x->x > length(dom(fl)) ? gl(x-length(dom(fl)))+length(codom(fl)) : fl(x),
-                               FinSet(length(dom(fl)) + length(dom(gl))),
-                               FinSet(length(codom(fl)) + length(codom(gl)))),
-                FinFunction(x->x > length(dom(fr)) ? gr(x-length(dom(fr)))+length(codom(fr)) : fr(x),
-                               FinSet(length(dom(fr)) + length(dom(gr))),
-                               FinSet(length(codom(fr)) + length(codom(gr))))
-            ), decorator(f), decorator(f).L(decoration(f), decoration(g)))
+    for o in 1:no(p)
+      output[subpart(p,o,:ot),subpart(p,o,:os)] += 1
     end
-
-    munit(::Type{PetriCospanOb}) = PetriCospanOb(0)
-
-    braid(X::PetriCospanOb, Y::PetriCospanOb) = begin
-        Z = otimes(X, Y)
-        PetriCospan(
-            Cospan(
-                id(FinSet(Z)),
-                FinFunction(vcat(length(X)+1:length(Z), iterable(X)), length(Z), length(Z))
-            ), id(PetriFunctor), EmptyPetriNet(Z))
-    end
-
-    mcopy(X::PetriCospanOb) = PetriCospan(
-        Cospan(
-            id(FinSet(X)),
-            FinFunction(vcat(iterable(X),iterable(X)), 2*length(X), length(X))
-        ), id(PetriFunctor), EmptyPetriNet(X))
-
-    mmerge(X::PetriCospanOb) = PetriCospan(
-        Cospan(
-            FinFunction(vcat(iterable(X),iterable(X)), 2*length(X), length(X)),
-            id(FinSet(X))
-        ), id(PetriFunctor), EmptyPetriNet(X))
-
-    create(X::PetriCospanOb) = PetriCospan(
-        Cospan(FinFunction(Int[], 0, length(X)), id(FinSet(X))),
-        id(PetriFunctor), EmptyPetriNet(X))
-
-    delete(X::PetriCospanOb) = PetriCospan(
-        Cospan(id(FinSet(X)), FinFunction(Int[], 0, length(X))),
-        id(PetriFunctor), EmptyPetriNet(X))
-
-    pair(f::PetriCospan, g::PetriCospan) = compose(mcopy(dom(f)), otimes(f, g))
-    copair(f::PetriCospan, g::PetriCospan) = compose(otimes(f, g), mmerge(codom(f)))
-
-    proj1(A::PetriCospanOb, B::PetriCospanOb) = otimes(id(A), delete(B))
-    proj2(A::PetriCospanOb, B::PetriCospanOb) = otimes(delete(A), id(B))
-
-    coproj1(A::PetriCospanOb, B::PetriCospanOb) = otimes(id(A), create(B))
-    coproj2(A::PetriCospanOb, B::PetriCospanOb) = otimes(create(A), id(B))
+    new(input,output)
+  end
 end
 
-# reenable after refactor
+PetriNet(tm::TransitionMatrices) = begin
+  (m,n) = size(tm.input)
+  p = PetriNet()
+  add_species!(p,n)
+  add_transitions!(p,m)
+  for i in 1:m
+    for j in 1:n
+      add_inputs!(p,tm.input[i,j],i,j)
+      add_outputs!(p,tm.output[i,j],i,j)
+    end
+  end
+  p
+end
+
+valueat(x::Number, u, t) = x
+valueat(f::Function, u, t) = try f(u,t) catch e f(t) end
+
+vectorfield(pn::AbstractPetriNet) = begin
+  tm = TransitionMatrices(pn)
+  dt_T = transpose(tm.output - tm.input)
+  f(du,u,p,t) = begin
+    log_rates = log.(map(i->valueat(i,u,t), p)) .+ tm.input * [i <= 0 ? 0 : log(i) for i in u]
+    mul!(du, dt_T, exp.(log_rates))
+    return du
+  end
+  return f
+end
+
+@present TheoryLabelledPetriNet <: TheoryPetriNet begin
+  Name::Data
+
+  tname::Attr(T, Name)
+  sname::Attr(S, Name)
+end
+
+const AbstractLabelledPetriNet = AbstractACSetType(TheoryLabelledPetriNet)
+const LabelledPetriNetUntyped = ACSetType(TheoryLabelledPetriNet, index=[:it,:is,:ot,:os])
+const LabelledPetriNet = LabelledPetriNetUntyped{Symbol}
+const OpenLabelledPetriNetObUntyped, OpenLabelledPetriNetUntyped = OpenACSetTypes(LabelledPetriNetUntyped,:S)
+const OpenLabelledPetriNetOb, OpenLabelledPetriNet = OpenLabelledPetriNetObUntyped{Symbol}, OpenLabelledPetriNetUntyped{Symbol}
+
+Open(n, p::AbstractLabelledPetriNet, m) = begin
+  s_idx = Dict(sname(p, s)=>s for s in 1:ns(p))
+  OpenLabelledPetriNet(p, FinFunction(map(i->s_idx[i], n), ns(p)), FinFunction(map(i->s_idx[i], m), ns(p)))
+end
+
+LabelledPetriNet(n,ts...) = begin
+  p = LabelledPetriNet()
+  n = vectorify(n)
+  state_idx = state_dict(n)
+  add_species!(p, length(n), sname=n)
+  for (name,(ins,outs)) in ts
+    i = add_transition!(p, tname=name)
+    ins = vectorify(ins)
+    outs = vectorify(outs)
+    add_inputs!(p, length(ins), repeat([i], length(ins)), map(x->state_idx[x], collect(ins)))
+    add_outputs!(p, length(outs), repeat([i], length(outs)), map(x->state_idx[x], collect(outs)))
+  end
+  p
+end
+
+# Reaction Nets
+###############
+
+@present TheoryReactionNet <: TheoryPetriNet begin
+  Rate::Data
+  Concentration::Data
+
+  rate::Attr(T, Rate)
+  concentration::Attr(S, Concentration)
+end
+
+const AbstractReactionNet = AbstractACSetType(TheoryReactionNet)
+const ReactionNet = ACSetType(TheoryReactionNet, index=[:it,:is,:ot,:os])
+const OpenReactionNetOb, OpenReactionNet = OpenACSetTypes(ReactionNet,:S)
+
+Open(n, p::AbstractReactionNet{R,C}, m) where {R,C} = OpenReactionNet{R,C}(p, FinFunction(n, ns(p)), FinFunction(m, ns(p)))
+
+ReactionNet{R,C}(n,ts...) where {R,C} = begin
+  p = ReactionNet{R,C}()
+  add_species!(p, length(n), concentration=n)
+  for (i, (rate,(ins,outs))) in enumerate(ts)
+    i = add_transition!(p, rate=rate)
+    ins = vectorify(ins)
+    outs = vectorify(outs)
+    add_inputs!(p, length(ins), repeat([i], length(ins)), collect(ins))
+    add_outputs!(p, length(outs), repeat([i], length(outs)), collect(outs))
+  end
+  p
+end
+
+concentration(p::AbstractReactionNet,s) = subpart(p,s,:concentration)
+rate(p::AbstractReactionNet,t) = subpart(p,t,:rate)
+
+concentrations(p::AbstractReactionNet) = map(s->concentration(p, s), 1:ns(p))
+rates(p::AbstractReactionNet) = map(t->rate(p, t), 1:nt(p))
+
+@present TheoryLabelledReactionNet <: TheoryReactionNet begin
+  Name::Data
+
+  tname::Attr(T, Name)
+  sname::Attr(S, Name)
+end
+
+const AbstractLabelledReactionNet = AbstractACSetType(TheoryLabelledReactionNet)
+const LabelledReactionNetUntyped = ACSetType(TheoryLabelledReactionNet, index=[:it,:is,:ot,:os])
+const LabelledReactionNet{R,C} = LabelledReactionNetUntyped{R,C,Symbol}
+const OpenLabelledReactionNetObUntyped, OpenLabelledReactionNetUntyped = OpenACSetTypes(LabelledReactionNetUntyped,:S)
+const OpenLabelledReactionNetOb{R,C} = OpenLabelledReactionNetObUntyped{R,C,Symbol}
+const OpenLabelledReactionNet{R,C} = OpenLabelledReactionNetUntyped{R,C,Symbol}
+
+Open(n, p::AbstractLabelledReactionNet{R,C}, m) where {R,C} = begin
+  s_idx = Dict(sname(p, s)=>s for s in 1:ns(p))
+  OpenLabelledReactionNet{R,C}(p, FinFunction(map(i->s_idx[i], n), ns(p)), FinFunction(map(i->s_idx[i], m), ns(p)))
+end
+
+# Ex. LabelledReactionNet{Number, Int}((:S=>990, :I=>10, :R=>0), (:inf, .3/1000)=>((:S, :I)=>(:I,:I)), (:rec, .2)=>(:I=>:R))
+LabelledReactionNet{R,C}(n,ts...) where {R,C} = begin
+  p = LabelledReactionNet{R,C}()
+  n = vectorify(n)
+  states = map(first, collect(n))
+  concentrations = map(last, collect(n))
+  state_idx = state_dict(states)
+  add_species!(p, length(states), concentration=concentrations, sname=states)
+  for (i, ((name,rate),(ins,outs))) in enumerate(ts)
+    i = add_transition!(p,rate=rate, tname=name)
+    ins = vectorify(ins)
+    outs = vectorify(outs)
+    add_inputs!(p, length(ins), repeat([i], length(ins)), map(x->state_idx[x], collect(ins)))
+    add_outputs!(p, length(outs), repeat([i], length(outs)), map(x->state_idx[x], collect(outs)))
+  end
+  p
+end
+
+sname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},s) = subpart(p,s,:sname)
+tname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},t) = subpart(p,t,:tname)
+
+vectorfield(pn::Union{AbstractLabelledPetriNet,AbstractLabelledReactionNet}) = begin
+  tm = TransitionMatrices(pn)
+  dt_T = transpose(tm.output - tm.input)
+  f(du,u,p,t) = begin
+    u_m = [u[sname(pn, i)] for i in 1:ns(pn)]
+    p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
+    log_rates = log.(map(i->valueat(i,u,t), p_m)) .+ tm.input * [i <= 0 ? 0 : log(i) for i in u_m]
+    new_du = dt_T * exp.(log_rates)
+    for s in 1:ns(pn)
+      du[sname(pn, s)] = new_du[s]
+    end
+    return du
+  end
+  return f
+end
+
+# Interoperability with Petri.jl
+Petri.Model(p::AbstractPetriNet) = begin
+  ts = TransitionMatrices(p)
+  t_in = map(i->Dict(k=>v for (k,v) in enumerate(ts.input[i,:]) if v != 0), 1:nt(p))
+  t_out = map(i->Dict(k=>v for (k,v) in enumerate(ts.output[i,:]) if v != 0), 1:nt(p))
+
+  Δ = Dict(i=>t for (i,t) in enumerate(zip(t_in, t_out)))
+  return Petri.Model(ns(p), Δ)
+end
+
+Petri.Model(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}) = begin
+  snames = [sname(p, s) for s in 1:ns(p)]
+  tnames = [tname(p, t) for t in 1:nt(p)]
+  ts = TransitionMatrices(p)
+  t_in = map(i->LVector(;[(snames[k]=>v) for (k,v) in enumerate(ts.input[i,:]) if v != 0]...), 1:nt(p))
+  t_out = map(i->LVector(;[(snames[k]=>v) for (k,v) in enumerate(ts.output[i,:]) if v != 0]...), 1:nt(p))
+
+  Δ = LVector(;[(tnames[i]=>t) for (i,t) in enumerate(zip(t_in, t_out))]...)
+  return Petri.Model(collect(values(snames)), Δ)
+end
+
+concentration(p::AbstractLabelledReactionNet,s) = subpart(p,s,:concentration)
+rate(p::AbstractLabelledReactionNet,t) = subpart(p,t,:rate)
+
+concentrations(p::AbstractLabelledReactionNet) = begin
+  snames = [sname(p, s) for s in 1:ns(p)]
+  LVector(;[(snames[s]=>concentration(p, s)) for s in 1:ns(p)]...)
+end
+
+rates(p::AbstractLabelledReactionNet) = begin
+  tnames = [tname(p, s) for s in 1:nt(p)]
+  LVector(;[(tnames[t]=>rate(p, t)) for t in 1:nt(p)]...)
+end
+
 include("Epidemiology.jl")
 
 end

@@ -1,5 +1,5 @@
-sir_petri = Petri.Model(3, Dict(1=>(Dict(1=>1,2=>1), Dict(2=>2)), 2=>(Dict(2=>1), Dict(3=>1))))
+sir_petri = LabelledPetriNet([:S,:I,:R], :inf=>((:S,:I)=>(:I,:I)), :rec=>(:I=>:R))
 
 sir = transmission ⋅ recovery
 
-@test Petri.Model(decoration(F_epi(sir))) == sir_petri
+@test apex(F_epi(sir)) == sir_petri

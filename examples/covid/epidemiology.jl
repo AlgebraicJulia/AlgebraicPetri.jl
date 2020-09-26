@@ -10,7 +10,7 @@ using OrdinaryDiffEq
 using Plots
 
 using Catlab.Theories
-using Catlab.CategoricalAlgebra.FreeDiagrams
+using Catlab.CategoricalAlgebra
 using Catlab.Graphics
 
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
@@ -23,7 +23,7 @@ sir = transmission ⋅ recovery
 
 # get resulting petri net as a C-Set
 
-cset_sir = decoration(F_epi(sir));
+cset_sir = apex(F_epi(sir));
 display_wd(sir)
 #-
 
@@ -55,7 +55,7 @@ seir = sei ⋅ recovery
 # here we convert the C-Set decoration to a Petri.jl model
 # to use its StochasticDifferentialEquations support
 
-p_seir = decoration(F_epi(seir));
+p_seir = apex(F_epi(seir));
 
 display_wd(seir)
 #-
@@ -80,7 +80,7 @@ seird = sei ⋅ Δ(I) ⋅ (death ⊗ recovery)
 
 # get resulting petri net and visualize model
 
-p_seird = decoration(F_epi(seird));
+p_seird = apex(F_epi(seird));
 
 display_wd(seird)
 #-
