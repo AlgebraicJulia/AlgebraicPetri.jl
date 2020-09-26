@@ -8,7 +8,6 @@ display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 """
 
 Vocabulary
-
 Nouns:
 ======
     Mature cathepsin – cathepsin form able to hydrolyze substrate or other cathepsins or to bind inhibitor
