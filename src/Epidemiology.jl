@@ -21,7 +21,7 @@ exposure_petri = Open([:S, :I], LabelledPetriNet([:S,:I,:E], :exp=>((:S,:I)=>(:E
     R::Ob
     D::Ob
     transmission::Hom(S⊗I, I)
-    exposure::Hom(S⊗I, E⊗I)
+    exposure::Hom(S⊗I, E)
     illness::Hom(E,I)
     recovery::Hom(I,R)
     death::Hom(I,D)
