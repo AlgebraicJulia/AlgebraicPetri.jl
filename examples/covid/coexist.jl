@@ -9,6 +9,7 @@ using Petri
 using LabelledArrays
 using OrdinaryDiffEq
 using Plots
+using JSON
 
 using Catlab
 using Catlab.Theories
@@ -17,8 +18,6 @@ using Catlab.Programs
 using Catlab.WiringDiagrams
 using Catlab.Graphics
 using Catlab.Graphics.Graphviz: run_graphviz
-
-import Catlab.Theories: id
 
 # helper functions
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
@@ -47,10 +46,20 @@ exposure_petri(name::Symbol, S::Symbol, s::Int, X::Symbol,x::Int,E::Symbol,e::In
 # Extend the Infectious Disease presentation,
 # get the new generators, and update the functor
 
-pop = [33540260 - 4*1000, 30895128 - 4*1000, 0]
-N = sum(pop) + 2*4*1000
-social_mixing_rate = [2.3276/N, 1.2015/N, .93828/N]
-fatality_rate = [0.0281, 0.1868, 0]
+pop = [8044056, 7642473, 8558707, 9295024,8604251,9173465,7286777,5830635,3450616] .- (4*1000)
+N = sum(pop) + length(pop)*4*1000
+social_mixing_rate =
+  [[5.10316562022642,1.28725377551533,1.30332531065247,2.31497083312315,1.1221598200343,0.606327539457772,0.453266757158743,0.177712174722219,0.0111726265254263],
+  [1.15949254996891,8.00118824220649,1.24977685411394,1.51298690806342,1.88877951844257,0.835804485358679,0.431371281973645,0.343104864504218,0.0324429672946592],
+  [1.19314902456243,1.2701954426234,3.55182053724384,1.81286158254244,1.80561825747571,1.29108026766182,0.708613434860661,0.248559044477893,0.0215323291988856],
+  [1.83125260045684,1.32872195974583,1.56648238384012,2.75491288061819,1.94613663227464,1.2348814962672,0.863177586322153,0.244623623638873,0.0394364256673532],
+  [0.910395333788561,1.7011898591446,1.60014517035071,1.99593275526656,2.90894801031624,1.37683234043657,0.859519958701156,0.488960115017174,0.110509077357166],
+  [0.56560186656657,0.865574490657954,1.31557291022074,1.45621698394508,1.58310342861768,1.92835669973181,0.963568493650797,0.463041280007004,0.183483677017087],
+  [0.544954016221808,0.575775829452094,0.930622416907882,1.31190809759635,1.27375718214796,1.24189546255302,1.32825334016313,0.66235513907445,0.0946971569608397],
+  [0.319717318035767,0.68528632728864,0.488468642570909,0.556345582530282,1.08429412751444,0.893028152305907,0.991137484161889,1.17651345255182,0.12964732712923],
+  [0.201086389216809,0.648252461859761,0.423327560644352,0.897268061280577,2.4516024037254,3.54014694719397,1.41761515077768,1.29700599099082,1.0189817510854]]
+
+fatality_rate = [0.00856164, 0.03768844, 0.02321319, 0.04282494, 0.07512237, 0.12550367, 0.167096  , 0.37953452, 0.45757006]
 
 @present EpiCoexist <: InfectiousDiseases begin
     I2::Ob
@@ -79,10 +88,10 @@ F(ex, n) = functor((OpenEpiRxnNetOb, OpenEpiRxnNet), ex, generators=Dict(
     R2=>ob(Symbol(:R2, n), 0),
     D=>ob(Symbol(:D, n), 0),
     transmission=>transmission_petri(:transmission, :S, 0, :I, 0, 0),
-    exposure=>exposure_petri(Symbol(:exp_, n), Symbol(:S,n), pop[n], Symbol(:I,n), 1000, Symbol(:E,n), 1000, .1*social_mixing_rate[n]),
-    exposure_e=>exposure_petri(Symbol(:exp_e, n), Symbol(:S,n), pop[n], Symbol(:E,n),1000, Symbol(:E,n),1000, .001*social_mixing_rate[n]),
-    exposure_i2=>exposure_petri(Symbol(:exp_i2, n), Symbol(:S,n), pop[n], Symbol(:I2,n), 1000, Symbol(:E,n),1000, .6*social_mixing_rate[n]),
-    exposure_a=>exposure_petri(Symbol(:exp_a, n), Symbol(:S,n), pop[n], Symbol(:A,n),1000, Symbol(:E,n),1000, .5*social_mixing_rate[n]),
+    exposure=>exposure_petri(Symbol(:exp_, n), Symbol(:S,n), pop[n], Symbol(:I,n), 1000, Symbol(:E,n), 1000, .1*social_mixing_rate[n][n]),
+    exposure_e=>exposure_petri(Symbol(:exp_e, n), Symbol(:S,n), pop[n], Symbol(:E,n),1000, Symbol(:E,n),1000, .001*social_mixing_rate[n][n]),
+    exposure_i2=>exposure_petri(Symbol(:exp_i2, n), Symbol(:S,n), pop[n], Symbol(:I2,n), 1000, Symbol(:E,n),1000, .6*social_mixing_rate[n][n]),
+    exposure_a=>exposure_petri(Symbol(:exp_a, n), Symbol(:S,n), pop[n], Symbol(:A,n),1000, Symbol(:E,n),1000, .5*social_mixing_rate[n][n]),
     progression=>spontaneous_petri(Symbol(:I,n), 1000, Symbol(:I2,n), 1000, Symbol(:prog_, n), .25),
     asymptomatic_infection=>spontaneous_petri(Symbol(:E,n), 1000, Symbol(:A,n), 1000, Symbol(:asymp_, n), .86/.14*.2),
     illness=>spontaneous_petri(Symbol(:E,n), 1000, Symbol(:I,n), 1000, Symbol(:ill_, n), .2),
@@ -165,14 +174,14 @@ F_cx(ex, x,y) = functor((OpenEpiRxnNetOb, OpenEpiRxnNet), ex, generators=Dict(
     ce_R′=>ob(Symbol(:R, y), 0),
     ce_R2′=>ob(Symbol(:R2, y), 0),
     ce_D′=>ob(Symbol(:D, y), 0),
-    ce_exposure=>exposure_petri(Symbol(:exp_, x,y), Symbol(:S,x), pop[x], Symbol(:I,y), 1000, Symbol(:E,x), 1000, .1*social_mixing_rate[x]),
-    ce_exposure_e=>exposure_petri(Symbol(:exp_e, x,y), Symbol(:S,x), pop[x], Symbol(:E,y),1000, Symbol(:E,x),1000, .001*social_mixing_rate[x]),
-    ce_exposure_a=>exposure_petri(Symbol(:exp_a, x,y), Symbol(:S,x), pop[x], Symbol(:A,y),1000, Symbol(:E,x),1000, .5*social_mixing_rate[x]),
-    ce_exposure_i2=>exposure_petri(Symbol(:exp_i2, x,y), Symbol(:S,x), pop[x], Symbol(:I2,y), 1000, Symbol(:E,x),1000, .6*social_mixing_rate[x]),
-    ce_exposure′=>exposure_petri(Symbol(:exp_, y,x), Symbol(:S,y), pop[y], Symbol(:I,x), 1000, Symbol(:E,y), 1000, .1*social_mixing_rate[y]),
-    ce_exposure_e′=>exposure_petri(Symbol(:exp_e, y,x), Symbol(:S,y), pop[y], Symbol(:E,x),1000, Symbol(:E,y),1000, .001*social_mixing_rate[y]),
-    ce_exposure_a′=>exposure_petri(Symbol(:exp_a, y,x), Symbol(:S,y), pop[y], Symbol(:A,x),1000, Symbol(:E,y),1000, .5*social_mixing_rate[y]),
-    ce_exposure_i2′=>exposure_petri(Symbol(:exp_i2, y,x), Symbol(:S,y), pop[y], Symbol(:I2,x), 1000, Symbol(:E,y),1000, .6*social_mixing_rate[y])
+    ce_exposure=>exposure_petri(Symbol(:exp_, x,y), Symbol(:S,x), pop[x], Symbol(:I,y), 1000, Symbol(:E,x), 1000, .1*social_mixing_rate[x][y]),
+    ce_exposure_e=>exposure_petri(Symbol(:exp_e, x,y), Symbol(:S,x), pop[x], Symbol(:E,y),1000, Symbol(:E,x),1000, .001*social_mixing_rate[x][y]),
+    ce_exposure_a=>exposure_petri(Symbol(:exp_a, x,y), Symbol(:S,x), pop[x], Symbol(:A,y),1000, Symbol(:E,x),1000, .5*social_mixing_rate[x][y]),
+    ce_exposure_i2=>exposure_petri(Symbol(:exp_i2, x,y), Symbol(:S,x), pop[x], Symbol(:I2,y), 1000, Symbol(:E,x),1000, .6*social_mixing_rate[x][y]),
+    ce_exposure′=>exposure_petri(Symbol(:exp_, y,x), Symbol(:S,y), pop[y], Symbol(:I,x), 1000, Symbol(:E,y), 1000, .1*social_mixing_rate[y][x]),
+    ce_exposure_e′=>exposure_petri(Symbol(:exp_e, y,x), Symbol(:S,y), pop[y], Symbol(:E,x),1000, Symbol(:E,y),1000, .001*social_mixing_rate[y][x]),
+    ce_exposure_a′=>exposure_petri(Symbol(:exp_a, y,x), Symbol(:S,y), pop[y], Symbol(:A,x),1000, Symbol(:E,y),1000, .5*social_mixing_rate[y][x]),
+    ce_exposure_i2′=>exposure_petri(Symbol(:exp_i2, y,x), Symbol(:S,y), pop[y], Symbol(:I2,x), 1000, Symbol(:E,y),1000, .6*social_mixing_rate[y][x])
     ))
 
 crossexposure = @program EpiCrossExposure (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::D,
@@ -208,15 +217,15 @@ end;
 Pop1, Pop2, Pop3, crossexp12, crossexp13, crossexp23, coex1, coex2, coex3 = generators(ThreeCoexist);
 
 F_tcx(ex) = functor((OpenEpiRxnNetOb, OpenEpiRxnNet), ex, generators=Dict(
-    Pop1=>F(otimes(S,E,I,I2,A,R,R2,D),1),
-    Pop2=>F(otimes(S,E,I,I2,A,R,R2,D),2),
-    Pop3=>F(otimes(S,E,I,I2,A,R,R2,D),3),
-    crossexp12=>F_cx(crossexposure,1,2),
-    crossexp13=>F_cx(crossexposure,1,3),
-    crossexp23=>F_cx(crossexposure,2,3),
-    coex1=>F(coexist,1),
-    coex2=>F(coexist,2),
-    coex3=>F(coexist,3)
+    Pop1=>F(otimes(S,E,I,I2,A,R,R2,D),3),
+    Pop2=>F(otimes(S,E,I,I2,A,R,R2,D),4),
+    Pop3=>F(otimes(S,E,I,I2,A,R,R2,D),5),
+    crossexp12=>F_cx(crossexposure,3,4),
+    crossexp13=>F_cx(crossexposure,3,5),
+    crossexp23=>F_cx(crossexposure,4,5),
+    coex1=>F(coexist,3),
+    coex2=>F(coexist,4),
+    coex3=>F(coexist,5)
     ))
 
 threeNCoexist = @program ThreeCoexist (pop1::Pop1, pop2::Pop2, pop3::Pop3) begin
@@ -226,9 +235,10 @@ threeNCoexist = @program ThreeCoexist (pop1::Pop1, pop2::Pop2, pop3::Pop3) begin
     return coex1(pop1′′), coex2(pop2′′), coex3(pop3′′)
 end
 threeNCoexist = to_hom_expr(FreeBiproductCategory, threeNCoexist)
-threeNCoexist_petri = apex(F_tcx(threeNCoexist))
+threeNCoexist_algpetri = apex(F_tcx(threeNCoexist))
+threeNCoexist_petri = Petri.Model(threeNCoexist_algpetri)
 
-Graph(Petri.Model(threeNCoexist_petri))
+Graph(threeNCoexist_petri)
 display_wd(threeNCoexist)
 display_wd(crossexposure)
 display_wd(coexist)
@@ -236,133 +246,13 @@ display_wd(coexist)
 save_wd(threeNCoexist, "3gen_coexist_wd.svg")
 save_wd(crossexposure, "crossexposure_wd.svg")
 save_wd(coexist, "coexist_wd.svg")
-save_graph(Graph(Petri.Model(threeNCoexist_petri)), "3gen_coexist_petri.svg")
+save_graph(Graph(threeNCoexist_petri), "3gen_coexist_petri.svg")
+
+JSON.print(threeNCoexist_algpetri)
 
 # save_wd(coexist, "coexist_wd.svg")
 tspan = (0.0,150.0)
-prob = ODEProblem(vectorfield(threeNCoexist_petri),concentrations(threeNCoexist_petri),tspan,rates(threeNCoexist_petri))
+prob = ODEProblem(threeNCoexist_petri,concentrations(threeNCoexist_algpetri),tspan,rates(threeNCoexist_algpetri))
 sol = solve(prob,Tsit5())
 
 plot(sol)
-
-# SAVE OLD CODE WHILE WORKING ON IT
-# #display_wd(crossexposure)
-# # save_wd(crossexposure, "crossexposure_wd.svg")
-
-# # 2 generation cross exposure + coexist model
-# population = otimes(S, E, I, I2, A, R, R2, D)
-# pop_hom_1 = F(population, 1)
-# pop_hom_2 = F(population, 2)
-# co_1 = F(coexist, 1)
-# co_2 = F(coexist, 2)
-# cross_1 = F(crossexposure, 1)
-# cross_2 = F(crossexposure, 2)
-# twogen = cross ⋅ braid(pop_hom, pop_hom) ⋅ cross ⋅ (co_1 ⊗ co_2)
-# test = F(coexist, 1)
-
-# twogen_petri = decoration(twogen)
-# twogen_petri = statereplace(twogen_petri, Dict(1=>:S,2=>:E,3=>:I,4=>:I2,5=>:A,6=>:R,7=>:R2,8=>:D,
-#                                                9=>:S′,10=>:E′,11=>:I′,12=>:I2′,13=>:A′,14=>:R′,15=>:R2′,16=>:D′))
-# tspan = (0.0,150.0)
-# prob = ODEProblem(twogen_petri.m,twogen_petri.u0,tspan,twogen_petri.rates)
-# sol = solve(prob,Tsit5())
-
-# plot(sol)
-
-# sol_total = transpose(hcat([[s[:S] + s[:S′], s[:E] + s[:E′], s[:A] + s[:A′], s[:I] + s[:I′], s[:I2] + s[:I2′], s[:R] + s[:R′], s[:R2] + s[:R2′], s[:D] + s[:D′]] for s in sol.u]...))
-# plot(sol.t, sol_total, label=["S" "E" "A" "I" "I2" "R" "R2" "D"])
-# # display_wd(twogen)
-# # Graph(decoration(F(twogen)))
-
-# # n generation cross exposure + coexist model
-# n = 9
-# population = otimes(S, E, I, I2, A, R, R2, D)
-# pops = [population for i in 1:n]
-
-# single_exposure = foldl(⋅, [otimes(map(id, pops[1:i])...,crossexposure⋅σ(pops[i+1:i+2]...),map(id, pops[i+3:end])...) for i in 0:(n-2)])
-# # display_wd(single_exposure)
-# # save_wd(single_exposure, "$(n)gen_single_crossexposure.svg")
-
-# ngen_exposure = foldl(⋅, [single_exposure for i in 1:n])
-# # display_wd(ngen_exposure)
-# # save_wd(ngen_exposure, "$(n)gen_crossexposure.svg")
-
-# ngen_coexist = ngen_exposure ⋅ foldl(⊗, [coexist for i in 1:n])
-# # display_wd(ngen_coexist)
-# #save_wd(ngen_coexist, "$(n)gen_coexist_wd.svg")
-
-# ngen_coexist_petri = decoration(F(ngen_coexist, 1))
-# #Graph(ngen_coexist_petri)
-# #save_graph(Graph(ngen_coexist_petri), "$(n)gen_coexist_petri.svg")
-
-# # Generate some simpler diagrams to expose the hierarchical structure
-# @present CoexistOverview(FreeBiproductCategory) begin
-#     Pop::Ob
-#     coexist::Hom(Pop,Pop)
-#     crossexposure::Hom(Pop⊗Pop,Pop⊗Pop)
-# end
-# pop′,coexist′,crossexposure′ = generators(CoexistOverview)
-# pops = [pop′ for i in 1:n]
-# single_exposure = foldl(⋅, [otimes(map(id, pops[1:i])...,crossexposure′⋅σ(pops[i+1:i+2]...),map(id, pops[i+3:end])...) for i in 0:(n-2)])
-# #display_wd(single_exposure)
-# #save_wd(single_exposure, "$(n)gen_single_crossexposure_overview.svg")
-# ngen_exposure = foldl(⋅, [single_exposure for i in 1:n])
-# #display_wd(ngen_exposure)
-# #save_wd(ngen_exposure, "$(n)gen_crossexposure_overview.svg")
-# ngen_coexist = ngen_exposure ⋅ foldl(⊗, [coexist′ for i in 1:n])
-# #display_wd(ngen_coexist)
-# #save_wd(ngen_coexist, "$(n)gen_coexist_overview.svg")
-
-# # Even more generalized diagram
-# @present AllCoexist(FreeBiproductCategory) begin
-#     TotalPop::Ob
-#     AllCoexist::Hom(TotalPop,TotalPop)
-#     AllCrossExposure::Hom(TotalPop,TotalPop)
-# end
-# allpop,allcoexist,allcrossexposure = generators(AllCoexist)
-# all_coexist = allcrossexposure ⋅ allcoexist
-# #display_wd(all_coexist)
-# #save_wd(all_coexist, "all_coexist_wd.svg")
-
-
-# # Attempt to compute solution to single generation COEXIST model
-
-
-# # Define time frame and initial parameters
-# coexist_pc = F(coexist)
-# coexist_petri = decoration(coexist_pc)
-# #Graph(coexist_petri)
-
-# tspan = (0.0,150.0)
-# u0 = zeros(Float64, base(coexist_pc).n)
-# u0[2]  = 13000000
-
-# fatality_rate = 0.146
-# β = [0,0,0,0,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))]
-
-# # Generate, solve, and visualize resulting ODE
-# prob = ODEProblem(coexist_petri,u0,tspan,β);
-# sol = solve(prob,Tsit5());
-
-# plot(sol)
-
-# map(x->x[4], sol.u)
-
-# coexist_petri2 = statereplace(coexist_petri, Dict(1=>:S,2=>:E,3=>:R2,4=>:D,5=>:I2,6=>:A,7=>:R,8=>:I))
-# Graph(coexist_petri2)
-# u0 = LVector([s=0 for s in coexist_petri2.S]...)
-# u0[:S]  = 57345080
-# u0[:E]  = 1000
-# u0[:I]  = 1000
-# u0[:I2] = 1000
-# u0[:A]  = 1000
-# N = sum(u0)
-
-# β = [.001*social_mixing_rate,0.1*social_mixing_rate,0.6*social_mixing_rate,0.5*social_mixing_rate,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))] # hide
-
-# tspan = (0.0,150.0)
-# prob = ODEProblem(coexist_petri2,u0,tspan,β); # hide
-# sol = solve(prob,Tsit5()); # hide
-
-# coexist_petri2.Δ
-# u0

@@ -12,6 +12,7 @@ using Plots
 using Catlab.Theories
 using Catlab.CategoricalAlgebra
 using Catlab.Graphics
+using Catlab.Programs
 
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
@@ -48,9 +49,11 @@ plot(sol)
 
 # define model
 
-sei = exposure ⋅ (illness ⊗ id(I)) ⋅ ∇(I)
-
-seir = sei ⋅ recovery
+seir = @program InfectiousDiseases (s::S,i::I) begin
+    i2 = illness(exposure(s,i))
+    return recovery([i,i2])
+end
+seir = to_hom_expr(FreeBiproductCategory, seir)
 
 # here we convert the C-Set decoration to a Petri.jl model
 # to use its StochasticDifferentialEquations support
@@ -76,7 +79,11 @@ plot(sol)
 
 # define model
 
-seird = sei ⋅ Δ(I) ⋅ (death ⊗ recovery)
+seird = @program InfectiousDiseases (s::S,i::I) begin
+    i_all = [i, illness(exposure(s,i))]
+    return recovery(i_all), death(i_all)
+end
+seird = to_hom_expr(FreeBiproductCategory, seird)
 
 # get resulting petri net and visualize model
 
