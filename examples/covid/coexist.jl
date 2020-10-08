@@ -196,33 +196,33 @@ crossexposure = to_hom_expr(FreeBiproductCategory, crossexposure)
     Pop1::Ob
     Pop2::Ob
     Pop3::Ob
-    doublecrossexp12::Hom(Pop1⊗Pop2,Pop1⊗Pop2)
-    doublecrossexp13::Hom(Pop1⊗Pop3,Pop1⊗Pop3)
-    doublecrossexp23::Hom(Pop2⊗Pop3,Pop2⊗Pop3)
+    crossexp12::Hom(Pop1⊗Pop2,Pop1⊗Pop2)
+    crossexp13::Hom(Pop1⊗Pop3,Pop1⊗Pop3)
+    crossexp23::Hom(Pop2⊗Pop3,Pop2⊗Pop3)
     coex1::Hom(Pop1,Pop1)
     coex2::Hom(Pop2,Pop2)
     coex3::Hom(Pop3,Pop3)
 end;
 
 
-Pop1, Pop2, Pop3, doublecrossexp12, doublecrossexp13, doublecrossexp23, coex1, coex2, coex3 = generators(ThreeCoexist);
+Pop1, Pop2, Pop3, crossexp12, crossexp13, crossexp23, coex1, coex2, coex3 = generators(ThreeCoexist);
 
 F_tcx(ex) = functor((OpenEpiRxnNetOb, OpenEpiRxnNet), ex, generators=Dict(
     Pop1=>F(otimes(S,E,I,I2,A,R,R2,D),1),
     Pop2=>F(otimes(S,E,I,I2,A,R,R2,D),2),
     Pop3=>F(otimes(S,E,I,I2,A,R,R2,D),3),
-    doublecrossexp12=>F_cx(crossexposure,1,2),
-    doublecrossexp13=>F_cx(crossexposure,1,3),
-    doublecrossexp23=>F_cx(crossexposure,2,3),
+    crossexp12=>F_cx(crossexposure,1,2),
+    crossexp13=>F_cx(crossexposure,1,3),
+    crossexp23=>F_cx(crossexposure,2,3),
     coex1=>F(coexist,1),
     coex2=>F(coexist,2),
     coex3=>F(coexist,3)
     ))
 
 threeNCoexist = @program ThreeCoexist (pop1::Pop1, pop2::Pop2, pop3::Pop3) begin
-    pop1′, pop2′ = doublecrossexp12(pop1, pop2)
-    pop1′′, pop3′ = doublecrossexp13(pop1′, pop3)
-    pop2′′, pop3′′ = doublecrossexp23(pop2′, pop3′)
+    pop1′, pop2′ = crossexp12(pop1, pop2)
+    pop1′′, pop3′ = crossexp13(pop1′, pop3)
+    pop2′′, pop3′′ = crossexp23(pop2′, pop3′)
     return coex1(pop1′′), coex2(pop2′′), coex3(pop3′′)
 end
 threeNCoexist = to_hom_expr(FreeBiproductCategory, threeNCoexist)
@@ -233,6 +233,11 @@ display_wd(threeNCoexist)
 display_wd(crossexposure)
 display_wd(coexist)
 
+save_wd(threeNCoexist, "3gen_coexist_wd.svg")
+save_wd(crossexposure, "crossexposure_wd.svg")
+save_wd(coexist, "coexist_wd.svg")
+save_graph(Graph(Petri.Model(threeNCoexist_petri)), "3gen_coexist_petri.svg")
+
 # save_wd(coexist, "coexist_wd.svg")
 tspan = (0.0,150.0)
 prob = ODEProblem(vectorfield(threeNCoexist_petri),concentrations(threeNCoexist_petri),tspan,rates(threeNCoexist_petri))
@@ -240,123 +245,124 @@ sol = solve(prob,Tsit5())
 
 plot(sol)
 
-#display_wd(crossexposure)
-# save_wd(crossexposure, "crossexposure_wd.svg")
+# SAVE OLD CODE WHILE WORKING ON IT
+# #display_wd(crossexposure)
+# # save_wd(crossexposure, "crossexposure_wd.svg")
 
-# 2 generation cross exposure + coexist model
-population = otimes(S, E, I, I2, A, R, R2, D)
-pop_hom_1 = F(population, 1)
-pop_hom_2 = F(population, 2)
-co_1 = F(coexist, 1)
-co_2 = F(coexist, 2)
-cross_1 = F(crossexposure, 1)
-cross_2 = F(crossexposure, 2)
-twogen = cross ⋅ braid(pop_hom, pop_hom) ⋅ cross ⋅ (co_1 ⊗ co_2)
-test = F(coexist, 1)
+# # 2 generation cross exposure + coexist model
+# population = otimes(S, E, I, I2, A, R, R2, D)
+# pop_hom_1 = F(population, 1)
+# pop_hom_2 = F(population, 2)
+# co_1 = F(coexist, 1)
+# co_2 = F(coexist, 2)
+# cross_1 = F(crossexposure, 1)
+# cross_2 = F(crossexposure, 2)
+# twogen = cross ⋅ braid(pop_hom, pop_hom) ⋅ cross ⋅ (co_1 ⊗ co_2)
+# test = F(coexist, 1)
 
-twogen_petri = decoration(twogen)
-twogen_petri = statereplace(twogen_petri, Dict(1=>:S,2=>:E,3=>:I,4=>:I2,5=>:A,6=>:R,7=>:R2,8=>:D,
-                                               9=>:S′,10=>:E′,11=>:I′,12=>:I2′,13=>:A′,14=>:R′,15=>:R2′,16=>:D′))
-tspan = (0.0,150.0)
-prob = ODEProblem(twogen_petri.m,twogen_petri.u0,tspan,twogen_petri.rates)
-sol = solve(prob,Tsit5())
+# twogen_petri = decoration(twogen)
+# twogen_petri = statereplace(twogen_petri, Dict(1=>:S,2=>:E,3=>:I,4=>:I2,5=>:A,6=>:R,7=>:R2,8=>:D,
+#                                                9=>:S′,10=>:E′,11=>:I′,12=>:I2′,13=>:A′,14=>:R′,15=>:R2′,16=>:D′))
+# tspan = (0.0,150.0)
+# prob = ODEProblem(twogen_petri.m,twogen_petri.u0,tspan,twogen_petri.rates)
+# sol = solve(prob,Tsit5())
 
-plot(sol)
+# plot(sol)
 
-sol_total = transpose(hcat([[s[:S] + s[:S′], s[:E] + s[:E′], s[:A] + s[:A′], s[:I] + s[:I′], s[:I2] + s[:I2′], s[:R] + s[:R′], s[:R2] + s[:R2′], s[:D] + s[:D′]] for s in sol.u]...))
-plot(sol.t, sol_total, label=["S" "E" "A" "I" "I2" "R" "R2" "D"])
-# display_wd(twogen)
-# Graph(decoration(F(twogen)))
+# sol_total = transpose(hcat([[s[:S] + s[:S′], s[:E] + s[:E′], s[:A] + s[:A′], s[:I] + s[:I′], s[:I2] + s[:I2′], s[:R] + s[:R′], s[:R2] + s[:R2′], s[:D] + s[:D′]] for s in sol.u]...))
+# plot(sol.t, sol_total, label=["S" "E" "A" "I" "I2" "R" "R2" "D"])
+# # display_wd(twogen)
+# # Graph(decoration(F(twogen)))
 
-# n generation cross exposure + coexist model
-n = 9
-population = otimes(S, E, I, I2, A, R, R2, D)
-pops = [population for i in 1:n]
+# # n generation cross exposure + coexist model
+# n = 9
+# population = otimes(S, E, I, I2, A, R, R2, D)
+# pops = [population for i in 1:n]
 
-single_exposure = foldl(⋅, [otimes(map(id, pops[1:i])...,crossexposure⋅σ(pops[i+1:i+2]...),map(id, pops[i+3:end])...) for i in 0:(n-2)])
-# display_wd(single_exposure)
-# save_wd(single_exposure, "$(n)gen_single_crossexposure.svg")
+# single_exposure = foldl(⋅, [otimes(map(id, pops[1:i])...,crossexposure⋅σ(pops[i+1:i+2]...),map(id, pops[i+3:end])...) for i in 0:(n-2)])
+# # display_wd(single_exposure)
+# # save_wd(single_exposure, "$(n)gen_single_crossexposure.svg")
 
-ngen_exposure = foldl(⋅, [single_exposure for i in 1:n])
-# display_wd(ngen_exposure)
-# save_wd(ngen_exposure, "$(n)gen_crossexposure.svg")
+# ngen_exposure = foldl(⋅, [single_exposure for i in 1:n])
+# # display_wd(ngen_exposure)
+# # save_wd(ngen_exposure, "$(n)gen_crossexposure.svg")
 
-ngen_coexist = ngen_exposure ⋅ foldl(⊗, [coexist for i in 1:n])
-# display_wd(ngen_coexist)
-#save_wd(ngen_coexist, "$(n)gen_coexist_wd.svg")
+# ngen_coexist = ngen_exposure ⋅ foldl(⊗, [coexist for i in 1:n])
+# # display_wd(ngen_coexist)
+# #save_wd(ngen_coexist, "$(n)gen_coexist_wd.svg")
 
-ngen_coexist_petri = decoration(F(ngen_coexist, 1))
-#Graph(ngen_coexist_petri)
-#save_graph(Graph(ngen_coexist_petri), "$(n)gen_coexist_petri.svg")
+# ngen_coexist_petri = decoration(F(ngen_coexist, 1))
+# #Graph(ngen_coexist_petri)
+# #save_graph(Graph(ngen_coexist_petri), "$(n)gen_coexist_petri.svg")
 
-# Generate some simpler diagrams to expose the hierarchical structure
-@present CoexistOverview(FreeBiproductCategory) begin
-    Pop::Ob
-    coexist::Hom(Pop,Pop)
-    crossexposure::Hom(Pop⊗Pop,Pop⊗Pop)
-end
-pop′,coexist′,crossexposure′ = generators(CoexistOverview)
-pops = [pop′ for i in 1:n]
-single_exposure = foldl(⋅, [otimes(map(id, pops[1:i])...,crossexposure′⋅σ(pops[i+1:i+2]...),map(id, pops[i+3:end])...) for i in 0:(n-2)])
-#display_wd(single_exposure)
-#save_wd(single_exposure, "$(n)gen_single_crossexposure_overview.svg")
-ngen_exposure = foldl(⋅, [single_exposure for i in 1:n])
-#display_wd(ngen_exposure)
-#save_wd(ngen_exposure, "$(n)gen_crossexposure_overview.svg")
-ngen_coexist = ngen_exposure ⋅ foldl(⊗, [coexist′ for i in 1:n])
-#display_wd(ngen_coexist)
-#save_wd(ngen_coexist, "$(n)gen_coexist_overview.svg")
+# # Generate some simpler diagrams to expose the hierarchical structure
+# @present CoexistOverview(FreeBiproductCategory) begin
+#     Pop::Ob
+#     coexist::Hom(Pop,Pop)
+#     crossexposure::Hom(Pop⊗Pop,Pop⊗Pop)
+# end
+# pop′,coexist′,crossexposure′ = generators(CoexistOverview)
+# pops = [pop′ for i in 1:n]
+# single_exposure = foldl(⋅, [otimes(map(id, pops[1:i])...,crossexposure′⋅σ(pops[i+1:i+2]...),map(id, pops[i+3:end])...) for i in 0:(n-2)])
+# #display_wd(single_exposure)
+# #save_wd(single_exposure, "$(n)gen_single_crossexposure_overview.svg")
+# ngen_exposure = foldl(⋅, [single_exposure for i in 1:n])
+# #display_wd(ngen_exposure)
+# #save_wd(ngen_exposure, "$(n)gen_crossexposure_overview.svg")
+# ngen_coexist = ngen_exposure ⋅ foldl(⊗, [coexist′ for i in 1:n])
+# #display_wd(ngen_coexist)
+# #save_wd(ngen_coexist, "$(n)gen_coexist_overview.svg")
 
-# Even more generalized diagram
-@present AllCoexist(FreeBiproductCategory) begin
-    TotalPop::Ob
-    AllCoexist::Hom(TotalPop,TotalPop)
-    AllCrossExposure::Hom(TotalPop,TotalPop)
-end
-allpop,allcoexist,allcrossexposure = generators(AllCoexist)
-all_coexist = allcrossexposure ⋅ allcoexist
-#display_wd(all_coexist)
-#save_wd(all_coexist, "all_coexist_wd.svg")
-
-
-# Attempt to compute solution to single generation COEXIST model
+# # Even more generalized diagram
+# @present AllCoexist(FreeBiproductCategory) begin
+#     TotalPop::Ob
+#     AllCoexist::Hom(TotalPop,TotalPop)
+#     AllCrossExposure::Hom(TotalPop,TotalPop)
+# end
+# allpop,allcoexist,allcrossexposure = generators(AllCoexist)
+# all_coexist = allcrossexposure ⋅ allcoexist
+# #display_wd(all_coexist)
+# #save_wd(all_coexist, "all_coexist_wd.svg")
 
 
-# Define time frame and initial parameters
-coexist_pc = F(coexist)
-coexist_petri = decoration(coexist_pc)
-#Graph(coexist_petri)
+# # Attempt to compute solution to single generation COEXIST model
 
-tspan = (0.0,150.0)
-u0 = zeros(Float64, base(coexist_pc).n)
-u0[2]  = 13000000
 
-fatality_rate = 0.146
-β = [0,0,0,0,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))]
+# # Define time frame and initial parameters
+# coexist_pc = F(coexist)
+# coexist_petri = decoration(coexist_pc)
+# #Graph(coexist_petri)
 
-# Generate, solve, and visualize resulting ODE
-prob = ODEProblem(coexist_petri,u0,tspan,β);
-sol = solve(prob,Tsit5());
+# tspan = (0.0,150.0)
+# u0 = zeros(Float64, base(coexist_pc).n)
+# u0[2]  = 13000000
 
-plot(sol)
+# fatality_rate = 0.146
+# β = [0,0,0,0,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))]
 
-map(x->x[4], sol.u)
+# # Generate, solve, and visualize resulting ODE
+# prob = ODEProblem(coexist_petri,u0,tspan,β);
+# sol = solve(prob,Tsit5());
 
-coexist_petri2 = statereplace(coexist_petri, Dict(1=>:S,2=>:E,3=>:R2,4=>:D,5=>:I2,6=>:A,7=>:R,8=>:I))
-Graph(coexist_petri2)
-u0 = LVector([s=0 for s in coexist_petri2.S]...)
-u0[:S]  = 57345080
-u0[:E]  = 1000
-u0[:I]  = 1000
-u0[:I2] = 1000
-u0[:A]  = 1000
-N = sum(u0)
+# plot(sol)
 
-β = [.001*social_mixing_rate,0.1*social_mixing_rate,0.6*social_mixing_rate,0.5*social_mixing_rate,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))] # hide
+# map(x->x[4], sol.u)
 
-tspan = (0.0,150.0)
-prob = ODEProblem(coexist_petri2,u0,tspan,β); # hide
-sol = solve(prob,Tsit5()); # hide
+# coexist_petri2 = statereplace(coexist_petri, Dict(1=>:S,2=>:E,3=>:R2,4=>:D,5=>:I2,6=>:A,7=>:R,8=>:I))
+# Graph(coexist_petri2)
+# u0 = LVector([s=0 for s in coexist_petri2.S]...)
+# u0[:S]  = 57345080
+# u0[:E]  = 1000
+# u0[:I]  = 1000
+# u0[:I2] = 1000
+# u0[:A]  = 1000
+# N = sum(u0)
 
-coexist_petri2.Δ
-u0
+# β = [.001*social_mixing_rate,0.1*social_mixing_rate,0.6*social_mixing_rate,0.5*social_mixing_rate,1/4,.86/.14*.2,1/(10-4),1/15,1/5,1/15,(1/15)*(fatality_rate/(1-fatality_rate))] # hide
+
+# tspan = (0.0,150.0)
+# prob = ODEProblem(coexist_petri2,u0,tspan,β); # hide
+# sol = solve(prob,Tsit5()); # hide
+
+# coexist_petri2.Δ
+# u0
