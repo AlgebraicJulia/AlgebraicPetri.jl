@@ -6,11 +6,14 @@ using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 
 using Petri: Model, Graph
+using LabelledArrays
 using OrdinaryDiffEq
 using Plots
 
+using Catlab
 using Catlab.Theories
 using Catlab.CategoricalAlgebra
+using Catlab.WiringDiagrams
 using Catlab.Graphics
 using Catlab.Programs
 
@@ -35,8 +38,8 @@ Graph(Model(cset_sir))
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
 
-u0 = [10.0, 1, 0];
-p = [0.4, 0.4];
+u0 = LVector(S=10, I=1, R=0);
+p = LVector(inf=0.4, rec=0.4);
 
 # The C-Set representation has direct support for generating a DiffEq vector field
 
@@ -67,8 +70,8 @@ Graph(Model(p_seir))
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
 
-u0 = [10.0, 1, 0, 0];
-p = [.9, .2, .5];
+u0 = LVector(S=10, E=1, I=0, R=0);
+p = LVector(exp=.9, ill=.2, rec=.5);
 
 prob = ODEProblem(vectorfield(p_seir),u0,(0.0,15.0),p);
 sol = solve(prob,Tsit5())
@@ -96,8 +99,8 @@ Graph(Model(p_seird))
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
 
-u0 = [10.0, 1, 0, 0, 0];
-p = [0.9, 0.2, 0.5, 0.1];
+u0 = LVector(S=10, E=1, I=0, R=0, D=0);
+p = LVector(exp=0.9, ill=0.2, rec=0.5, death=0.1);
 
 prob = ODEProblem(vectorfield(p_seird),u0,(0.0,15.0),p);
 sol = solve(prob,Tsit5())

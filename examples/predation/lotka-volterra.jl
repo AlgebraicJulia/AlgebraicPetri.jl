@@ -19,14 +19,15 @@ display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
 # #### Step 1: Define the building block Petri nets needed to construct the model
 
-birth_petri = PetriCospan([1], PetriNet(1, (1, (1,1))), [1]);
-Graph(Model(decoration(birth_petri)))
+petriOb = codom(Open([1], PetriNet(1), [1]))
+birth_petri = Open([1], PetriNet(1, (1, (1,1))), [1]);
+Graph(Model(apex(birth_petri)))
 #-
-predation_petri = PetriCospan([1,2], PetriNet(2, ((1,2), (2,2))), [2]);
-Graph(Model(decoration(predation_petri)))
+predation_petri = Open([1,2], PetriNet(2, ((1,2), (2,2))), [2]);
+Graph(Model(apex(predation_petri)))
 #-
-death_petri = PetriCospan([1], PetriNet(1, (1, ())), [1]);
-Graph(Model(decoration(death_petri)))
+death_petri = Open([1], PetriNet(1, (1, ())), [1]);
+Graph(Model(apex(death_petri)))
 
 # #### Step 2: Define a presentation of the free biproduct category
 # that encodes the domain specific information
@@ -41,14 +42,14 @@ end;
 
 rabbits,wolves,birth,predation,death = generators(Predation);
 
-F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=Dict(
-                 rabbits=>PetriCospanOb(1),wolves=>PetriCospanOb(1),
+F(ex) = functor((OpenPetriNetOb, OpenPetriNet), ex, generators=Dict(
+                 rabbits=>petriOb,wolves=>petriOb,
                  birth=>birth_petri, predation=>predation_petri, death=>death_petri));
 
 # #### Step 3: Generate models using the hom expression or program notations
 
 lotka_volterra = (birth ⊗ id(wolves)) ⋅ predation ⋅ death
-lotka_petri = decoration(F(lotka_volterra))
+lotka_petri = apex(F(lotka_volterra))
 display_wd(lotka_volterra)
 #-
 Graph(Model(lotka_petri))
@@ -70,7 +71,7 @@ lotka_volterra2 = @program Predation (r::prey, w::predator) begin
   w_2 = predation(r_2, w)
   return death(w_2)
 end
-lotka_petri2 = decoration(F(to_hom_expr(FreeBiproductCategory, lotka_volterra2)))
+lotka_petri2 = apex(F(to_hom_expr(FreeBiproductCategory, lotka_volterra2)))
 lotka_petri == lotka_petri2
 
 # #### Step 4: Extend your presentation to handle more complex phenomena
@@ -84,10 +85,10 @@ end;
 
 fish,Fish,Shark,birth,predation,death,Predation,Death = generators(DualPredation);
 
-F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=Dict(
-                 fish=>PetriCospanOb(1),Fish=>PetriCospanOb(1),
+F(ex) = functor((OpenPetriNetOb, OpenPetriNet), ex, generators=Dict(
+                 fish=>petriOb,Fish=>petriOb,
                  birth=>birth_petri, predation=>predation_petri, death=>death_petri,
-                 Shark=>PetriCospanOb(1),Predation=>predation_petri, Death=>death_petri));
+                 Shark=>petriOb,Predation=>predation_petri, Death=>death_petri));
 
 # Define a new model where fish are eaten by Fish which are then eaten by Sharks
 
@@ -100,7 +101,7 @@ dual_lv = @program DualPredation (fish::prey, Fish::predator, Shark::Predator) b
 end
 display_wd(dual_lv)
 #-
-dual_lv_petri = decoration(F(to_hom_expr(FreeBiproductCategory, dual_lv)))
+dual_lv_petri = apex(F(to_hom_expr(FreeBiproductCategory, dual_lv)))
 Graph(Model(dual_lv_petri))
 
 # Generate a new solver, provide parameters, and analyze results

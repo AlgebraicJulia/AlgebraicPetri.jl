@@ -2,6 +2,7 @@ using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 using Petri: Model, Graph
 using OrdinaryDiffEq
+using LabelledArrays
 using Plots
 using Catlab.Theories
 using Catlab.CategoricalAlgebra.FreeDiagrams
@@ -11,12 +12,12 @@ display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
 sir = transmission ⋅ recovery
 
-p_sir = decoration(F_epi(sir));
+p_sir = apex(F_epi(sir));
 display_wd(sir)
 #-
 Graph(Model(p_sir))
 
-u0 = [990.0, 10, 0];
+u0 = LVector(S=990, I=10, R=0);
 t_span = (17.0,120.0)
 
 γ = 1/14
@@ -27,7 +28,7 @@ t_span = (17.0,120.0)
     growth_rate = pol == 1 ? 0.0 : (2^(1/((pol-1)*5)) - 1) # growth rate depending on policy
     return (growth_rate + γ) / 990 * (1-contact_rate) # calculate rate of infection
 end
-p = [β, γ];
+p = LVector(inf=β, rec=γ);
 
 prob = ODEProblem(vectorfield(p_sir),u0,t_span,p)
 sol = OrdinaryDiffEq.solve(prob,Tsit5())

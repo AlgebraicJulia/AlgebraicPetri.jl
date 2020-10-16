@@ -10,7 +10,7 @@ export InfectiousDiseases, FunctorGenerators, F_epi, S, E, I, R, D, transmission
 ob(x::Symbol) = codom(Open([x], LabelledPetriNet(x), [x]))
 spontaneous_petri(x::Symbol, y::Symbol, z::Symbol) = Open([x], LabelledPetriNet([x,y], z=>(x, y)), [y])
 transmission_petri = Open([:S], LabelledPetriNet([:S,:I], :inf=>((:S,:I)=>(:I,:I))), [:I])
-exposure_petri = Open([:S, :I], LabelledPetriNet([:S,:I,:E], :exp=>((:S,:I)=>(:E,:I))), [:E, :I])
+exposure_petri = Open([:S, :I], LabelledPetriNet([:S,:I,:E], :exp=>((:S,:I)=>(:E,:I))), [:E])
 
 """ InfectiousDiseases
 """
