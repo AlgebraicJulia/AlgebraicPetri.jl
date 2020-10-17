@@ -6,12 +6,16 @@ using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 
 using Petri: Model, Graph
+using LabelledArrays
 using OrdinaryDiffEq
 using Plots
 
+using Catlab
 using Catlab.Theories
-using Catlab.CategoricalAlgebra.FreeDiagrams
+using Catlab.CategoricalAlgebra
+using Catlab.WiringDiagrams
 using Catlab.Graphics
+using Catlab.Programs
 
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
@@ -23,7 +27,7 @@ sir = transmission ⋅ recovery
 
 # get resulting petri net as a C-Set
 
-cset_sir = decoration(F_epi(sir));
+cset_sir = apex(F_epi(sir));
 display_wd(sir)
 #-
 
@@ -34,8 +38,8 @@ Graph(Model(cset_sir))
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
 
-u0 = [10.0, 1, 0];
-p = [0.4, 0.4];
+u0 = LVector(S=10, I=1, R=0);
+p = LVector(inf=0.4, rec=0.4);
 
 # The C-Set representation has direct support for generating a DiffEq vector field
 
@@ -48,14 +52,16 @@ plot(sol)
 
 # define model
 
-sei = exposure ⋅ (illness ⊗ id(I)) ⋅ ∇(I)
-
-seir = sei ⋅ recovery
+seir = @program InfectiousDiseases (s::S,i::I) begin
+    i2 = illness(exposure(s,i))
+    return recovery([i,i2])
+end
+seir = to_hom_expr(FreeBiproductCategory, seir)
 
 # here we convert the C-Set decoration to a Petri.jl model
 # to use its StochasticDifferentialEquations support
 
-p_seir = decoration(F_epi(seir));
+p_seir = apex(F_epi(seir));
 
 display_wd(seir)
 #-
@@ -64,8 +70,8 @@ Graph(Model(p_seir))
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
 
-u0 = [10.0, 1, 0, 0];
-p = [.9, .2, .5];
+u0 = LVector(S=10, E=1, I=0, R=0);
+p = LVector(exp=.9, ill=.2, rec=.5);
 
 prob = ODEProblem(vectorfield(p_seir),u0,(0.0,15.0),p);
 sol = solve(prob,Tsit5())
@@ -76,11 +82,15 @@ plot(sol)
 
 # define model
 
-seird = sei ⋅ Δ(I) ⋅ (death ⊗ recovery)
+seird = @program InfectiousDiseases (s::S,i::I) begin
+    i_all = [i, illness(exposure(s,i))]
+    return recovery(i_all), death(i_all)
+end
+seird = to_hom_expr(FreeBiproductCategory, seird)
 
 # get resulting petri net and visualize model
 
-p_seird = decoration(F_epi(seird));
+p_seird = apex(F_epi(seird));
 
 display_wd(seird)
 #-
@@ -89,8 +99,8 @@ Graph(Model(p_seird))
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
 
-u0 = [10.0, 1, 0, 0, 0];
-p = [0.9, 0.2, 0.5, 0.1];
+u0 = LVector(S=10, E=1, I=0, R=0, D=0);
+p = LVector(exp=0.9, ill=0.2, rec=0.5, death=0.1);
 
 prob = ODEProblem(vectorfield(p_seird),u0,(0.0,15.0),p);
 sol = solve(prob,Tsit5())

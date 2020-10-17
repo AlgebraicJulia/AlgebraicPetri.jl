@@ -3,25 +3,18 @@ sir_lpetri = LabelledPetriNet([:S, :I, :R], :inf=>((:S, :I), (:I, :I)), :rec=>(:
 β(u,t) = 1 / sum(u)
 γ = .25
 sir_rxn = ReactionNet{Function, Int}([990, 10, 0], (β)=>((1, 2)=>(2,2)), (t->γ)=>(2=>3))
+open_sir_rxn = Open([1,2], sir_rxn, [3])
 sir_lrxn = LabelledReactionNet{Number, Int}((:S=>990, :I=>10, :R=>0), (:inf, .001)=>((:S, :I)=>(:I,:I)), (:rec, .25)=>(:I=>:R))
+open_sir_lrxn = Open([:S,:I], sir_lrxn, [:R])
 
 sir_tpetri= PetriNet(TransitionMatrices(sir_petri))
-
-next = iterate(PetriCospanOb(5))
-while next !== nothing
-    (i, state) = next
-    @test i == state && i <= 5
-    global next = iterate(PetriCospanOb(5), state)
-end
-
-pf = id(PetriFunctor)
-@test pf.F(FinSet(3))(sir_petri)
-@test !(pf.F(FinSet(5))(sir_petri))
 
 @test sir_tpetri == sir_petri
 @test Petri.Model(sir_petri) == Petri.Model(sir_rxn)
 @test Petri.Model(sir_lpetri) == Petri.Model(sir_lrxn)
 
+@test inputs(sir_petri, 1) == [1,2]
+@test outputs(sir_petri, 1) == [2,2]
 @test concentration(sir_rxn, 1) == 990
 @test rate(sir_rxn, 1) == β
 
@@ -30,6 +23,8 @@ pf = id(PetriFunctor)
 
 @test concentrations(sir_lrxn) == LVector(S=990, I=10, R=0)
 @test rates(sir_lrxn) == LVector(inf=.001, rec=.25)
+
+@test length(dom(open_sir_rxn).ob.tables.S) == length(dom(open_sir_lrxn).ob.tables.S)
 
 du = [0.0, 0.0, 0.0]
 out = vectorfield(sir_rxn)(du, concentrations(sir_rxn), rates(sir_rxn), 0.01)

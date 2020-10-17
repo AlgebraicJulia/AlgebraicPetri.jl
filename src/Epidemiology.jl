@@ -3,13 +3,14 @@ module Epidemiology
 using AlgebraicPetri
 using Catlab
 using Catlab.Theories
+using Catlab.CategoricalAlgebra.FinSets
 
 export InfectiousDiseases, FunctorGenerators, F_epi, S, E, I, R, D, transmission, exposure, illness, recovery, death
 
-ob = PetriCospanOb(1)
-spontaneous_petri = PetriCospan([1], PetriNet(2, (1, 2)), [2])
-transmission_petri = PetriCospan([1], PetriNet(2, ((1,2),(2,2))), [2])
-exposure_petri = PetriCospan([1, 2], PetriNet(3, ((1,2),(3,2))), [3, 2])
+ob(x::Symbol) = codom(Open([x], LabelledPetriNet(x), [x]))
+spontaneous_petri(x::Symbol, y::Symbol, z::Symbol) = Open([x], LabelledPetriNet([x,y], z=>(x, y)), [y])
+transmission_petri = Open([:S], LabelledPetriNet([:S,:I], :inf=>((:S,:I)=>(:I,:I))), [:I])
+exposure_petri = Open([:S, :I], LabelledPetriNet([:S,:I,:E], :exp=>((:S,:I)=>(:E,:I))), [:E])
 
 """ InfectiousDiseases
 """
@@ -20,7 +21,7 @@ exposure_petri = PetriCospan([1, 2], PetriNet(3, ((1,2),(3,2))), [3, 2])
     R::Ob
     D::Ob
     transmission::Hom(S⊗I, I)
-    exposure::Hom(S⊗I, E⊗I)
+    exposure::Hom(S⊗I, E)
     illness::Hom(E,I)
     recovery::Hom(I,R)
     death::Hom(I,D)
@@ -32,13 +33,13 @@ S,E,I,R,D,transmission,exposure,illness,recovery,death = generators(InfectiousDi
 
 """ FunctorGenerators
 """
-const FunctorGenerators = Dict(S=>ob, E=>ob, I=>ob, R=>ob, D=>ob,
+const FunctorGenerators = Dict(S=>ob(:S), E=>ob(:E), I=>ob(:I), R=>ob(:R), D=>ob(:D),
         transmission=>transmission_petri, exposure=>exposure_petri,
-        illness=>spontaneous_petri, recovery=>spontaneous_petri, death=>spontaneous_petri)
+        illness=>spontaneous_petri(:E,:I,:ill), recovery=>spontaneous_petri(:I,:R,:rec), death=>spontaneous_petri(:I,:D,:death))
 
 """ F_epi
 """
-F_epi(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=FunctorGenerators)
+F_epi(ex) = functor((OpenLabelledPetriNetOb, OpenLabelledPetriNet), ex, generators=FunctorGenerators)
 
 end
 
