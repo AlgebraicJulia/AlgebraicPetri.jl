@@ -22,13 +22,9 @@ using LabelledArrays
 using LinearAlgebra: mul!
 import Petri: Model, vectorfield
 
-vectorify(n) = begin
-  if !(typeof(n) <: Union{Vector,Tuple}) || (typeof(n) <: Tuple && length(n) == 1)
-    [n]
-  else
-    n
-  end
-end
+vectorify(n::Vector) = n
+vectorify(n::Tuple) = length(n) == 1 ? [n] : n
+vectorify(n) = [n]
 
 state_dict(n) = Dict(s=>i for (i, s) in enumerate(n))
 
