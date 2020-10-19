@@ -2,7 +2,7 @@ name = "AlgebraicPetri"
 uuid = "4f99eebe-17bf-4e98-b6a1-2c4f205a959b"
 license = "MIT"
 authors = ["Micah Halter <micah@mehalter.com>"]
-version = "0.5.0"
+version = "0.5.1"
 
 [deps]
 AutoHashEquals = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
@@ -10,6 +10,7 @@ Catlab = "134e5e36-593f-5add-ad60-77f754baafbe"
 LabelledArrays = "2ee39098-c373-598a-b85f-a56591580800"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Petri = "4259d249-1051-49fa-8328-3f8ab9391c33"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 AutoHashEquals = "^0.2.0"

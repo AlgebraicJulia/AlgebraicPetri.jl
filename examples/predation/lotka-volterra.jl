@@ -4,7 +4,6 @@
 
 using AlgebraicPetri
 
-using Petri: Model, Graph
 using OrdinaryDiffEq
 using Plots
 
@@ -21,13 +20,13 @@ display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
 petriOb = codom(Open([1], PetriNet(1), [1]))
 birth_petri = Open([1], PetriNet(1, (1, (1,1))), [1]);
-Graph(Model(apex(birth_petri)))
+Graph(birth_petri)
 #-
 predation_petri = Open([1,2], PetriNet(2, ((1,2), (2,2))), [2]);
-Graph(Model(apex(predation_petri)))
+Graph(predation_petri)
 #-
 death_petri = Open([1], PetriNet(1, (1, ())), [1]);
-Graph(Model(apex(death_petri)))
+Graph(death_petri)
 
 # #### Step 2: Define a presentation of the free biproduct category
 # that encodes the domain specific information
@@ -52,7 +51,7 @@ lotka_volterra = (birth ⊗ id(wolves)) ⋅ predation ⋅ death
 lotka_petri = apex(F(lotka_volterra))
 display_wd(lotka_volterra)
 #-
-Graph(Model(lotka_petri))
+Graph(lotka_petri)
 
 # Generate appropriate vector fields, define parameters, and visualize solution
 
@@ -102,7 +101,7 @@ end
 display_wd(dual_lv)
 #-
 dual_lv_petri = apex(F(to_hom_expr(FreeBiproductCategory, dual_lv)))
-Graph(Model(dual_lv_petri))
+Graph(dual_lv_petri)
 
 # Generate a new solver, provide parameters, and analyze results
 

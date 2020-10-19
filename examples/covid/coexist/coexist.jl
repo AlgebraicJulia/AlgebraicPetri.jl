@@ -250,7 +250,7 @@ display_wd(threeNCoexist)
 
 threeNCoexist_algpetri = apex(F_tcx(threeNCoexist))
 threeNCoexist_petri = Petri.Model(threeNCoexist_algpetri)
-Graph(threeNCoexist_petri)
+Graph(threeNCoexist_algpetri)
 
 # We can JSON to convert this Petri net into an
 # easily shareable format

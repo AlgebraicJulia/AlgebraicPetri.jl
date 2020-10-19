@@ -5,7 +5,6 @@
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 
-using Petri: Model, Graph
 using LabelledArrays
 using OrdinaryDiffEq
 using Plots
@@ -33,7 +32,7 @@ display_wd(sir)
 
 # Use Petri.jl to visualize the C-Set
 
-Graph(Model(cset_sir))
+Graph(cset_sir)
 
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
@@ -65,7 +64,7 @@ p_seir = apex(F_epi(seir));
 
 display_wd(seir)
 #-
-Graph(Model(p_seir))
+Graph(p_seir)
 
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
@@ -94,7 +93,7 @@ p_seird = apex(F_epi(seird));
 
 display_wd(seird)
 #-
-Graph(Model(p_seird))
+Graph(p_seird)
 
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem

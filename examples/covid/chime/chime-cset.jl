@@ -1,5 +1,4 @@
 using AlgebraicPetri
-using Petri: Model, Graph
 using OrdinaryDiffEq
 using Plots
 using Catlab.Meta
@@ -27,7 +26,7 @@ end
 
 sir_cset= LabelledReactionNet{Function, Float64}((:S=>990, :I=>10, :R=>0), (:inf, β)=>((:S, :I)=>(:I,:I)), (:rec, t->γ)=>(:I=>:R))
 
-Graph(Model(sir_cset))
+Graph(sir_cset)
 
 prob = ODEProblem(sir_cset, (17.0, 120.0))
 sol = OrdinaryDiffEq.solve(prob,Tsit5())

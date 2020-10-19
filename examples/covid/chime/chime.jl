@@ -1,6 +1,5 @@
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
-using Petri: Model, Graph
 using OrdinaryDiffEq
 using LabelledArrays
 using Plots
@@ -15,7 +14,7 @@ sir = transmission ⋅ recovery
 p_sir = apex(F_epi(sir));
 display_wd(sir)
 #-
-Graph(Model(p_sir))
+Graph(p_sir)
 
 u0 = LVector(S=990, I=10, R=0);
 t_span = (17.0,120.0)
