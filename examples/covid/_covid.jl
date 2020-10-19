@@ -5,7 +5,6 @@
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 
-using Petri: Model, Graph
 using OrdinaryDiffEq
 using Plots
 
@@ -62,7 +61,7 @@ seird_city = to_hom_expr(FreeBiproductCategory, seird_city)
 
 display_wd(seird_city)
 # -
-Graph(Model(decoration(F(seird_city))))
+Graph(decoration(F(seird_city)))
 
 # create a multi-city SEIRD models
 
@@ -73,7 +72,7 @@ pc_seird_3 = F(seird_3)
 p_seird_3 = decoration(pc_seird_3)
 display_wd(seird_3)
 # -
-Graph(Model(p_seird_3))
+Graph(p_seird_3)
 
 # Define time frame and initial parameters
 

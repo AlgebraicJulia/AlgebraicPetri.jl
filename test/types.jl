@@ -13,6 +13,11 @@ sir_tpetri= PetriNet(TransitionMatrices(sir_petri))
 @test Petri.Model(sir_petri) == Petri.Model(sir_rxn)
 @test Petri.Model(sir_lpetri) == Petri.Model(sir_lrxn)
 
+@test typeof(Graph(sir_petri)) == Graph
+@test typeof(Graph(sir_lpetri)) == Graph
+@test typeof(Graph(sir_rxn)) == Graph
+@test typeof(Graph(sir_lrxn)) == Graph
+
 @test inputs(sir_petri, 1) == [1,2]
 @test outputs(sir_petri, 1) == [2,2]
 @test concentration(sir_rxn, 1) == 990
