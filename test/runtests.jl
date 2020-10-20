@@ -5,6 +5,7 @@ using LabelledArrays
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 using Catlab.Theories
+using Catlab.Present
 using Catlab.CategoricalAlgebra
 using Catlab.CategoricalAlgebra.FinSets
 
@@ -14,6 +15,10 @@ end
 
 @testset "Types" begin
     include("types.jl")
+end
+
+@testset "Visualization" begin
+    include("visualization.jl")
 end
 
 @testset "Petri" begin
