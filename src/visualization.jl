@@ -1,3 +1,4 @@
+using Catlab.Present
 using Catlab.Graphics.Graphviz
 import Catlab.Graphics.Graphviz: Graph, Edge
 import Base.Iterators: flatten
@@ -35,4 +36,31 @@ end
 
 function Graph(op::Union{OpenPetriNet, OpenLabelledPetriNetUntyped, OpenReactionNet, OpenLabelledReactionNetUntyped})
     Graph(apex(op))
+end
+
+function Graph(p::Presentation)
+  ob_names = Symbol.(generators(p, :Ob))
+  hom_names = Symbol.(generators(p, :Hom))
+  hom_dict = Dict{Symbol, Tuple}()
+
+  for hom in generators(p, :Hom)
+    # Evaluate Dom
+    dom_v = if eltype(dom(hom).args) <: GATExpr
+      Tuple(Symbol.(dom(hom).args))
+    else
+      Symbol(dom(hom))
+    end
+
+    # Operate on Codom
+    codom_v = if eltype(codom(hom).args) <: GATExpr
+      Tuple(Symbol.(codom(hom).args))
+    else
+      Symbol(codom(hom))
+    end
+
+    hom_dict[Symbol(hom)] = (dom_v, codom_v)
+  end
+
+  schema_ap = LabelledPetriNet(ob_names, hom_dict...)
+  return Graph(schema_ap)
 end
