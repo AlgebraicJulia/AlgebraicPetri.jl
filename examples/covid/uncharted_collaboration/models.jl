@@ -8,6 +8,17 @@ using Catlab.WiringDiagrams
 using Catlab.Graphics
 using Catlab.Graphics.Graphviz: run_graphviz
 
+function expand(p::Presentation, wd::WiringDiagram)
+  substitute(functor(wd, identity, box->begin
+    eqs = Dict(p.equations)
+    val = p[box.value]
+    if val in keys(eqs)
+      val = eqs[val]
+    end
+    to_wiring_diagram(val)
+  end))
+end
+expand(p::Presentation, ex) = expand(p, to_wiring_diagram(ex))
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 
 # Define some helper types where transition rates are
@@ -69,12 +80,6 @@ sir = Epidemiology[:infection] ⋅ Epidemiology[:recovery];
 display_wd(sir)
 Graph(F_epi(sir, 1))
 
-# replace infection => exp_ill to get SEIR
-
-seir = Epidemiology[:exp_ill] ⋅ Epidemiology[:recovery];
-display_wd(seir)
-Graph(F_epi(seir, 1))
-
 # Define SEIR by the primitives
 
 seir = @program Epidemiology (s::S, i::I) begin
@@ -84,6 +89,13 @@ seir = @program Epidemiology (s::S, i::I) begin
 end;
 seir = to_hom_expr(FreeBiproductCategory, seir);
 display_wd(seir)
+Graph(F_epi(seir, 1))
+
+# Define SEIR like sir, but replace infection => exp_ill
+
+seir = Epidemiology[:exp_ill] ⋅ Epidemiology[:recovery];
+display_wd(seir)
+display_wd(expand(Epidemiology, seir))
 Graph(F_epi(seir, 1))
 
 @present EpidemiologyMasks <: Epidemiology begin
@@ -179,4 +191,5 @@ F_boxed(ex, n) = functor((OpenLabelledPetriNetOb, OpenLabelledPetriNet), ex, gen
 
 seirm = EpidemiologyMasksBoxed[:mask_exp_ill] ⋅ EpidemiologyMasksBoxed[:mask_rec]
 display_wd(seirm)
+display_wd(expand(EpidemiologyMasksBoxed, seirm))
 Graph(F_boxed(seirm, 1))
