@@ -9,8 +9,8 @@ using Catlab.Graphics
 using Catlab.Graphics.Graphviz: run_graphviz
 
 function expand(p::Presentation, wd::WiringDiagram)
+  eqs = Dict(pair for pair in p.equations if head(first(pair)) == :generator)
   substitute(functor(wd, identity, box->begin
-    eqs = Dict(p.equations)
     val = p[box.value]
     if val in keys(eqs)
       val = eqs[val]
@@ -25,7 +25,7 @@ display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 # real numbers and populations are natural numbers
 
 # Define helper functions for defining the two types of
-# reactions in an epidemiology Model. Either a state 
+# reactions in an epidemiology Model. Either a state
 # spontaneously changes, or one state causes another to change
 
 ob(x::Symbol) = codom(Open([x], LabelledPetriNet(x), [x]));
