@@ -3,6 +3,8 @@ using AlgebraicPetri
 using Catlab
 using Catlab.Theories
 using Catlab.CategoricalAlgebra
+using Catlab.CategoricalAlgebra.FinSets
+using Catlab.CategoricalAlgebra.Squares
 using Catlab.Programs
 using Catlab.WiringDiagrams
 using Catlab.Graphics
@@ -193,3 +195,106 @@ seirm = EpidemiologyMasksBoxed[:mask_exp_ill] ⋅ EpidemiologyMasksBoxed[:mask_r
 display_wd(seirm)
 display_wd(expand(EpidemiologyMasksBoxed, seirm))
 Graph(F_boxed(seirm, 1))
+
+# Building transformations by hand:
+
+t = id(EpidemiologyMasksBoxed[:S] ⊗ EpidemiologyMasksBoxed[:I])
+b = id(EpidemiologyMasksBoxed[:I])
+l = EpidemiologyMasksBoxed[:infection]
+r = EpidemiologyMasksBoxed[:exp_ill]
+
+add_exposure = SquareDiagram(t, b, l, r)
+
+t2 = id(EpidemiologyMasksBoxed[:S] ⊗ EpidemiologyMasksBoxed[:I])
+b2 = Hom(:add_mask_inf, EpidemiologyMasksBoxed[:I], (EpidemiologyMasksBoxed[:I] ⊗ EpidemiologyMasksBoxed[:Mi]))
+l2 = r
+r2 = EpidemiologyMasksBoxed[:mask_exp_ill]
+
+add_mask_exp = SquareDiagram(t2, b2, l2, r2)
+
+t3 = b
+b3 = id(EpidemiologyMasksBoxed[:R])
+l3 = EpidemiologyMasksBoxed[:recovery]
+r3 = EpidemiologyMasksBoxed[:recovery]
+
+id_rec = SquareDiagram(t3, b3, l3, r3)
+
+t4 = b2
+b4 = id(EpidemiologyMasksBoxed[:R])
+l4 = r3
+r4 = EpidemiologyMasksBoxed[:mask_rec]
+
+add_mask_rec = SquareDiagram(t4, b4, l4, r4)
+
+infection2mask_exp_ill = composeH(add_exposure, add_mask_exp)
+rec2mask_rec = composeH(id_rec, add_mask_rec)
+
+sir_seirmH = composeV(infection2mask_exp_ill, rec2mask_rec)
+
+sir2seir = composeV(add_exposure, id_rec)
+seir2seirm = composeV(add_mask_exp, add_mask_rec)
+
+sir_seirmV = composeH(sir2seir, seir2seirm)
+
+# Using a presentation for double category transformations
+
+@present EpiTransforms(FreeSymmetricMonoidalDoubleCategory) begin
+  (SI, I, MI, R)::Ob
+
+  add_mask_inf::HomH(I,MI)
+  infection::HomV(SI,I)
+  exp_ill::HomV(SI,I)
+  mask_exp_ill::HomV(SI,MI)
+  rec::HomV(I,R)
+  mask_rec::HomV(MI,R)
+
+  inf2exp_ill::Hom2(idH(SI), idH(I), infection, exp_ill)
+  exp_ill2mask_exp_ill::Hom2(idH(SI), add_mask_inf, exp_ill, mask_exp_ill)
+  rec2mask_rec::Hom2(add_mask_inf, idH(R), rec, mask_rec)
+
+  sir2seir := inf2exp_ill ⋅ id2H(rec)
+  seir2seirm := exp_ill2mask_exp_ill ⋅ rec2mask_rec
+  inf2mask_exp_ill := inf2exp_ill ⋆ exp_ill2mask_exp_ill
+  recid2mask_rec := id2H(rec) ⋅ rec2mask_rec
+end;
+
+epitransforms_obs_homs = Dict(
+  EpiTransforms[:SI]=>EpidemiologyMasksBoxed[:S] ⊗ EpidemiologyMasksBoxed[:I],
+  EpiTransforms[:I]=>EpidemiologyMasksBoxed[:I],
+  EpiTransforms[:MI]=>EpidemiologyMasksBoxed[:I] ⊗ EpidemiologyMasksBoxed[:Mi],
+  EpiTransforms[:R]=>EpidemiologyMasksBoxed[:R],
+  EpiTransforms[:infection]=>EpidemiologyMasksBoxed[:infection],
+  EpiTransforms[:exp_ill]=>EpidemiologyMasksBoxed[:exp_ill],
+  EpiTransforms[:mask_exp_ill]=>EpidemiologyMasksBoxed[:mask_exp_ill],
+  EpiTransforms[:rec]=>EpidemiologyMasksBoxed[:recovery],
+  EpiTransforms[:mask_rec]=>EpidemiologyMasksBoxed[:mask_rec],
+  EpiTransforms[:add_mask_inf]=>Hom(:add_mask_inf, EpidemiologyMasksBoxed[:I], (EpidemiologyMasksBoxed[:I] ⊗ EpidemiologyMasksBoxed[:Mi]))
+)
+
+epitransforms_squares = begin
+  bd(sym) = epitransforms_obs_homs[EpiTransforms[sym]]
+  Dict(
+    EpiTransforms[:inf2exp_ill]=>SquareDiagram(id(bd(:SI)), id(bd(:I)), bd(:infection), bd(:exp_ill)),
+    EpiTransforms[:exp_ill2mask_exp_ill]=>SquareDiagram(id(bd(:SI)), bd(:add_mask_inf), bd(:exp_ill), bd(:mask_exp_ill)),
+    EpiTransforms[:rec2mask_rec]=>SquareDiagram(bd(:add_mask_inf), id(bd(:R)), bd(:rec), bd(:mask_rec)),
+  )
+end
+
+epitransforms_definitions = begin
+  bd(sym) = epitransforms_obs_homs[EpiTransforms[sym]]
+  sq(sym) = epitransforms_squares[EpiTransforms[sym]]
+  Dict(
+    EpiTransforms[:sir2seir]=>composeV(sq(:inf2exp_ill), SquareDiagram(id(bd(:I)), id(bd(:R)), bd(:rec), bd(:rec))),
+    EpiTransforms[:seir2seirm]=>composeV(sq(:exp_ill2mask_exp_ill), sq(:rec2mask_rec)),
+    EpiTransforms[:inf2mask_exp_ill]=>composeH(sq(:inf2exp_ill), sq(:exp_ill2mask_exp_ill)),
+    EpiTransforms[:recid2mask_rec]=>composeH(SquareDiagram(id(bd(:I)), id(bd(:R)), bd(:rec), bd(:rec)), sq(:rec2mask_rec))
+  )
+end
+
+F_transform(ex) = functor((FreeBiproductCategory.Ob, FreeBiproductCategory.Hom, FreeBiproductCategory.Hom, SquareDiagram), ex, generators=merge(epitransforms_obs_homs, epitransforms_squares, epitransforms_definitions));
+
+et(n) = EpiTransforms[n]
+
+seir2seirmH = F_transform(et(:sir2seir) ⋆ et(:seir2seirm))
+
+seir2seirmV = F_transform(et(:inf2mask_exp_ill) ⋅ et(:recid2mask_rec))
