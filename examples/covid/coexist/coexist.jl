@@ -67,23 +67,30 @@ fatality_rate = [0.00856164, 0.03768844, 0.02321319, 0.04282494, 0.07512237, 0.1
 # asymptomatic infection, multiple stages of infection, and
 # multiple stages of recovery
 
-@present EpiCoexist <: InfectiousDiseases begin
+@present EpiCoexist(FreeBiproductCategory) begin
+    S::Ob
+    E::Ob
+    I::Ob
     I2::Ob
     A::Ob
+    R::Ob
     R2::Ob
+    D::Ob
 
+    exposure::Hom(S⊗I,E)
     exposure_e::Hom(S⊗E,E)
     exposure_i2::Hom(S⊗I2,E)
     exposure_a::Hom(S⊗A,E)
+    illness::Hom(E,I)
     progression::Hom(I,I2)
     asymptomatic_infection::Hom(E,A)
     recover_late::Hom(R,R2)
     asymptomatic_recovery::Hom(A,R)
-    recovery2::Hom(I2,R)
-    death2::Hom(I2,D)
+    recovery::Hom(I2,R)
+    death::Hom(I2,D)
 end;
 
-S,E,I,R,D,I2,A,R2,transmission,exposure,illness,recovery,death,exposure_e,exposure_i2,exposure_a,progression,asymptomatic_infection,recover_late,asymptomatic_recovery,recovery2, death2 = generators(EpiCoexist);
+S,E,I,R,D,I2,A,R2,exposure,exposure_e,exposure_i2,exposure_a,illness,progression,asymptomatic_infection,recover_late,asymptomatic_recovery,recovery, death = generators(EpiCoexist);
 
 # Define a functor from the presentation to the building block
 # Petri nets that define these operations
@@ -97,7 +104,6 @@ F(ex, n) = functor((OpenEpiRxnNetOb, OpenEpiRxnNet), ex, generators=Dict(
     R=>ob(Symbol(:R, n), 0),
     R2=>ob(Symbol(:R2, n), 0),
     D=>ob(Symbol(:D, n), 0),
-    transmission=>exposure_petri(:transmission, 0, :S, 0, :I, 0, :I, 0),
     exposure=>exposure_petri(Symbol(:exp_, n), 1*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:I,n), 1000, Symbol(:E,n), 1000),
     exposure_e=>exposure_petri(Symbol(:exp_e, n), .01*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:E,n),1000, Symbol(:E,n),1000),
     exposure_i2=>exposure_petri(Symbol(:exp_i2, n), 6*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:I2,n), 1000, Symbol(:E,n),1000),
@@ -106,11 +112,9 @@ F(ex, n) = functor((OpenEpiRxnNetOb, OpenEpiRxnNet), ex, generators=Dict(
     asymptomatic_infection=>spontaneous_petri(Symbol(:asymp_, n), .86/.14*.2, Symbol(:E,n), 1000, Symbol(:A,n), 1000),
     illness=>spontaneous_petri(Symbol(:ill_, n), .2, Symbol(:E,n), 1000, Symbol(:I,n), 1000),
     asymptomatic_recovery=>spontaneous_petri(Symbol(:arec_, n), 1/15, Symbol(:A,n), 1000, Symbol(:R,n), 0),
-    recovery=>spontaneous_petri(Symbol(:rec_, n), 0, Symbol(:I,n), 0, Symbol(:R,n), 0),
-    recovery2=>spontaneous_petri(Symbol(:rec_, n), 1/6, Symbol(:I2,n), 1000, Symbol(:R,n), 0),
+    recovery=>spontaneous_petri(Symbol(:rec_, n), 1/6, Symbol(:I2,n), 1000, Symbol(:R,n), 0),
     recover_late=>spontaneous_petri(Symbol(:rec2_, n), 1/15, Symbol(:R,n), 0, Symbol(:R2,n), 0),
-    death=>spontaneous_petri(Symbol(:death_, n), 0, Symbol(:I,n), 0, Symbol(:D,n), 0),
-    death2=>spontaneous_petri(Symbol(:death2_, n), (1/15)*(fatality_rate[n]/(1-fatality_rate[n])), Symbol(:I2,n), 1000, Symbol(:D,n), 0)));
+    death=>spontaneous_petri(Symbol(:death2_, n), (1/15)*(fatality_rate[n]/(1-fatality_rate[n])), Symbol(:I2,n), 1000, Symbol(:D,n), 0)));
 
 # Define the COEXIST model using the `@program` macro
 
@@ -127,8 +131,8 @@ coexist = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::
     i_all = [i, i_2]
     i2_2 = progression(i)
     i2_all = [i2, i2_2]
-    d_2 = death2(i2_all)
-    r_3 = recovery2(i2_all)
+    d_2 = death(i2_all)
+    r_3 = recovery(i2_all)
     r_all = [r, r_2, r_3]
     r2_2 = recover_late(r_all)
     r2_all = [r2, r2_2]

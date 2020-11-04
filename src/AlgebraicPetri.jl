@@ -47,7 +47,9 @@ const AbstractPetriNet = AbstractACSetType(TheoryPetriNet)
 const PetriNet = CSetType(TheoryPetriNet,index=[:it,:is,:ot,:os])
 const OpenPetriNetOb, OpenPetriNet = OpenCSetTypes(PetriNet,:S)
 
-Open(n, p::AbstractPetriNet, m) = OpenPetriNet(p, FinFunction(n, ns(p)), FinFunction(m, ns(p)))
+Open(p::AbstractPetriNet) = OpenPetriNet(p, map(x->FinFunction([x], ns(p)), 1:ns(p))...)
+Open(p::AbstractPetriNet, legs...) = OpenPetriNet(p, map(l->FinFunction(l, ns(p)), legs)...)
+Open(n, p::AbstractPetriNet, m) = Open(p, n, m)
 
 # PetriNet([:S, :I, :R], :infection=>((1, 2), 3))
 
@@ -145,10 +147,12 @@ const LabelledPetriNet = LabelledPetriNetUntyped{Symbol}
 const OpenLabelledPetriNetObUntyped, OpenLabelledPetriNetUntyped = OpenACSetTypes(LabelledPetriNetUntyped,:S)
 const OpenLabelledPetriNetOb, OpenLabelledPetriNet = OpenLabelledPetriNetObUntyped{Symbol}, OpenLabelledPetriNetUntyped{Symbol}
 
-Open(n, p::AbstractLabelledPetriNet, m) = begin
+Open(p::AbstractLabelledPetriNet) = OpenLabelledPetriNet(p, map(x->FinFunction([x], ns(p)), 1:ns(p))...)
+Open(p::AbstractLabelledPetriNet, legs...) = begin
   s_idx = Dict(sname(p, s)=>s for s in 1:ns(p))
-  OpenLabelledPetriNet(p, FinFunction(map(i->s_idx[i], n), ns(p)), FinFunction(map(i->s_idx[i], m), ns(p)))
+  OpenLabelledPetriNet(p, map(l->FinFunction(map(i->s_idx[i], l), ns(p)),legs)...)
 end
+Open(n, p::AbstractLabelledPetriNet, m) = Open(p, n, m)
 
 LabelledPetriNet(n,ts...) = begin
   p = LabelledPetriNet()
@@ -180,7 +184,9 @@ const AbstractReactionNet = AbstractACSetType(TheoryReactionNet)
 const ReactionNet = ACSetType(TheoryReactionNet, index=[:it,:is,:ot,:os])
 const OpenReactionNetOb, OpenReactionNet = OpenACSetTypes(ReactionNet,:S)
 
-Open(n, p::AbstractReactionNet{R,C}, m) where {R,C} = OpenReactionNet{R,C}(p, FinFunction(n, ns(p)), FinFunction(m, ns(p)))
+Open(p::AbstractReactionNet{R,C}) where {R,C} = OpenReactionNet{R,C}(p, map(x->FinFunction([x], ns(p)), 1:ns(p))...)
+Open(p::AbstractReactionNet{R,C}, legs...) where {R,C} = OpenReactionNet{R,C}(p, map(l->FinFunction(l, ns(p)), legs)...)
+Open(n, p::AbstractReactionNet, m) = Open(p, n, m)
 
 ReactionNet{R,C}(n,ts...) where {R,C} = begin
   p = ReactionNet{R,C}()
@@ -215,10 +221,12 @@ const OpenLabelledReactionNetObUntyped, OpenLabelledReactionNetUntyped = OpenACS
 const OpenLabelledReactionNetOb{R,C} = OpenLabelledReactionNetObUntyped{R,C,Symbol}
 const OpenLabelledReactionNet{R,C} = OpenLabelledReactionNetUntyped{R,C,Symbol}
 
-Open(n, p::AbstractLabelledReactionNet{R,C}, m) where {R,C} = begin
+Open(p::AbstractLabelledReactionNet{R,C}) where {R,C} = OpenLabelledReactionNet{R,C}(p, map(x->FinFunction([x], ns(p)), 1:ns(p))...)
+Open(p::AbstractLabelledReactionNet{R,C}, legs...) where {R,C} = begin
   s_idx = Dict(sname(p, s)=>s for s in 1:ns(p))
-  OpenLabelledReactionNet{R,C}(p, FinFunction(map(i->s_idx[i], n), ns(p)), FinFunction(map(i->s_idx[i], m), ns(p)))
+  OpenLabelledReactionNet{R,C}(p, map(l->FinFunction(map(i->s_idx[i], l), ns(p)), legs)...)
 end
+Open(n, p::AbstractLabelledReactionNet, m) = Open(p, n, m)
 
 # Ex. LabelledReactionNet{Number, Int}((:S=>990, :I=>10, :R=>0), (:inf, .3/1000)=>((:S, :I)=>(:I,:I)), (:rec, .2)=>(:I=>:R))
 LabelledReactionNet{R,C}(n,ts...) where {R,C} = begin

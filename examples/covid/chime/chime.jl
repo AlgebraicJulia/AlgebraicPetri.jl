@@ -1,19 +1,25 @@
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
+
 using OrdinaryDiffEq
 using LabelledArrays
 using Plots
+
 using Catlab.Theories
-using Catlab.CategoricalAlgebra.FreeDiagrams
 using Catlab.Graphics
+using Catlab.CategoricalAlgebra
+using Catlab.Programs.RelationalPrograms
 
-display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
+display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=>".75"));
 
-sir = transmission ⋅ recovery
+sir = @relation (s, i, r) where (s, i, r) begin
+    infection(s, i)
+    recovery(i, r)
+end
+display_uwd(sir)
 
-p_sir = apex(F_epi(sir));
-display_wd(sir)
 #-
+p_sir = apex(oapply_epi(sir));
 Graph(p_sir)
 
 u0 = LVector(S=990, I=10, R=0);
