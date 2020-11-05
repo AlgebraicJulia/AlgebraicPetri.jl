@@ -276,11 +276,7 @@ plot(sol, xlabel="Time", ylabel="Number of people")
 
 for i in 1:length(social_mixing_rate)
   for j in 1:length(social_mixing_rate[1])
-    if i != j
-      social_mixing_rate[i][j] = social_mixing_rate[i][j] / 10;
-    else
-      social_mixing_rate[i][j] = social_mixing_rate[i][j] / 5;
-    end
+    social_mixing_rate[i][j] = social_mixing_rate[i][j] / (i != j ? 10 : 5);
   end
 end
 threeNCoexist_algpetri = apex(F_tcx(threeNCoexist));
