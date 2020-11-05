@@ -20,7 +20,7 @@ display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, e
 # #### SIR Model:
 
 # define model
-sir = @relation (s,i) where (s,i,r) begin
+sir = @relation (s,i,r) begin
     infection(s,i)
     recovery(i,r)
 end
@@ -45,7 +45,7 @@ plot(sol)
 # #### SEIR Model:
 
 # define model
-seir = @relation (s,e,i) where (s,e,i,r) begin
+seir = @relation (s,e,i,r) begin
     exposure(s,i,e)
     illness(e,i)
     recovery(i,r)
@@ -69,7 +69,7 @@ plot(sol)
 # #### SEIRD Model:
 
 # define model
-seird = @relation (s,e,i) where (s,e,i,r,d) begin
+seird = @relation (s,e,i,r,d) begin
     exposure(s,i,e)
     illness(e,i)
     recovery(i,r)

@@ -90,31 +90,29 @@ fatality_rate = [0.00856164, 0.03768844, 0.02321319, 0.04282494, 0.07512237, 0.1
     death::Hom(I2,D)
 end;
 
-S,E,I,R,D,I2,A,R2,exposure,exposure_e,exposure_i2,exposure_a,illness,progression,asymptomatic_infection,recover_late,asymptomatic_recovery,recovery, death = generators(EpiCoexist);
-
 # Define a functor from the presentation to the building block
 # Petri nets that define these operations
 
 F(ex, n) = functor((OpenEpiRxnNetOb, OpenEpiRxnNet), ex, generators=Dict(
-    S=>ob(Symbol(:S, n), pop[n]),
-    E=>ob(Symbol(:E, n), 1000),
-    A=>ob(Symbol(:A, n), 1000),
-    I=>ob(Symbol(:I, n), 1000),
-    I2=>ob(Symbol(:I2, n), 1000),
-    R=>ob(Symbol(:R, n), 0),
-    R2=>ob(Symbol(:R2, n), 0),
-    D=>ob(Symbol(:D, n), 0),
-    exposure=>exposure_petri(Symbol(:exp_, n), 1*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:I,n), 1000, Symbol(:E,n), 1000),
-    exposure_e=>exposure_petri(Symbol(:exp_e, n), .01*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:E,n),1000, Symbol(:E,n),1000),
-    exposure_i2=>exposure_petri(Symbol(:exp_i2, n), 6*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:I2,n), 1000, Symbol(:E,n),1000),
-    exposure_a=>exposure_petri(Symbol(:exp_a, n), 5*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:A,n),1000, Symbol(:E,n),1000),
-    progression=>spontaneous_petri(Symbol(:prog_, n), .25, Symbol(:I,n), 1000, Symbol(:I2,n), 1000),
-    asymptomatic_infection=>spontaneous_petri(Symbol(:asymp_, n), .86/.14*.2, Symbol(:E,n), 1000, Symbol(:A,n), 1000),
-    illness=>spontaneous_petri(Symbol(:ill_, n), .2, Symbol(:E,n), 1000, Symbol(:I,n), 1000),
-    asymptomatic_recovery=>spontaneous_petri(Symbol(:arec_, n), 1/15, Symbol(:A,n), 1000, Symbol(:R,n), 0),
-    recovery=>spontaneous_petri(Symbol(:rec_, n), 1/6, Symbol(:I2,n), 1000, Symbol(:R,n), 0),
-    recover_late=>spontaneous_petri(Symbol(:rec2_, n), 1/15, Symbol(:R,n), 0, Symbol(:R2,n), 0),
-    death=>spontaneous_petri(Symbol(:death2_, n), (1/15)*(fatality_rate[n]/(1-fatality_rate[n])), Symbol(:I2,n), 1000, Symbol(:D,n), 0)));
+    EpiCoexist[:S]=>ob(Symbol(:S, n), pop[n]),
+    EpiCoexist[:E]=>ob(Symbol(:E, n), 1000),
+    EpiCoexist[:A]=>ob(Symbol(:A, n), 1000),
+    EpiCoexist[:I]=>ob(Symbol(:I, n), 1000),
+    EpiCoexist[:I2]=>ob(Symbol(:I2, n), 1000),
+    EpiCoexist[:R]=>ob(Symbol(:R, n), 0),
+    EpiCoexist[:R2]=>ob(Symbol(:R2, n), 0),
+    EpiCoexist[:D]=>ob(Symbol(:D, n), 0),
+    EpiCoexist[:exposure]=>exposure_petri(Symbol(:exp_, n), 1*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:I,n), 1000, Symbol(:E,n), 1000),
+    EpiCoexist[:exposure_e]=>exposure_petri(Symbol(:exp_e, n), .01*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:E,n),1000, Symbol(:E,n),1000),
+    EpiCoexist[:exposure_i2]=>exposure_petri(Symbol(:exp_i2, n), 6*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:I2,n), 1000, Symbol(:E,n),1000),
+    EpiCoexist[:exposure_a]=>exposure_petri(Symbol(:exp_a, n), 5*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:A,n),1000, Symbol(:E,n),1000),
+    EpiCoexist[:progression]=>spontaneous_petri(Symbol(:prog_, n), .25, Symbol(:I,n), 1000, Symbol(:I2,n), 1000),
+    EpiCoexist[:asymptomatic_infection]=>spontaneous_petri(Symbol(:asymp_, n), .86/.14*.2, Symbol(:E,n), 1000, Symbol(:A,n), 1000),
+    EpiCoexist[:illness]=>spontaneous_petri(Symbol(:ill_, n), .2, Symbol(:E,n), 1000, Symbol(:I,n), 1000),
+    EpiCoexist[:asymptomatic_recovery]=>spontaneous_petri(Symbol(:arec_, n), 1/15, Symbol(:A,n), 1000, Symbol(:R,n), 0),
+    EpiCoexist[:recovery]=>spontaneous_petri(Symbol(:rec_, n), 1/6, Symbol(:I2,n), 1000, Symbol(:R,n), 0),
+    EpiCoexist[:recover_late]=>spontaneous_petri(Symbol(:rec2_, n), 1/15, Symbol(:R,n), 0, Symbol(:R2,n), 0),
+    EpiCoexist[:death]=>spontaneous_petri(Symbol(:death2_, n), (1/15)*(fatality_rate[n]/(1-fatality_rate[n])), Symbol(:I2,n), 1000, Symbol(:D,n), 0)));
 
 # Define the COEXIST model using the `@program` macro
 
@@ -159,34 +157,31 @@ display_wd(coexist)
     exposure_i2′::Hom(S′⊗I2,E′)
 end;
 
-ce_S,ce_E,ce_A,ce_I,ce_I2,ce_R,ce_R2,ce_D, ce_S′,ce_E′,ce_A′,ce_I′,ce_I2′,ce_R′,ce_R2′,ce_D′, ce_exposure, ce_exposure_e, ce_exposure_a, ce_exposure_i2, ce_exposure′, ce_exposure_e′, ce_exposure_a′, ce_exposure_i2′ = generators(EpiCrossExposure);
-
 F_cx(ex, x,y) = functor((OpenEpiRxnNetOb, OpenEpiRxnNet), ex, generators=Dict(
-    ce_S=>ob(Symbol(:S, x), pop[x]),
-    ce_E=>ob(Symbol(:E, x), 1000),
-    ce_A=>ob(Symbol(:A, x), 1000),
-    ce_I=>ob(Symbol(:I, x), 1000),
-    ce_I2=>ob(Symbol(:I2, x), 1000),
-    ce_R=>ob(Symbol(:R, x), 0),
-    ce_R2=>ob(Symbol(:R2, x), 0),
-    ce_D=>ob(Symbol(:D, x), 0),
-    ce_S′=>ob(Symbol(:S, y), pop[y]),
-    ce_E′=>ob(Symbol(:E, y), 1000),
-    ce_A′=>ob(Symbol(:A, y), 1000),
-    ce_I′=>ob(Symbol(:I, y), 1000),
-    ce_I2′=>ob(Symbol(:I2, y), 1000),
-    ce_R′=>ob(Symbol(:R, y), 0),
-    ce_R2′=>ob(Symbol(:R2, y), 0),
-    ce_D′=>ob(Symbol(:D, y), 0),
-    ce_exposure=>exposure_petri(Symbol(:exp_, x,y), 1*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:I,y), 1000, Symbol(:E,x), 1000),
-    ce_exposure_e=>exposure_petri(Symbol(:exp_e, x,y), .01*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:E,y),1000, Symbol(:E,x),1000),
-    ce_exposure_a=>exposure_petri(Symbol(:exp_a, x,y), 5*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:A,y),1000, Symbol(:E,x),1000),
-    ce_exposure_i2=>exposure_petri(Symbol(:exp_i2, x,y), 6*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:I2,y), 1000, Symbol(:E,x),1000),
-    ce_exposure′=>exposure_petri(Symbol(:exp_, y,x), 1*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:I,x), 1000, Symbol(:E,y), 1000),
-    ce_exposure_e′=>exposure_petri(Symbol(:exp_e, y,x), .01*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:E,x),1000, Symbol(:E,y),1000),
-    ce_exposure_a′=>exposure_petri(Symbol(:exp_a, y,x), 5*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:A,x),1000, Symbol(:E,y),1000),
-    ce_exposure_i2′=>exposure_petri(Symbol(:exp_i2, y,x), 6*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:I2,x), 1000, Symbol(:E,y),1000)
-));
+    EpiCrossExposure[:S]=>ob(Symbol(:S, x), pop[x]),
+    EpiCrossExposure[:E]=>ob(Symbol(:E, x), 1000),
+    EpiCrossExposure[:A]=>ob(Symbol(:A, x), 1000),
+    EpiCrossExposure[:I]=>ob(Symbol(:I, x), 1000),
+    EpiCrossExposure[:I2]=>ob(Symbol(:I2, x), 1000),
+    EpiCrossExposure[:R]=>ob(Symbol(:R, x), 0),
+    EpiCrossExposure[:R2]=>ob(Symbol(:R2, x), 0),
+    EpiCrossExposure[:D]=>ob(Symbol(:D, x), 0),
+    EpiCrossExposure[:S′]=>ob(Symbol(:S, y), pop[y]),
+    EpiCrossExposure[:E′]=>ob(Symbol(:E, y), 1000),
+    EpiCrossExposure[:A′]=>ob(Symbol(:A, y), 1000),
+    EpiCrossExposure[:I′]=>ob(Symbol(:I, y), 1000),
+    EpiCrossExposure[:I2′]=>ob(Symbol(:I2, y), 1000),
+    EpiCrossExposure[:R′]=>ob(Symbol(:R, y), 0),
+    EpiCrossExposure[:R2′]=>ob(Symbol(:R2, y), 0),
+    EpiCrossExposure[:D′]=>ob(Symbol(:D, y), 0),
+    EpiCrossExposure[:exposure]=>exposure_petri(Symbol(:exp_, x,y), 1*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:I,y), 1000, Symbol(:E,x), 1000),
+    EpiCrossExposure[:exposure_e]=>exposure_petri(Symbol(:exp_e, x,y), .01*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:E,y),1000, Symbol(:E,x),1000),
+    EpiCrossExposure[:exposure_a]=>exposure_petri(Symbol(:exp_a, x,y), 5*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:A,y),1000, Symbol(:E,x),1000),
+    EpiCrossExposure[:exposure_i2]=>exposure_petri(Symbol(:exp_i2, x,y), 6*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:I2,y), 1000, Symbol(:E,x),1000),
+    EpiCrossExposure[:exposure′]=>exposure_petri(Symbol(:exp_, y,x), 1*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:I,x), 1000, Symbol(:E,y), 1000),
+    EpiCrossExposure[:exposure_e′]=>exposure_petri(Symbol(:exp_e, y,x), .01*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:E,x),1000, Symbol(:E,y),1000),
+    EpiCrossExposure[:exposure_a′]=>exposure_petri(Symbol(:exp_a, y,x), 5*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:A,x),1000, Symbol(:E,y),1000),
+    EpiCrossExposure[:exposure_i2′]=>exposure_petri(Symbol(:exp_i2, y,x), 6*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:I2,x), 1000, Symbol(:E,y),1000)));
 
 # Use this new presentation to define a model
 # of cross exposure between two populations
@@ -223,19 +218,20 @@ display_wd(crossexposure)
     coex2::Hom(Pop2,Pop2)
     coex3::Hom(Pop3,Pop3)
 end;
-Pop1, Pop2, Pop3, crossexp12, crossexp13, crossexp23, coex1, coex2, coex3 = generators(ThreeCoexist);
 
-F_tcx(ex) = functor((OpenEpiRxnNetOb, OpenEpiRxnNet), ex, generators=Dict(
-    Pop1=>F(otimes(S,E,I,I2,A,R,R2,D),3),
-    Pop2=>F(otimes(S,E,I,I2,A,R,R2,D),4),
-    Pop3=>F(otimes(S,E,I,I2,A,R,R2,D),5),
-    crossexp12=>F_cx(crossexposure,3,4),
-    crossexp13=>F_cx(crossexposure,3,5),
-    crossexp23=>F_cx(crossexposure,4,5),
-    coex1=>F(coexist,3),
-    coex2=>F(coexist,4),
-    coex3=>F(coexist,5)
-    ));
+F_tcx(ex) = begin
+    pop = otimes(map(x->EpiCoexist[x], [:S, :E, :I, :I2, :A, :R, :R2, :D])...)
+    functor((OpenEpiRxnNetOb, OpenEpiRxnNet), ex, generators=Dict(
+        ThreeCoexist[:Pop1]=>F(pop,3),
+        ThreeCoexist[:Pop2]=>F(pop,4),
+        ThreeCoexist[:Pop3]=>F(pop,5),
+        ThreeCoexist[:crossexp12]=>F_cx(crossexposure,3,4),
+        ThreeCoexist[:crossexp13]=>F_cx(crossexposure,3,5),
+        ThreeCoexist[:crossexp23]=>F_cx(crossexposure,4,5),
+        ThreeCoexist[:coex1]=>F(coexist,3),
+        ThreeCoexist[:coex2]=>F(coexist,4),
+        ThreeCoexist[:coex3]=>F(coexist,5)));
+end
 
 # Use this presentation to define this
 # three-generational COEXIST model

@@ -29,7 +29,7 @@ Graph(death_petri)
 
 # #### Step 2: Generate models using a relational syntax
 
-lotka_volterra = @relation (wolves, rabbits) where (wolves, rabbits) begin
+lotka_volterra = @relation (wolves, rabbits) begin
   birth(rabbits)
   predation(rabbits, wolves)
   death(wolves)
@@ -51,7 +51,7 @@ plot(sol)
 # #### Step 3: Extend your model to handle more complex phenomena
 # such as a small food chain between little fish, big fish, and sharks
 
-dual_lv = @relation (fish, Fish, Shark) where (fish, Fish, Shark) begin
+dual_lv = @relation (fish, Fish, Shark) begin
   birth(fish)
   predation(fish, Fish)
   predation(Fish, Shark)
