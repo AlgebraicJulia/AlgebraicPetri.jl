@@ -3,47 +3,36 @@
 #md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/covid/coexist/coexist.ipynb)
 
 using AlgebraicPetri
-using AlgebraicPetri.Epidemiology
 
-using Petri
 using LabelledArrays
 using OrdinaryDiffEq
 using Plots
 using JSON
 
 using Catlab
-using Catlab.Theories
 using Catlab.CategoricalAlgebra
-using Catlab.Programs
-using Catlab.WiringDiagrams
 using Catlab.Graphics
-using Catlab.Graphics.Graphviz: run_graphviz
+using Catlab.Programs
+using Catlab.Theories
+using Catlab.WiringDiagrams
 
-display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
 display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=>"1"));
-
-# Define some helper types where transition rates are
-# real numbers and populations are natural numbers
-
-const EpiRxnNet = LabelledReactionNet{Number,Int};
-const OpenEpiRxnNet = OpenLabelledReactionNet{Number,Int};
-const OpenEpiRxnNetOb = OpenLabelledReactionNetOb{Number,Int};
 
 # Define helper functions for defining the two types of
 # reactions in an epidemiology Model. Either a state 
 # spontaneously changes, or one state causes another to change
 
-ob(x::Symbol,n::Int) = codom(Open([x], EpiRxnNet(x=>n), [x])).ob;
+ob(x::Symbol,n::Int) = codom(Open([x], LabelledReactionNet{Number,Int}(x=>n), [x])).ob;
 function spontaneous_petri(transition::Symbol, rate::Number,
                            s::Symbol, s₀::Int,
                            t::Symbol, t₀::Int)
-    Open(EpiRxnNet((s=>s₀,t=>t₀), (transition,rate)=>(s=>t)))
+    Open(LabelledReactionNet{Number,Int}(unique((s=>s₀,t=>t₀)), (transition,rate)=>(s=>t)))
 end;
 function exposure_petri(transition::Symbol, rate::Number,
                         s::Symbol, s₀::Int,
                         e::Symbol, e₀::Int,
                         t::Symbol, t₀::Int)
-    Open(EpiRxnNet((s=>s₀,e=>e₀,t=>t₀), (transition,rate)=>((s,e)=>(t,e))))
+    Open(LabelledReactionNet{Number,Int}(unique((s=>s₀,e=>e₀,t=>t₀)), (transition,rate)=>((s,e)=>(t,e))))
 end;
 
 # Set arrays of initial conditions and rates to use in functor
@@ -169,7 +158,6 @@ end;
 display_uwd(threeNCoexist)
 
 threeNCoexist_algpetri = apex(F_tcx(threeNCoexist))
-threeNCoexist_petri = Petri.Model(threeNCoexist_algpetri)
 Graph(threeNCoexist_algpetri)
 
 # We can JSON to convert this Petri net into an
@@ -183,7 +171,7 @@ JSON.print(threeNCoexist_algpetri.tables)
 # concentrations and rates.
 
 tspan = (0.0,100.0);
-prob = ODEProblem(threeNCoexist_petri,concentrations(threeNCoexist_algpetri),tspan,rates(threeNCoexist_algpetri));
+prob = ODEProblem(vectorfield(threeNCoexist_algpetri),concentrations(threeNCoexist_algpetri),tspan,rates(threeNCoexist_algpetri));
 sol = solve(prob,Tsit5());
 plot(sol, xlabel="Time", ylabel="Number of people")
 
@@ -200,8 +188,7 @@ for i in 1:length(social_mixing_rate)
   end
 end
 threeNCoexist_algpetri = apex(F_tcx(threeNCoexist));
-threeNCoexist_petri = Petri.Model(threeNCoexist_algpetri);
 
-prob = ODEProblem(threeNCoexist_petri,concentrations(threeNCoexist_algpetri),tspan,rates(threeNCoexist_algpetri));
+prob = ODEProblem(vectorfield(threeNCoexist_algpetri),concentrations(threeNCoexist_algpetri),tspan,rates(threeNCoexist_algpetri));
 sol = solve(prob,Tsit5());
 plot(sol, xlabel="Time", ylabel="Number of people")
