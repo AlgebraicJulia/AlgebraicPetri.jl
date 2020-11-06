@@ -20,6 +20,7 @@ using Catlab.Graphics
 using Catlab.Graphics.Graphviz: run_graphviz
 
 display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
+display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=>"1"));
 
 # Define some helper types where transition rates are
 # real numbers and populations are natural numbers
@@ -32,17 +33,17 @@ const OpenEpiRxnNetOb = OpenLabelledReactionNetOb{Number,Int};
 # reactions in an epidemiology Model. Either a state 
 # spontaneously changes, or one state causes another to change
 
-ob(x::Symbol,n::Int) = codom(Open([x], EpiRxnNet(x=>n), [x]));
+ob(x::Symbol,n::Int) = codom(Open([x], EpiRxnNet(x=>n), [x])).ob;
 function spontaneous_petri(transition::Symbol, rate::Number,
                            s::Symbol, s₀::Int,
                            t::Symbol, t₀::Int)
-    Open([s], EpiRxnNet((s=>s₀,t=>t₀), (transition,rate)=>(s=>t)), [t])
+    Open(EpiRxnNet((s=>s₀,t=>t₀), (transition,rate)=>(s=>t)))
 end;
 function exposure_petri(transition::Symbol, rate::Number,
                         s::Symbol, s₀::Int,
                         e::Symbol, e₀::Int,
                         t::Symbol, t₀::Int)
-    Open([s, e], EpiRxnNet((s=>s₀,e=>e₀,t=>t₀), (transition,rate)=>((s,e)=>(t,e))), [t])
+    Open(EpiRxnNet((s=>s₀,e=>e₀,t=>t₀), (transition,rate)=>((s,e)=>(t,e))))
 end;
 
 # Set arrays of initial conditions and rates to use in functor
@@ -62,191 +63,110 @@ social_mixing_rate =
 
 fatality_rate = [0.00856164, 0.03768844, 0.02321319, 0.04282494, 0.07512237, 0.12550367, 0.167096  , 0.37953452, 0.45757006];
 
-# Extend the infectious disease presentation to handle the more
-# complex version of SEIRD that the COEXIST model uses with
-# asymptomatic infection, multiple stages of infection, and
-# multiple stages of recovery
+# Define an `oapply` function that connects the building block Petri nets to
+# the operations we will use in the model.
 
-@present EpiCoexist(FreeBiproductCategory) begin
-    S::Ob
-    E::Ob
-    I::Ob
-    I2::Ob
-    A::Ob
-    R::Ob
-    R2::Ob
-    D::Ob
+F(ex, n) = oapply(ex, Dict(
+    :exposure=>exposure_petri(Symbol(:exp_, n), 1*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:I,n), 1000, Symbol(:E,n), 1000),
+    :exposure_e=>exposure_petri(Symbol(:exp_e, n), .01*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:E,n),1000, Symbol(:E,n),1000),
+    :exposure_i2=>exposure_petri(Symbol(:exp_i2, n), 6*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:I2,n), 1000, Symbol(:E,n),1000),
+    :exposure_a=>exposure_petri(Symbol(:exp_a, n), 5*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:A,n),1000, Symbol(:E,n),1000),
+    :progression=>spontaneous_petri(Symbol(:prog_, n), .25, Symbol(:I,n), 1000, Symbol(:I2,n), 1000),
+    :asymptomatic_infection=>spontaneous_petri(Symbol(:asymp_, n), .86/.14*.2, Symbol(:E,n), 1000, Symbol(:A,n), 1000),
+    :illness=>spontaneous_petri(Symbol(:ill_, n), .2, Symbol(:E,n), 1000, Symbol(:I,n), 1000),
+    :asymptomatic_recovery=>spontaneous_petri(Symbol(:arec_, n), 1/15, Symbol(:A,n), 1000, Symbol(:R,n), 0),
+    :recovery=>spontaneous_petri(Symbol(:rec_, n), 1/6, Symbol(:I2,n), 1000, Symbol(:R,n), 0),
+    :recover_late=>spontaneous_petri(Symbol(:rec2_, n), 1/15, Symbol(:R,n), 0, Symbol(:R2,n), 0),
+    :death=>spontaneous_petri(Symbol(:death2_, n), (1/15)*(fatality_rate[n]/(1-fatality_rate[n])), Symbol(:I2,n), 1000, Symbol(:D,n), 0)));
 
-    exposure::Hom(S⊗I,E)
-    exposure_e::Hom(S⊗E,E)
-    exposure_i2::Hom(S⊗I2,E)
-    exposure_a::Hom(S⊗A,E)
-    illness::Hom(E,I)
-    progression::Hom(I,I2)
-    asymptomatic_infection::Hom(E,A)
-    recover_late::Hom(R,R2)
-    asymptomatic_recovery::Hom(A,R)
-    recovery::Hom(I2,R)
-    death::Hom(I2,D)
+# Define the COEXIST model using the `@relation` macro
+
+coexist = @relation (s, e, i, i2, a, r, r2, d) begin
+    exposure(s, i, e)
+    exposure_i2(s, i2, e)
+    exposure_a(s, a, e)
+    exposure_e(s, e, e)
+    asymptomatic_infection(e, a)
+    asymptomatic_recovery(a, r)
+    illness(e, i)
+    progression(i, i2)
+    death(i2, d)
+    recovery(i2, r)
+    recover_late(r, r2)
 end;
+display_uwd(coexist)
 
-# Define a functor from the presentation to the building block
-# Petri nets that define these operations
-
-F(ex, n) = functor((OpenEpiRxnNetOb, OpenEpiRxnNet), ex, generators=Dict(
-    EpiCoexist[:S]=>ob(Symbol(:S, n), pop[n]),
-    EpiCoexist[:E]=>ob(Symbol(:E, n), 1000),
-    EpiCoexist[:A]=>ob(Symbol(:A, n), 1000),
-    EpiCoexist[:I]=>ob(Symbol(:I, n), 1000),
-    EpiCoexist[:I2]=>ob(Symbol(:I2, n), 1000),
-    EpiCoexist[:R]=>ob(Symbol(:R, n), 0),
-    EpiCoexist[:R2]=>ob(Symbol(:R2, n), 0),
-    EpiCoexist[:D]=>ob(Symbol(:D, n), 0),
-    EpiCoexist[:exposure]=>exposure_petri(Symbol(:exp_, n), 1*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:I,n), 1000, Symbol(:E,n), 1000),
-    EpiCoexist[:exposure_e]=>exposure_petri(Symbol(:exp_e, n), .01*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:E,n),1000, Symbol(:E,n),1000),
-    EpiCoexist[:exposure_i2]=>exposure_petri(Symbol(:exp_i2, n), 6*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:I2,n), 1000, Symbol(:E,n),1000),
-    EpiCoexist[:exposure_a]=>exposure_petri(Symbol(:exp_a, n), 5*social_mixing_rate[n][n]/pop[n], Symbol(:S,n), pop[n], Symbol(:A,n),1000, Symbol(:E,n),1000),
-    EpiCoexist[:progression]=>spontaneous_petri(Symbol(:prog_, n), .25, Symbol(:I,n), 1000, Symbol(:I2,n), 1000),
-    EpiCoexist[:asymptomatic_infection]=>spontaneous_petri(Symbol(:asymp_, n), .86/.14*.2, Symbol(:E,n), 1000, Symbol(:A,n), 1000),
-    EpiCoexist[:illness]=>spontaneous_petri(Symbol(:ill_, n), .2, Symbol(:E,n), 1000, Symbol(:I,n), 1000),
-    EpiCoexist[:asymptomatic_recovery]=>spontaneous_petri(Symbol(:arec_, n), 1/15, Symbol(:A,n), 1000, Symbol(:R,n), 0),
-    EpiCoexist[:recovery]=>spontaneous_petri(Symbol(:rec_, n), 1/6, Symbol(:I2,n), 1000, Symbol(:R,n), 0),
-    EpiCoexist[:recover_late]=>spontaneous_petri(Symbol(:rec2_, n), 1/15, Symbol(:R,n), 0, Symbol(:R2,n), 0),
-    EpiCoexist[:death]=>spontaneous_petri(Symbol(:death2_, n), (1/15)*(fatality_rate[n]/(1-fatality_rate[n])), Symbol(:I2,n), 1000, Symbol(:D,n), 0)));
-
-# Define the COEXIST model using the `@program` macro
-
-coexist = @program EpiCoexist (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::D) begin
-    e_2 = exposure(s, i)
-    e_3 = exposure_i2(s, i2)
-    e_4 = exposure_a(s, a)
-    e_5 = exposure_e(s, e)
-    e_all = [e, e_2, e_3, e_4, e_5]
-    a_2 = asymptomatic_infection(e_all)
-    a_all = [a, a_2]
-    r_2 = asymptomatic_recovery(a_all)
-    i_2 = illness(e_all)
-    i_all = [i, i_2]
-    i2_2 = progression(i)
-    i2_all = [i2, i2_2]
-    d_2 = death(i2_all)
-    r_3 = recovery(i2_all)
-    r_all = [r, r_2, r_3]
-    r2_2 = recover_late(r_all)
-    r2_all = [r2, r2_2]
-    d_all = [d, d_2]
-    return s, e_all, i_all, i2_all, a_all, r_all, r2_all, d_all
-end;
-coexist = to_hom_expr(FreeBiproductCategory, coexist);
-display_wd(coexist)
-
-# Define a new presentation and functor to use in modeling
+# Define an `oapply` function that can be used to create a model of
 # cross exposure between two sets of populations
 
-@present EpiCrossExposure(FreeBiproductCategory) begin
-    (S,E,A,I,I2,R,R2,D)::Ob
-    (S′,E′,A′,I′,I2′,R′,R2′,D′)::Ob
-
-    exposure::Hom(S⊗I′,E)
-    exposure_e::Hom(S⊗E′,E)
-    exposure_a::Hom(S⊗A′,E)
-    exposure_i2::Hom(S⊗I2′,E)
-    exposure′::Hom(S′⊗I,E′)
-    exposure_e′::Hom(S′⊗E,E′)
-    exposure_a′::Hom(S′⊗A,E′)
-    exposure_i2′::Hom(S′⊗I2,E′)
-end;
-
-F_cx(ex, x,y) = functor((OpenEpiRxnNetOb, OpenEpiRxnNet), ex, generators=Dict(
-    EpiCrossExposure[:S]=>ob(Symbol(:S, x), pop[x]),
-    EpiCrossExposure[:E]=>ob(Symbol(:E, x), 1000),
-    EpiCrossExposure[:A]=>ob(Symbol(:A, x), 1000),
-    EpiCrossExposure[:I]=>ob(Symbol(:I, x), 1000),
-    EpiCrossExposure[:I2]=>ob(Symbol(:I2, x), 1000),
-    EpiCrossExposure[:R]=>ob(Symbol(:R, x), 0),
-    EpiCrossExposure[:R2]=>ob(Symbol(:R2, x), 0),
-    EpiCrossExposure[:D]=>ob(Symbol(:D, x), 0),
-    EpiCrossExposure[:S′]=>ob(Symbol(:S, y), pop[y]),
-    EpiCrossExposure[:E′]=>ob(Symbol(:E, y), 1000),
-    EpiCrossExposure[:A′]=>ob(Symbol(:A, y), 1000),
-    EpiCrossExposure[:I′]=>ob(Symbol(:I, y), 1000),
-    EpiCrossExposure[:I2′]=>ob(Symbol(:I2, y), 1000),
-    EpiCrossExposure[:R′]=>ob(Symbol(:R, y), 0),
-    EpiCrossExposure[:R2′]=>ob(Symbol(:R2, y), 0),
-    EpiCrossExposure[:D′]=>ob(Symbol(:D, y), 0),
-    EpiCrossExposure[:exposure]=>exposure_petri(Symbol(:exp_, x,y), 1*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:I,y), 1000, Symbol(:E,x), 1000),
-    EpiCrossExposure[:exposure_e]=>exposure_petri(Symbol(:exp_e, x,y), .01*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:E,y),1000, Symbol(:E,x),1000),
-    EpiCrossExposure[:exposure_a]=>exposure_petri(Symbol(:exp_a, x,y), 5*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:A,y),1000, Symbol(:E,x),1000),
-    EpiCrossExposure[:exposure_i2]=>exposure_petri(Symbol(:exp_i2, x,y), 6*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:I2,y), 1000, Symbol(:E,x),1000),
-    EpiCrossExposure[:exposure′]=>exposure_petri(Symbol(:exp_, y,x), 1*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:I,x), 1000, Symbol(:E,y), 1000),
-    EpiCrossExposure[:exposure_e′]=>exposure_petri(Symbol(:exp_e, y,x), .01*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:E,x),1000, Symbol(:E,y),1000),
-    EpiCrossExposure[:exposure_a′]=>exposure_petri(Symbol(:exp_a, y,x), 5*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:A,x),1000, Symbol(:E,y),1000),
-    EpiCrossExposure[:exposure_i2′]=>exposure_petri(Symbol(:exp_i2, y,x), 6*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:I2,x), 1000, Symbol(:E,y),1000)));
+F_cx(ex, x,y) = oapply(ex, Dict(
+    :exposure=>exposure_petri(Symbol(:exp_, x,y), 1*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:I,y), 1000, Symbol(:E,x), 1000),
+    :exposure_e=>exposure_petri(Symbol(:exp_e, x,y), .01*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:E,y),1000, Symbol(:E,x),1000),
+    :exposure_a=>exposure_petri(Symbol(:exp_a, x,y), 5*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:A,y),1000, Symbol(:E,x),1000),
+    :exposure_i2=>exposure_petri(Symbol(:exp_i2, x,y), 6*social_mixing_rate[x][y]/(pop[x]+pop[y]), Symbol(:S,x), pop[x], Symbol(:I2,y), 1000, Symbol(:E,x),1000),
+    :exposure′=>exposure_petri(Symbol(:exp_, y,x), 1*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:I,x), 1000, Symbol(:E,y), 1000),
+    :exposure_e′=>exposure_petri(Symbol(:exp_e, y,x), .01*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:E,x),1000, Symbol(:E,y),1000),
+    :exposure_a′=>exposure_petri(Symbol(:exp_a, y,x), 5*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:A,x),1000, Symbol(:E,y),1000),
+    :exposure_i2′=>exposure_petri(Symbol(:exp_i2, y,x), 6*social_mixing_rate[y][x]/(pop[x]+pop[y]), Symbol(:S,y), pop[y], Symbol(:I2,x), 1000, Symbol(:E,y),1000)
+  ),
+  Dict(
+    :s=>ob(Symbol(:S, x), pop[x]),
+    :e=>ob(Symbol(:E, x), 1000),
+    :a=>ob(Symbol(:A, x), 1000),
+    :i=>ob(Symbol(:I, x), 1000),
+    :i2=>ob(Symbol(:I2, x), 1000),
+    :r=>ob(Symbol(:R, x), 0),
+    :r2=>ob(Symbol(:R2, x), 0),
+    :d=>ob(Symbol(:D, x), 0),
+    :s′=>ob(Symbol(:S, y), pop[y]),
+    :e′=>ob(Symbol(:E, y), 1000),
+    :a′=>ob(Symbol(:A, y), 1000),
+    :i′=>ob(Symbol(:I, y), 1000),
+    :i2′=>ob(Symbol(:I2, y), 1000),
+    :r′=>ob(Symbol(:R, y), 0),
+    :r2′=>ob(Symbol(:R2, y), 0),
+    :d′=>ob(Symbol(:D, y), 0)
+  ));
 
 # Use this new presentation to define a model
 # of cross exposure between two populations
 
-crossexposure = @program EpiCrossExposure (s::S, e::E, i::I, i2::I2, a::A, r::R, r2::R2, d::D,
-                                           s′::S′, e′::E′, i′::I′, i2′::I2′, a′::A′, r′::R′, r2′::R2′, d′::D′) begin
-    e_2 = exposure(s, i′)
-    e_3 = exposure_i2(s, i2′)
-    e_4 = exposure_a(s, a′)
-    e_5 = exposure_e(s, e′)
-    e_all = [e, e_2, e_3, e_4, e_5]
-    e′_2 = exposure′(s′, i)
-    e′_3 = exposure_i2′(s′, i2)
-    e′_4 = exposure_a′(s′, a)
-    e′_5 = exposure_e′(s′, e_all)
-    e′_all = [e′, e′_2, e′_3, e′_4, e′_5]
-    return s, e_all, i, i2, a, r, r2, d,
-           s′, e′_all, i′, i2′, a′, r′, r2′, d′
+crossexposure = @relation (s, e, i, i2, a, r, r2, d, s′, e′, i′, i2′, a′, r′, r2′, d′) begin
+    exposure(s, i′, e)
+    exposure_i2(s, i2′, e)
+    exposure_a(s, a′, e)
+    exposure_e(s, e′, e)
+    exposure′(s′, i, e′)
+    exposure_i2′(s′, i2, e′)
+    exposure_a′(s′, a, e′)
+    exposure_e′(s′, e, e′)
 end;
-crossexposure = to_hom_expr(FreeBiproductCategory, crossexposure);
-display_wd(crossexposure)
+display_uwd(crossexposure)
 
-# To combine these two models, we need a final presentation
-# that enables us to model 3 populations, each with their
-# own COEXIST model, and interact through cross exposure
+# To combine these two models, we need to create a final relational model and
+# use the `bundle_legs` function in our `oapply` that enables us to model 3
+# population wires instead of each individual state as a wire. Each of these
+# populations has their own COEXIST model, and interact through cross exposure
 
-@present ThreeCoexist(FreeBiproductCategory) begin
-    (Pop1,Pop2,Pop3)::Ob
+bundled_cross(x,y) = bundle_legs(F_cx(crossexposure, x, y), [tuple([1:8;]...), tuple([9:16;]...)])
+bundled_coex(x) = bundle_legs(F(coexist, x), [tuple([1:8;]...)])
+F_tcx(ex) = oapply(ex, Dict(
+    :crossexp12=>bundled_cross(3,4),
+    :crossexp13=>bundled_cross(3,5),
+    :crossexp23=>bundled_cross(4,5),
+    :coex1=>bundled_coex(3),
+    :coex2=>bundled_coex(4),
+    :coex3=>bundled_coex(5)));
 
-    crossexp12::Hom(Pop1⊗Pop2,Pop1⊗Pop2)
-    crossexp13::Hom(Pop1⊗Pop3,Pop1⊗Pop3)
-    crossexp23::Hom(Pop2⊗Pop3,Pop2⊗Pop3)
-    coex1::Hom(Pop1,Pop1)
-    coex2::Hom(Pop2,Pop2)
-    coex3::Hom(Pop3,Pop3)
+threeNCoexist = @relation (pop1, pop2, pop3) begin
+    crossexp12(pop1, pop2)
+    crossexp13(pop1, pop3)
+    crossexp23(pop2, pop3)
+    coex1(pop1)
+    coex2(pop2)
+    coex3(pop3)
 end;
-
-F_tcx(ex) = begin
-    pop = otimes(map(x->EpiCoexist[x], [:S, :E, :I, :I2, :A, :R, :R2, :D])...)
-    functor((OpenEpiRxnNetOb, OpenEpiRxnNet), ex, generators=Dict(
-        ThreeCoexist[:Pop1]=>F(pop,3),
-        ThreeCoexist[:Pop2]=>F(pop,4),
-        ThreeCoexist[:Pop3]=>F(pop,5),
-        ThreeCoexist[:crossexp12]=>F_cx(crossexposure,3,4),
-        ThreeCoexist[:crossexp13]=>F_cx(crossexposure,3,5),
-        ThreeCoexist[:crossexp23]=>F_cx(crossexposure,4,5),
-        ThreeCoexist[:coex1]=>F(coexist,3),
-        ThreeCoexist[:coex2]=>F(coexist,4),
-        ThreeCoexist[:coex3]=>F(coexist,5)));
-end
-
-# Use this presentation to define this
-# three-generational COEXIST model
-
-threeNCoexist = @program ThreeCoexist (pop1::Pop1, pop2::Pop2, pop3::Pop3) begin
-    pop1′, pop2′ = crossexp12(pop1, pop2)
-    pop1′′, pop3′ = crossexp13(pop1′, pop3)
-    pop2′′, pop3′′ = crossexp23(pop2′, pop3′)
-    return coex1(pop1′′), coex2(pop2′′), coex3(pop3′′)
-end;
-threeNCoexist = to_hom_expr(FreeBiproductCategory, threeNCoexist);
-display_wd(threeNCoexist)
-
-# Once this final model has been defined, we can use
-# the functors to get the underlying Petri net
+display_uwd(threeNCoexist)
 
 threeNCoexist_algpetri = apex(F_tcx(threeNCoexist))
 threeNCoexist_petri = Petri.Model(threeNCoexist_algpetri)
