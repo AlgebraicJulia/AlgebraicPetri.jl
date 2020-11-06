@@ -14,7 +14,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 AutoHashEquals = "^0.2.0"
-Catlab = "^0.9.1"
+Catlab = "^0.9.3"
 LabelledArrays = "^1"
 Petri = "^1.2.3"
 StatsBase = "^0.33"
