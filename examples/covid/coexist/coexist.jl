@@ -156,7 +156,7 @@ threeNCoexist = @relation (pop1, pop2, pop3) begin
     coex3(pop3)
 end;
 display_uwd(threeNCoexist)
-
+#-
 threeNCoexist_algpetri = apex(F_tcx(threeNCoexist))
 Graph(threeNCoexist_algpetri)
 
