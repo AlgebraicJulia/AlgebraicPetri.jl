@@ -10,29 +10,24 @@ using OrdinaryDiffEq
 using Plots
 
 using Catlab
-using Catlab.Theories
-using Catlab.CategoricalAlgebra
-using Catlab.WiringDiagrams
 using Catlab.Graphics
-using Catlab.Programs
+using Catlab.WiringDiagrams
+using Catlab.CategoricalAlgebra
+using Catlab.Programs.RelationalPrograms
 
-display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
+display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=>".75"));
 
 # #### SIR Model:
 
 # define model
-
-sir = transmission ⋅ recovery
-
-# get resulting petri net as a C-Set
-
-cset_sir = apex(F_epi(sir));
-display_wd(sir)
+sir = @relation (s,i,r) begin
+    infection(s,i)
+    recovery(i,r)
+end
+display_uwd(sir)
 #-
-
-# Use Petri.jl to visualize the C-Set
-
-Graph(cset_sir)
+p_sir = apex(oapply_epi(sir))
+Graph(p_sir)
 
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
@@ -42,7 +37,7 @@ p = LVector(inf=0.4, rec=0.4);
 
 # The C-Set representation has direct support for generating a DiffEq vector field
 
-prob = ODEProblem(vectorfield(cset_sir),u0,(0.0,7.5),p);
+prob = ODEProblem(vectorfield(p_sir),u0,(0.0,7.5),p);
 sol = solve(prob,Tsit5())
 
 plot(sol)
@@ -50,20 +45,14 @@ plot(sol)
 # #### SEIR Model:
 
 # define model
-
-seir = @program InfectiousDiseases (s::S,i::I) begin
-    i2 = illness(exposure(s,i))
-    return recovery([i,i2])
+seir = @relation (s,e,i,r) begin
+    exposure(s,i,e)
+    illness(e,i)
+    recovery(i,r)
 end
-seir = to_hom_expr(FreeBiproductCategory, seir)
-
-# here we convert the C-Set decoration to a Petri.jl model
-# to use its StochasticDifferentialEquations support
-
-p_seir = apex(F_epi(seir));
-
-display_wd(seir)
+display_uwd(seir)
 #-
+p_seir = apex(oapply_epi(seir))
 Graph(p_seir)
 
 # define initial states and transition rates, then
@@ -80,19 +69,15 @@ plot(sol)
 # #### SEIRD Model:
 
 # define model
-
-seird = @program InfectiousDiseases (s::S,i::I) begin
-    i_all = [i, illness(exposure(s,i))]
-    return recovery(i_all), death(i_all)
+seird = @relation (s,e,i,r,d) begin
+    exposure(s,i,e)
+    illness(e,i)
+    recovery(i,r)
+    death(i,d)
 end
-seird = to_hom_expr(FreeBiproductCategory, seird)
-
-# get resulting petri net and visualize model
-
-p_seird = apex(F_epi(seird));
-
-display_wd(seird)
+display_uwd(seird)
 #-
+p_seird = apex(oapply_epi(seird))
 Graph(p_seird)
 
 # define initial states and transition rates, then

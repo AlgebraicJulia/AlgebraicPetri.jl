@@ -7,6 +7,7 @@ using AlgebraicPetri.Epidemiology
 using Catlab.Theories
 using Catlab.CategoricalAlgebra
 using Catlab.CategoricalAlgebra.FinSets
+using Catlab.Programs
 
 @testset "Core" begin
     include("core.jl")

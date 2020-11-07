@@ -8,49 +8,36 @@ using OrdinaryDiffEq
 using Plots
 
 using Catlab
-using Catlab.Theories
-using Catlab.Programs
-using Catlab.CategoricalAlgebra.FreeDiagrams
-using Catlab.WiringDiagrams
 using Catlab.Graphics
+using Catlab.WiringDiagrams
+using Catlab.CategoricalAlgebra
+using Catlab.Programs.RelationalPrograms
 
-display_wd(ex) = to_graphviz(ex, orientation=LeftToRight, labels=true);
+display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=>".75"));
 
 # #### Step 1: Define the building block Petri nets needed to construct the model
 
-petriOb = codom(Open([1], PetriNet(1), [1]))
-birth_petri = Open([1], PetriNet(1, (1, (1,1))), [1]);
+birth_petri = Open(PetriNet(1, 1=>(1,1)));
 Graph(birth_petri)
 #-
-predation_petri = Open([1,2], PetriNet(2, ((1,2), (2,2))), [2]);
+predation_petri = Open(PetriNet(2, (1,2)=>(2,2)));
 Graph(predation_petri)
 #-
-death_petri = Open([1], PetriNet(1, (1, ())), [1]);
+death_petri = Open(PetriNet(1, 1=>()));
 Graph(death_petri)
 
-# #### Step 2: Define a presentation of the free biproduct category
-# that encodes the domain specific information
 
-@present Predation(FreeBiproductCategory) begin
-    prey::Ob
-    predator::Ob
-    birth::Hom(prey,prey)
-    predation::Hom(prey⊗predator,predator)
-    death::Hom(predator,predator)
-end;
+# #### Step 2: Generate models using a relational syntax
 
-rabbits,wolves,birth,predation,death = generators(Predation);
-
-F(ex) = functor((OpenPetriNetOb, OpenPetriNet), ex, generators=Dict(
-                 rabbits=>petriOb,wolves=>petriOb,
-                 birth=>birth_petri, predation=>predation_petri, death=>death_petri));
-
-# #### Step 3: Generate models using the hom expression or program notations
-
-lotka_volterra = (birth ⊗ id(wolves)) ⋅ predation ⋅ death
-lotka_petri = apex(F(lotka_volterra))
-display_wd(lotka_volterra)
+lotka_volterra = @relation (wolves, rabbits) begin
+  birth(rabbits)
+  predation(rabbits, wolves)
+  death(wolves)
+end
+display_uwd(lotka_volterra)
 #-
+lv_dict = Dict(:birth=>birth_petri, :predation=>predation_petri, :death=>death_petri);
+lotka_petri = apex(oapply(lotka_volterra, lv_dict))
 Graph(lotka_petri)
 
 # Generate appropriate vector fields, define parameters, and visualize solution
@@ -61,46 +48,19 @@ prob = ODEProblem(vectorfield(lotka_petri),u0,(0.0,100.0),p);
 sol = solve(prob,Tsit5(),abstol=1e-8);
 plot(sol)
 
-# There is also a second syntax that is easier to write for programmers
-# than the hom expression syntax. Here is an example of the same model
-# as before along with a test of equivalency
+# #### Step 3: Extend your model to handle more complex phenomena
+# such as a small food chain between little fish, big fish, and sharks
 
-lotka_volterra2 = @program Predation (r::prey, w::predator) begin
-  r_2 = birth(r)
-  w_2 = predation(r_2, w)
-  return death(w_2)
+dual_lv = @relation (fish, Fish, Shark) begin
+  birth(fish)
+  predation(fish, Fish)
+  predation(Fish, Shark)
+  death(Fish)
+  death(Shark)
 end
-lotka_petri2 = apex(F(to_hom_expr(FreeBiproductCategory, lotka_volterra2)))
-lotka_petri == lotka_petri2
-
-# #### Step 4: Extend your presentation to handle more complex phenomena
-# such as a small food chain
-
-@present DualPredation <: Predation begin
-    Predator::Ob
-    Predation::Hom(predator⊗Predator,Predator)
-    Death::Hom(Predator,Predator)
-end;
-
-fish,Fish,Shark,birth,predation,death,Predation,Death = generators(DualPredation);
-
-F(ex) = functor((OpenPetriNetOb, OpenPetriNet), ex, generators=Dict(
-                 fish=>petriOb,Fish=>petriOb,
-                 birth=>birth_petri, predation=>predation_petri, death=>death_petri,
-                 Shark=>petriOb,Predation=>predation_petri, Death=>death_petri));
-
-# Define a new model where fish are eaten by Fish which are then eaten by Sharks
-
-dual_lv = @program DualPredation (fish::prey, Fish::predator, Shark::Predator) begin
-  f_2 = birth(fish)
-  F_2 = predation(f_2, Fish)
-  F_3 = death(F_2)
-  S_2 = Predation(F_3, Shark)
-  S_3 = Death(S_2)
-end
-display_wd(dual_lv)
+display_uwd(dual_lv)
 #-
-dual_lv_petri = apex(F(to_hom_expr(FreeBiproductCategory, dual_lv)))
+dual_lv_petri = apex(oapply(dual_lv, lv_dict))
 Graph(dual_lv_petri)
 
 # Generate a new solver, provide parameters, and analyze results
