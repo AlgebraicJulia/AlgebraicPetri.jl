@@ -54,8 +54,8 @@ plot(sol)
 dual_lv = @relation (fish, Fish, Shark) begin
   birth(fish)
   predation(fish, Fish)
-  predation(Fish, Shark)
   death(Fish)
+  predation(Fish, Shark)
   death(Shark)
 end
 display_uwd(dual_lv)
