@@ -125,23 +125,16 @@ valueat(f::Function, u, t) = try f(u,t) catch e f(t) end
 
 vectorfield(pn::AbstractPetriNet) = begin
   tm = TransitionMatrices(pn)
-  dt_T = tm.output - tm.input
+  dt = tm.output - tm.input
   log_rates = zeros(nt(pn))
   f(du,u,p,t) = begin
     u_m = [u[sname(pn, i)] for i in 1:ns(pn)]
     p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
-    # FIX ME: log transform approach to calculating vector fields
-    # log_rates = log.(map(i->valueat(i,u,t), p_m)) .+ tm.input * log.(u_m)
-    # new_du = dt_T * exp.(log_rates)
-    # for s in 1:ns(pn)
-    #   du[sname(pn, s)] = new_du[s]
-    # end
-
     for i in 1:nt(pn)
       log_rates[i] = valueat(p_m[i],u,t) * prod(u_m[j] ^ tm.input[i,j] for j in 1:ns(pn))
     end
     for j in 1:ns(pn)
-      du[sname(pn, j)] = sum(log_rates[i] * dt_T[i,j] for i in 1:nt(pn))
+      du[sname(pn, j)] = sum(log_rates[i] * dt[i,j] for i in 1:nt(pn))
     end
     return du
   end
