@@ -172,7 +172,7 @@ KSE = @relation (K, S, E) begin
 end
 KSE_petri = apex(functor(KSE))
 ode_prob = ode(KSE_petri, (0.0, 120.0))
-sol = solve(ode_prob)
+sol = solve(ode_prob, Tsit5())
 plot(sol)
 
 #-
@@ -197,7 +197,7 @@ KSLE = @relation (K, S, L, E) begin
 end
 KSLE_petri = apex(functor(KSLE))
 ode_prob = ode(KSLE_petri, (0.0,120.0))
-sol = solve(ode_prob)
+sol = solve(ode_prob, Tsit5())
 plot(sol, lw = 1, size = (1066, 600))
 
 #-
@@ -225,7 +225,7 @@ KSLEG = @relation (K, S, L, E, G) begin
 end
 KSLEG_petri = apex(functor(KSLEG))
 ode_prob = ode(KSLEG_petri, (0.0,120.0))
-sol = solve(ode_prob)
+sol = solve(ode_prob, Tsit5())
 plot(sol, lw = 1, size = (1066, 600))
 
 #-
