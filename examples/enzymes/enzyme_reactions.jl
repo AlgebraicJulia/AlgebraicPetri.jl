@@ -11,7 +11,7 @@ using Catlab.CategoricalAlgebra
 using DifferentialEquations
 using Plots
 
-display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=>".75"));
+display_uwd(ex, prog="neato") = to_graphviz(ex, box_labels=:name, junction_labels=:variable, graph_attrs=Dict(:overlap => "false"), prog=prog)
 ode(x, t) = ODEProblem(vectorfield(x), concentrations(x), t, rates(x));
 
 # ## Define objects and initial conditions
@@ -39,13 +39,11 @@ bind(in1, in2, on::Number, off::Number) = begin
                                                            ((Symbol(:unbind_,out),off),out=>(first(in1),first(in2)))))
 end;
 
-unbind(in::Symbol, out1, out2, on::Number) =
-  Open(LabelledReactionNet{Number,Int}(unique((in=>0, out1,out2)), ((Symbol(:unbind_,in),on),in=>(first(out1),first(out2)))));
-
 deg(prod1,prod2,on::Number) = begin
+  in = Symbol(first(prod1),first(prod2))
   prod2str = String(first(prod2))
-  out = Symbol(endswith(prod2str, "inact") ? first(prod2str) : prod2str, :deg)
-  unbind(Symbol(first(prod1),first(prod2)), prod1, out=>0, on)
+  degprod2 = Symbol(endswith(prod2str, "inact") ? first(prod2str) : prod2str, :deg)
+  Open(LabelledReactionNet{Number,Int}(unique((in=>0, prod1,degprod2=>0)), ((Symbol(:deg_,in),on),in=>(first(prod1),degprod2))));
 end;
 
 # ## Cathepsin *X* reacting with itself
@@ -131,12 +129,18 @@ rxns = Dict(
           deg(L, S, 5e-1)
           bind(L, Sinact, 1.056e-12, 5e2)
           deg(L, Sinact, 5e-1)]
-)
+);
 
 # ## Helper functions to generate oapply calls
 
 cat(cat) = begin
-  out = oapply(catX, Dict([:inactX, :bindXX, :degXX, :bindXXinact, :degXXinact] .=> rxns[first(cat)]))
+  catsym = first(cat)
+  out = oapply(catX, Dict([:inactX, :bindXX, :degXX, :bindXXinact, :degXXinact] .=> rxns[catsym]), Dict(
+    :X=>ob(cat),
+    :Xinact=>ob(Symbol(catsym,:inact)=>0),
+    :Xdeg=>ob(Symbol(catsym,:deg)=>0),
+    :XX=>ob(Symbol(catsym,catsym)=>0),
+    :XXinact=>ob(Symbol(catsym,catsym,:inact)=>0)))
   bundle_legs(out, [[1,2,3]])
 end
 
@@ -200,6 +204,10 @@ KSE = @relation (K, S, E) begin
   catKsubE(K, E)
   catSsubE(S, E)
 end
+display_uwd(KSE)
+
+#- 
+
 KSE_petri = apex(functor(KSE))
 ode_prob = ode(KSE_petri, (0.0, 120.0))
 sol = solve(ode_prob)
@@ -226,6 +234,10 @@ KSLE = @relation (K, S, L, E) begin
   catSsubE(S, E)
   catLsubE(L, E)
 end
+display_uwd(KSLE)
+
+#-
+
 KSLE_petri = apex(functor(KSLE))
 ode_prob = ode(KSLE_petri, (0.0,120.0))
 sol = solve(ode_prob)
@@ -254,6 +266,10 @@ KSLEG = @relation (K, S, L, E, G) begin
   catSsubG(S, G)
   catLsubG(L, G)
 end
+display_uwd(KSLEG)
+
+#-
+
 KSLEG_petri = apex(functor(KSLEG))
 ode_prob = ode(KSLEG_petri, (0.0,120.0))
 sol = solve(ode_prob)
