@@ -1,44 +1,27 @@
 module Epidemiology
 
 using AlgebraicPetri
-using Petri
 using Catlab
 using Catlab.Theories
+using Catlab.WiringDiagrams
+using Catlab.CategoricalAlgebra.FinSets
 
-export InfectiousDiseases, FunctorGenerators, F_epi, S, E, I, R, D, transmission, exposure, illness, recovery, death
+export oapply_epi, infection, exposure, illness, recovery, death
 
-ob = PetriCospanOb(1)
-spontaneous_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1), Dict(2=>1))]), [2])
-transmission_petri = PetriCospan([1], Petri.Model(1:2, [(Dict(1=>1, 2=>1), Dict(2=>2))]), [2])
-exposure_petri = PetriCospan([1, 2], Petri.Model(1:3, [(Dict(1=>1, 2=>1), Dict(3=>1, 2=>1))]), [3, 2])
+spontaneous_petri(x::Symbol, y::Symbol, z::Symbol) = Open(LabelledPetriNet(unique([x,y]), z=>(x, y)))
+exposure_petri(x::Symbol, y::Symbol, z::Symbol, transition::Symbol) =
+    Open(LabelledPetriNet(unique([x,y,z]), transition=>((x,y)=>(z,y))))
 
-""" InfectiousDiseases
+infection = exposure_petri(:S, :I, :I, :inf)
+exposure = exposure_petri(:S, :I, :E, :exp)
+illness = spontaneous_petri(:E,:I,:ill)
+recovery = spontaneous_petri(:I,:R,:rec)
+death = spontaneous_petri(:I,:D,:death)
+
+epi_dict = Dict(:infection=>infection, :exposure=>exposure, :illness=>illness, :recovery=>recovery, :death=>death)
+
+""" oapply_epi
 """
-@present InfectiousDiseases(FreeBiproductCategory) begin
-    S::Ob
-    E::Ob
-    I::Ob
-    R::Ob
-    D::Ob
-    transmission::Hom(S⊗I, I)
-    exposure::Hom(S⊗I, E⊗I)
-    illness::Hom(E,I)
-    recovery::Hom(I,R)
-    death::Hom(I,D)
-end
-
-""" generators
-"""
-S,E,I,R,D,transmission,exposure,illness,recovery,death = generators(InfectiousDiseases);
-
-""" FunctorGenerators
-"""
-const FunctorGenerators = Dict(S=>ob, E=>ob, I=>ob, R=>ob, D=>ob,
-        transmission=>transmission_petri, exposure=>exposure_petri,
-        illness=>spontaneous_petri, recovery=>spontaneous_petri, death=>spontaneous_petri)
-
-""" F_epi
-"""
-F_epi(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=FunctorGenerators)
+oapply_epi(ex, args...) = oapply(ex, epi_dict, args...)
 
 end

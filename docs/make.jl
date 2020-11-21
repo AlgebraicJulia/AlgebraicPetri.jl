@@ -41,7 +41,8 @@ makedocs(
     "Examples" => Any[
       "examples/predation/lotka-volterra.md",
       "examples/covid/epidemiology.md",
-      "examples/covid/covid.md",
+      "examples/covid/coexist/coexist.md",
+      "examples/enzymes/enzyme_reactions.md",
     ],
     "Library Reference" => "api.md",
   ]

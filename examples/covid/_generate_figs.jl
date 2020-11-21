@@ -78,13 +78,13 @@ splot(sol, "seird_soln.svg")
 
 include("covid.jl")
 
-[save_graph(Graph(decoration(p)), pname) for (p,pname) in [(spontaneous_petri, "spont.svg"),
+[save_graph(Graph(Petri.Model(decoration(p))), pname) for (p,pname) in [(spontaneous_petri, "spont.svg"),
                                                (transmission_petri, "transmission.svg"),
                                                (exposure_petri, "exposure.svg"),
                                                (travel_petri, "travel.svg")]]
 
 save_wd(seird_city, "seird_city.svg")
-save_graph(Graph(decoration(F(seird_city))), "seird_graph.svg")
+save_graph(Graph(Petri.Model(decoration(F(seird_city)))), "seird_graph.svg")
 
 save_wd(seird_3, "seird_3.svg")
 save_graph(Graph(p_seird_3), "seird_3_graph.svg")

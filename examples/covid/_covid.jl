@@ -5,14 +5,13 @@
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 
-using Petri
 using OrdinaryDiffEq
 using Plots
 
 using Catlab
 using Catlab.Theories
 using Catlab.Programs
-using Catlab.CategoricalAlgebra.ShapeDiagrams
+using Catlab.CategoricalAlgebra.FreeDiagrams
 using Catlab.WiringDiagrams
 using Catlab.Graphics
 
@@ -25,7 +24,7 @@ id(args...) = foldl((x,y)->id(x) ⊗ id(y), args);
 
 travel_petri = PetriCospan(
         [1,2,3],
-        Petri.Model(1:6, [(Dict(1=>1), Dict(4=>1)), (Dict(2=>1), Dict(5=>1)), (Dict(3=>1), Dict(6=>1))]),
+        PetriNet(6, (1,4), (2,5), (3,6)),
         [4,5,6]);
 
 # #### Step 2: Extend the Infectious Disease presentation,
@@ -52,11 +51,11 @@ F(ex) = functor((PetriCospanOb, PetriCospan), ex, generators=new_functor);
 # This is a very complicated interaction, so we can use the program interface for easier model definition
 
 seird_city = @program EpiWithTravel (s::S, e::E, i::I) begin
-    e2, i2 = exposure(s, i)
-    i3 = illness(e2)
-    d = death(i3)
-    r = recovery(i3)
-    return travel(s, [e, e2], [i2, i3])
+    e2 = exposure(s, i)
+    i2 = illness(e2)
+    d = death(i2)
+    r = recovery(i2)
+    return travel(s, [e, e2], i2)
 end
 seird_city = to_hom_expr(FreeBiproductCategory, seird_city)
 
@@ -94,7 +93,7 @@ params = seirdparams(3, 5);
 
 # Generate, solve, and visualize resulting ODE
 
-prob = ODEProblem(p_seird_3,u0,tspan,params);
+prob = ODEProblem(vectorfield(p_seird_3),u0,tspan,params);
 sol = solve(prob,Tsit5());
 
 plot(sol)
@@ -125,7 +124,7 @@ a,b,p = 10, 1, 1/6
 
 dynparams = waveparams(asymptotic, a/sum(u0), b/sum(u0),p)
 
-prob = ODEProblem(p_seird_3,u0,tspan, dynparams)
+prob = ODEProblem(vectorfield(p_seird_3),u0,tspan, dynparams)
 sol = solve(prob,Tsit5(), saveat=1:1:tspan[2])
 
 plot(sol)
