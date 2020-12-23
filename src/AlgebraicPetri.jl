@@ -53,7 +53,7 @@ Open(n, p::AbstractPetriNet, m) = Open(p, n, m)
 
 # PetriNet([:S, :I, :R], :infection=>((1, 2), 3))
 
-PetriNet(n,ts...) = begin
+PetriNet(n::Int, ts::Vararg{Union{Pair,Tuple}}) = begin
   p = PetriNet()
   add_species!(p, n)
   add_transitions!(p, length(ts))
@@ -161,7 +161,7 @@ Open(p::AbstractLabelledPetriNet, legs...) = begin
 end
 Open(n, p::AbstractLabelledPetriNet, m) = Open(p, n, m)
 
-LabelledPetriNet(n,ts...) = begin
+LabelledPetriNet(n, ts::Vararg{Union{Pair,Tuple}}) = begin
   p = LabelledPetriNet()
   n = vectorify(n)
   state_idx = state_dict(n)
@@ -195,7 +195,7 @@ Open(p::AbstractReactionNet{R,C}) where {R,C} = OpenReactionNet{R,C}(p, map(x->F
 Open(p::AbstractReactionNet{R,C}, legs...) where {R,C} = OpenReactionNet{R,C}(p, map(l->FinFunction(l, ns(p)), legs)...)
 Open(n, p::AbstractReactionNet, m) = Open(p, n, m)
 
-ReactionNet{R,C}(n,ts...) where {R,C} = begin
+ReactionNet{R,C}(n, ts::Vararg{Union{Pair,Tuple}}) where {R,C} = begin
   p = ReactionNet{R,C}()
   add_species!(p, length(n), concentration=n)
   for (i, (rate,(ins,outs))) in enumerate(ts)
@@ -236,7 +236,7 @@ end
 Open(n, p::AbstractLabelledReactionNet, m) = Open(p, n, m)
 
 # Ex. LabelledReactionNet{Number, Int}((:S=>990, :I=>10, :R=>0), (:inf, .3/1000)=>((:S, :I)=>(:I,:I)), (:rec, .2)=>(:I=>:R))
-LabelledReactionNet{R,C}(n,ts...) where {R,C} = begin
+LabelledReactionNet{R,C}(n, ts::Vararg{Union{Pair,Tuple}}) where {R,C} = begin
   p = LabelledReactionNet{R,C}()
   n = vectorify(n)
   states = map(first, collect(n))
