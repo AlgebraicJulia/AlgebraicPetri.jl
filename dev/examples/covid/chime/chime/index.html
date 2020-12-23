@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>- · AlgebraicPetri.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../../assets/documenter.js"></script><script src="../../../../siteinfo.js"></script><script src="../../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../../assets/themeswap.js"></script><script src="../../../../assets/analytics.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">AlgebraicPetri.jl</span></div><form class="docs-search" action="../../../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../../../">AlgebraicPetri.jl</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../../predation/lotka-volterra/">Lotka-Volterra Model</a></li><li><a class="tocitem" href="../../epidemiology/">Basic Epidemiology Models</a></li><li><a class="tocitem" href="../../coexist/coexist/">COEXIST Multi-Generational COVID Model</a></li><li><a class="tocitem" href="../../../enzymes/enzyme_reactions/">Cathepsin Enzyme Reactions</a></li></ul></li><li><a class="tocitem" href="../../../../api/">Library Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>-</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>-</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/examples/covid/chime/chime.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><pre><code class="language-julia">using AlgebraicPetri
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>- · AlgebraicPetri.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../../assets/documenter.js"></script><script src="../../../../siteinfo.js"></script><script src="../../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../../assets/themeswap.js"></script><script src="../../../../assets/analytics.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">AlgebraicPetri.jl</span></div><form class="docs-search" action="../../../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../../../">AlgebraicPetri.jl</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../../predation/lotka-volterra/">Lotka-Volterra Model</a></li><li><a class="tocitem" href="../../epidemiology/">Basic Epidemiology Models</a></li><li><a class="tocitem" href="../../coexist/coexist/">COEXIST Multi-Generational COVID Model</a></li><li><a class="tocitem" href="../../../enzymes/enzyme_reactions/">Cathepsin Enzyme Reactions</a></li></ul></li><li><a class="tocitem" href="../../../../api/">Library Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>-</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>-</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/examples/covid/chime/chime.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><pre><code class="language-julia">using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 
 using OrdinaryDiffEq
@@ -20,84 +20,84 @@ end
 display_uwd(sir)</code></pre><?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.40.1 (20161225.0304)
+<!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: G Pages: 1 -->
 <svg width="276pt" height="198pt"
  viewBox="0.00 0.00 275.96 197.57" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 193.566)">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 193.57)">
 <title>G</title>
-<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-193.566 271.9631,-193.566 271.9631,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-193.57 271.96,-193.57 271.96,4 -4,4"/>
 <!-- n1 -->
 <g id="box1" class="node">
 <title>n1</title>
-<ellipse fill="none" stroke="#000000" cx="67.4138" cy="-88.05" rx="42.2678" ry="18"/>
-<text text-anchor="middle" x="67.4138" y="-84.35" font-family="Serif" font-size="14.00" fill="#000000">infection</text>
+<ellipse fill="none" stroke="black" cx="67.41" cy="-88.05" rx="41.59" ry="18"/>
+<text text-anchor="middle" x="67.41" y="-84.35" font-family="Serif" font-size="14.00">infection</text>
 </g>
 <!-- n6 -->
 <!-- junction -->
 <g id="junction1" class="node">
 <title>n6</title>
-<ellipse fill="#000000" stroke="#000000" cx="32.506" cy="-44.8038" rx="2.5" ry="2.5"/>
-<text text-anchor="middle" x="26.006" y="-51.1038" font-family="Serif" font-size="14.00" fill="#000000">s</text>
+<ellipse fill="black" stroke="black" cx="32.51" cy="-44.8" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="26.01" y="-51.1" font-family="Serif" font-size="14.00">s</text>
 </g>
 <!-- n1&#45;&#45;n6 -->
 <g id="edge1" class="edge">
 <title>n1&#45;&#45;n6</title>
-<path fill="none" stroke="#000000" d="M53.6173,-70.9579C46.2993,-61.8919 38.0832,-51.7132 34.4325,-47.1905"/>
+<path fill="none" stroke="black" d="M53.62,-70.96C46.3,-61.89 38.08,-51.71 34.43,-47.19"/>
 </g>
 <!-- n7 -->
 <!-- junction -->
 <g id="junction2" class="node">
 <title>n7</title>
-<ellipse fill="#000000" stroke="#000000" cx="100.3829" cy="-136.7026" rx="2.5" ry="2.5"/>
-<text text-anchor="middle" x="95.3829" y="-143.0026" font-family="Serif" font-size="14.00" fill="#000000">i</text>
+<ellipse fill="black" stroke="black" cx="100.38" cy="-136.7" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="95.38" y="-143" font-family="Serif" font-size="14.00">i</text>
 </g>
 <!-- n1&#45;&#45;n7 -->
 <g id="edge3" class="edge">
 <title>n1&#45;&#45;n7</title>
-<path fill="none" stroke="#000000" d="M79.3164,-105.6147C86.6942,-116.5022 95.4022,-129.3525 98.8589,-134.4536"/>
+<path fill="none" stroke="black" d="M79.13,-105.34C86.53,-116.27 95.34,-129.26 98.84,-134.43"/>
 </g>
 <!-- n2 -->
 <g id="box2" class="node">
 <title>n2</title>
-<ellipse fill="none" stroke="#000000" cx="159.1063" cy="-139.5531" rx="42.2678" ry="18"/>
-<text text-anchor="middle" x="159.1063" y="-135.8531" font-family="Serif" font-size="14.00" fill="#000000">recovery</text>
+<ellipse fill="none" stroke="black" cx="159.11" cy="-139.55" rx="41.59" ry="18"/>
+<text text-anchor="middle" x="159.11" y="-135.85" font-family="Serif" font-size="14.00">recovery</text>
 </g>
 <!-- n2&#45;&#45;n7 -->
 <g id="edge4" class="edge">
 <title>n2&#45;&#45;n7</title>
-<path fill="none" stroke="#000000" d="M116.7407,-137.4966C110.9531,-137.2157 106.0103,-136.9758 103.117,-136.8353"/>
+<path fill="none" stroke="black" d="M117.37,-137.53C111.39,-137.24 106.25,-136.99 103.24,-136.84"/>
 </g>
 <!-- n8 -->
 <!-- junction -->
 <g id="junction3" class="node">
 <title>n8</title>
-<ellipse fill="#000000" stroke="#000000" cx="214.3443" cy="-146.0092" rx="2.5" ry="2.5"/>
-<text text-anchor="middle" x="208.3443" y="-152.3092" font-family="Serif" font-size="14.00" fill="#000000">r</text>
+<ellipse fill="black" stroke="black" cx="214.34" cy="-146.01" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="208.34" y="-152.31" font-family="Serif" font-size="14.00">r</text>
 </g>
 <!-- n2&#45;&#45;n8 -->
 <g id="edge6" class="edge">
 <title>n2&#45;&#45;n8</title>
-<path fill="none" stroke="#000000" d="M200.1191,-144.3466C204.9495,-144.9112 209.0588,-145.3914 211.6003,-145.6885"/>
+<path fill="none" stroke="black" d="M199.54,-144.28C204.54,-144.86 208.82,-145.36 211.48,-145.67"/>
 </g>
 <!-- n3 -->
 <!-- n3&#45;&#45;n6 -->
 <g id="edge2" class="edge">
 <title>n3&#45;&#45;n6</title>
-<path fill="none" stroke="#000000" d="M1.0555,-1.269C4.7079,-6.3247 25.3097,-34.8425 31.0317,-42.7631"/>
+<path fill="none" stroke="black" d="M1.06,-1.27C4.71,-6.32 25.31,-34.84 31.03,-42.76"/>
 </g>
 <!-- n4 -->
 <!-- n4&#45;&#45;n7 -->
 <g id="edge5" class="edge">
 <title>n4&#45;&#45;n7</title>
-<path fill="none" stroke="#000000" d="M71.0993,-188.4779C73.9209,-183.4892 93.8705,-148.217 99.1199,-138.9358"/>
+<path fill="none" stroke="black" d="M71.1,-188.48C73.92,-183.49 93.87,-148.22 99.12,-138.94"/>
 </g>
 <!-- n5 -->
 <!-- n5&#45;&#45;n8 -->
 <g id="edge7" class="edge">
 <title>n5&#45;&#45;n8</title>
-<path fill="none" stroke="#000000" d="M266.8665,-158.8031C261.8514,-157.5814 226.667,-149.0109 216.8706,-146.6246"/>
+<path fill="none" stroke="black" d="M266.87,-158.8C261.85,-157.58 226.67,-149.01 216.87,-146.62"/>
 </g>
 </g>
 </svg>
@@ -125,4 +125,4 @@ connect: Connection refused
 GKS: can&#39;t connect to GKS socket application
 
 GKS: Open failed in routine OPEN_WS
-GKS: GKS not in proper state. GKS must be either in the state WSOP or WSAC in routine ACTIVATE_WS</pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Monday 23 November 2020 16:55">Monday 23 November 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+GKS: GKS not in proper state. GKS must be either in the state WSOP or WSAC in routine ACTIVATE_WS</pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 23 December 2020 21:13">Wednesday 23 December 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
