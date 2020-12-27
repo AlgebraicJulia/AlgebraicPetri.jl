@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>- · AlgebraicPetri.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../../assets/documenter.js"></script><script src="../../../../siteinfo.js"></script><script src="../../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../../assets/themeswap.js"></script><script src="../../../../assets/analytics.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">AlgebraicPetri.jl</span></div><form class="docs-search" action="../../../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../../../">AlgebraicPetri.jl</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../../predation/lotka-volterra/">Lotka-Volterra Model</a></li><li><a class="tocitem" href="../../epidemiology/">Basic Epidemiology Models</a></li><li><a class="tocitem" href="../../coexist/coexist/">COEXIST Multi-Generational COVID Model</a></li><li><a class="tocitem" href="../../../enzymes/enzyme_reactions/">Cathepsin Enzyme Reactions</a></li></ul></li><li><a class="tocitem" href="../../../../api/">Library Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>-</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>-</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/examples/covid/chime/chime-cset.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><pre><code class="language-julia">using AlgebraicPetri
+using OrdinaryDiffEq
+using Plots
+using Catlab.Meta
+using JSON
+
+import OrdinaryDiffEq: ODEProblem
+ODEProblem(p::LabelledReactionNet, t) = ODEProblem(vectorfield(p), concentrations(p), t, rates(p))</code></pre><pre class="documenter-example-output">DiffEqBase.ODEProblem</pre><p>help capture JSON of defined functions</p><pre><code class="language-julia">macro capture(funcname, exname, ex)
+    quote
+        $(esc(exname)) = $(repr(strip_lines(ex, recurse=true)))
+        $(esc(funcname)) = $ex
+    end
+end
+
+@capture γ γ_text 1/14
+@capture β β_text t-&gt;begin
+    policy_days = [20,60,120] .+ 17
+    contact_rate = 0.05
+    pol = findfirst(x-&gt;t&lt;=x, policy_days) # array of days when policy changes
+    growth_rate = pol == 1 ? 0.0 : (2^(1/((pol-1)*5)) - 1) # growth rate depending on policy
+    return (growth_rate + γ) / 990 * (1-contact_rate) # calculate rate of infection
+end
+
+sir_cset= LabelledReactionNet{Function, Float64}((:S=&gt;990, :I=&gt;10, :R=&gt;0), (:inf, β)=&gt;((:S, :I)=&gt;(:I,:I)), (:rec, t-&gt;γ)=&gt;(:I=&gt;:R))
+
+Graph(sir_cset)
+
+prob = ODEProblem(sir_cset, (17.0, 120.0))
+sol = OrdinaryDiffEq.solve(prob,Tsit5())
+plot(sol)
+
+# Getting Sharable JSON
+sir_cset_string = LabelledReactionNet{String, Int}((:S=&gt;990, :I=&gt;10, :R=&gt;0), (:inf, β_text)=&gt;((:S, :I)=&gt;(:I,:I)), (:rec, γ_text)=&gt;(:I=&gt;:R))
+JSON.print(sir_cset_string.tables, 2)</code></pre><pre class="documenter-example-output">{
+  &quot;T&quot;: [
+    {
+      &quot;rate&quot;: &quot;:(t-&gt;begin\n          policy_days = [20, 60, 120] .+ 17\n          contact_rate = 0.05\n          pol = findfirst((x-&gt;begin\n                          t &lt;= x\n                      end), policy_days)\n          growth_rate = if pol == 1\n                  0.0\n              else\n                  2 ^ (1 / ((pol - 1) * 5)) - 1\n              end\n          return ((growth_rate + γ) / 990) * (1 - contact_rate)\n      end)&quot;,
+      &quot;tname&quot;: &quot;inf&quot;
+    },
+    {
+      &quot;rate&quot;: &quot;:(1 / 14)&quot;,
+      &quot;tname&quot;: &quot;rec&quot;
+    }
+  ],
+  &quot;S&quot;: [
+    {
+      &quot;concentration&quot;: 990,
+      &quot;sname&quot;: &quot;S&quot;
+    },
+    {
+      &quot;concentration&quot;: 10,
+      &quot;sname&quot;: &quot;I&quot;
+    },
+    {
+      &quot;concentration&quot;: 0,
+      &quot;sname&quot;: &quot;R&quot;
+    }
+  ],
+  &quot;I&quot;: [
+    {
+      &quot;it&quot;: 1,
+      &quot;is&quot;: 1
+    },
+    {
+      &quot;it&quot;: 1,
+      &quot;is&quot;: 2
+    },
+    {
+      &quot;it&quot;: 2,
+      &quot;is&quot;: 2
+    }
+  ],
+  &quot;O&quot;: [
+    {
+      &quot;ot&quot;: 1,
+      &quot;os&quot;: 2
+    },
+    {
+      &quot;ot&quot;: 1,
+      &quot;os&quot;: 2
+    },
+    {
+      &quot;ot&quot;: 2,
+      &quot;os&quot;: 3
+    }
+  ]
+}</pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Sunday 27 December 2020 22:56">Sunday 27 December 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
