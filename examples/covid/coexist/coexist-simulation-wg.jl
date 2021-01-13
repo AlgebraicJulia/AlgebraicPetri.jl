@@ -30,7 +30,7 @@ end
 using Catlab.Graphs.BasicGraphs
 function cross_uwd(g::Catlab.Graphs.BasicGraphs.Graph)
     rel = RelationDiagram{Symbol}(0)
-    
+
     # Add populations
     juncs = add_junctions!(rel, nv(g), variable=[Symbol("pop$i") for i in 1:nv(g)])
     srcs = subpart(g, :src)
@@ -39,44 +39,44 @@ function cross_uwd(g::Catlab.Graphs.BasicGraphs.Graph)
     add_parts!(rel, :Box, ne(g), name=[Symbol("cross_$(srcs[i])_$(tgts[i])") for i in 1:ne(g)])
     add_parts!(rel, :Port, ne(g), junction=srcs, box=1:ne(g))
     add_parts!(rel, :Port, ne(g), junction=tgts, box=1:ne(g))
-    
+
     # Add epidemiology model boxes
     boxes = add_parts!(rel, :Box, nv(g), name=[Symbol("ep$i") for i in 1:nv(g)])
     add_parts!(rel, :Port, nv(g), junction=juncs, box=boxes)
-    rel 
+    rel
 end
 
 function stratify(epi_petri::Function, connection_graph::Catlab.Graphs.BasicGraphs.Graph, diffusion_petri::Function)
     conn_uwd = cross_uwd(connection_graph)
-    
+
     # Calls diffusion_petri for each edge as (src, tgt)
-    ep_map = Dict([Symbol("ep$i")=>epi_petri(i) for i in 1:nv(connection_graph)])
+    ep_map = Dict{Symbol, OpenLabelledPetriNet}([Symbol("ep$i")=>epi_petri(i) for i in 1:nv(connection_graph)])
     srcs = subpart(connection_graph, :src)
     tgts = subpart(connection_graph, :tgt)
     for i in 1:ne(connection_graph)
         ep_map[Symbol("cross_$(srcs[i])_$(tgts[i])")] = diffusion_petri(srcs[i], tgts[i])
     end
-    
+
     oapply(conn_uwd, ep_map)
 end
 
 dem_connection(epi_model::Function, sus_state::Symbol, exp_state::Symbol, inf_states::Array{Symbol}, x::Int, y::Int) = begin
     append_ind(x::Symbol, ind::Int) = Symbol("$(x)_$ind")
-    
+
     ep1 = apex(epi_model(x))
     ep2 = apex(epi_model(y))
-    
+
     sus1 = append_ind(sus_state, x)
     sus2 = append_ind(sus_state, y)
     exp1 = append_ind(exp_state, x)
     exp2 = append_ind(exp_state, y)
     inf1 = [append_ind(inf, x) for inf in inf_states]
     inf2 = [append_ind(inf, y) for inf in inf_states]
-    
+
     LabelledPetriNet(vcat(subpart(ep1, :sname), subpart(ep2, :sname)),
                      vcat([Symbol("crx_$(sus1)_$(inf)")=>((sus1, inf)=>(inf, exp1)) for inf in inf2],
                           [Symbol("crx_$(sus2)_$(inf)")=>((sus2, inf)=>(inf, exp2)) for inf in inf1])...)
-    
+
 end
 
 diff_connection(epi_model::Function, x::Int, y::Int) = begin
@@ -208,8 +208,15 @@ display_uwd(crossexposure)
 """
 
 function diff_strat(epi_model::LabelledPetriNet, connection_graph::Catlab.Graphs.BasicGraphs.Graph)
-    epi_func(ind) = bundle_legs(Open(add_index(epi_model, ind)), [tuple([1:ns(epi_model);]...)])
-    conn(x, y) = bundle_legs(Open(diff_connection(epi_func, x, y)), [tuple([1:ns(epi_model);]...), tuple([(ns(epi_model)+1):(2*ns(epi_model));]...)])
+    epi_func(ind) = begin
+        ind_epi = add_index(epi_model, ind)
+        Open(ind_epi, subpart(ind_epi, :sname))
+    end
+    conn(x, y) = begin
+        conn_epi = diff_connection(epi_func, x, y)
+        Open(conn_epi, subpart(conn_epi, :sname)[1:ns(epi_model)],
+                       subpart(conn_epi, :sname)[(ns(epi_model)+1):(2*ns(epi_model))])
+    end
     stratify(epi_func, connection_graph, conn)
 end
 
@@ -224,11 +231,16 @@ end
 """
 
 function dem_strat(epi_model::LabelledPetriNet, connection_graph::Catlab.Graphs.BasicGraphs.Graph, sus_state::Symbol, exp_state::Symbol, inf_states::Array{Symbol})
-    epi_func(ind) = bundle_legs(Open(add_index(epi_model, ind)), [tuple([1:ns(epi_model);]...)])
-    conn(x, y) = bundle_legs(Open(
-                    dem_connection(epi_func, sus_state::Symbol, exp_state::Symbol,
-                                    inf_states::Array{Symbol}, x, y)),
-                    [tuple([1:ns(epi_model);]...), tuple([(ns(epi_model)+1):(2*ns(epi_model));]...)])
+    epi_func(ind) = begin
+        ind_epi = add_index(epi_model, ind)
+        Open(ind_epi, subpart(ind_epi, :sname))
+    end
+    conn(x, y) = begin
+        conn_epi = dem_connection(epi_func, sus_state::Symbol,
+                                  exp_state::Symbol, inf_states::Array{Symbol}, x, y)
+        Open(conn_epi, subpart(conn_epi, :sname)[1:ns(epi_model)],
+                       subpart(conn_epi, :sname)[(ns(epi_model)+1):(2*ns(epi_model))])
+    end
     stratify(epi_func, connection_graph, conn)
 end
 
