@@ -203,9 +203,6 @@ function dem_strat(epi_model::LabelledPetriNet, connection_graph::Catlab.Graphs.
     stratify(epi_func, connection_graph, conn)
 end
 
-cycle_3 = Catlab.Graphs.BasicGraphs.Graph(3)
-add_edges!(cycle_3, [1,2,3], [2,3,1])
-
 clique(n) = begin
   c = Catlab.Graphs.BasicGraphs.Graph(n)
   for i in 1:n
@@ -216,13 +213,35 @@ clique(n) = begin
   c
 end
 
-coex = apex(F(coexist));
+cycle(n) = begin
+  c = Catlab.Graphs.BasicGraphs.Graph(n)
+  for i in 1:n
+    add_edges!(c, [i],[(i)%n+1])
+  end
+  c
+end
 
+coex = apex(F(coexist));
 println(now(), " Finished generating coexist")
 flush(stdout)
-coex_dem = apex(dem_strat(coex, clique(9), :S, :E, [:I, :E, :I2, :A]));
-println(now(), " Finished generating dem with 9-clique")
-flush(stdout)
-coex_diff = apex(diff_strat(coex_dem, cycle_3))
-println(now(), " Finished generating diff with 3-cycle and 9-clique dem")
-flush(stdout)
+
+benchmark(demo, cities) = 
+begin
+  println(now(), " Generating dem strat with $(demo)-clique")
+  flush(stdout)
+  coex_dem = apex(dem_strat(coex, clique(demo), :S, :E, [:I, :E, :I2, :A]));
+  println(now(), " Finished generating dem with $(demo)-clique")
+  flush(stdout)
+  println(now(), " Generating city strat with $(cities)-cycle")
+  flush(stdout)
+  coex_diff = apex(diff_strat(coex_dem, cycle(1)))
+  println(now(), " Finished city strat with $(cities)-cycle")
+  flush(stdout)
+end
+
+println("\nBenchmark with 1 city with 1 population")
+benchmark(1,1)
+println("\nBenchmark with 10 cities with 10 populations")
+benchmark(10,10)
+println("\nBenchmark with 100 cities with 100 populations")
+benchmark(100,100)
