@@ -79,8 +79,7 @@ dem_connection(epi_model::Function, sus_state::Symbol, exp_state::Symbol, inf_st
     inf2 = [append_ind(inf, y) for inf in inf_states]
 
     LabelledPetriNet(vcat(subpart(ep1, :sname), subpart(ep2, :sname)),
-                     vcat([Symbol("crx_$(sus1)_$(inf)")=>((sus1, inf)=>(inf, exp1)) for inf in inf2],
-                          [Symbol("crx_$(sus2)_$(inf)")=>((sus2, inf)=>(inf, exp2)) for inf in inf1])...)
+                     [Symbol("crx_$(sus2)_$(inf)")=>((sus2, inf)=>(inf, exp2)) for inf in inf1]...)
 
 end
 
@@ -90,8 +89,7 @@ diff_connection(epi_model::Function, x::Int, y::Int) = begin
     states1 = subpart(ep1, :sname)
     states2 = subpart(ep2, :sname)
     LabelledPetriNet(vcat(states1, states2),
-                     vcat([Symbol("diff_$(states1[i])_$(states2[i])")=>(states1[i]=>states2[i]) for i in 1:ns(ep1)],
-                          [Symbol("diff_$(states2[i])_$(states1[i])")=>(states2[i]=>states1[i]) for i in 1:ns(ep2)])...)
+                     [Symbol("diff_$(states1[i])_$(states2[i])")=>(states1[i]=>states2[i]) for i in 1:ns(ep1)]...)
 end
 
 add_index(epi_model::LabelledPetriNet, ind::Int) = begin
@@ -206,8 +204,10 @@ end
 clique(n) = begin
   c = Catlab.Graphs.BasicGraphs.Graph(n)
   for i in 1:n
-    for j in (i+1):n
-      add_edges!(c, [i],[j])
+    for j in 1:n
+      if i != j
+        add_edges!(c, [i],[j])
+      end
     end
   end
   c
