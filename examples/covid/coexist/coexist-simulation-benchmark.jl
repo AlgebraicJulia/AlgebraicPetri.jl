@@ -2,6 +2,7 @@
 #
 #md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/covid/coexist/coexist.ipynb)
 using Dates
+using Profile
 println(now(), " Starting compilation")
 flush(stdout)
 using AlgebraicPetri
@@ -59,33 +60,36 @@ function stratify(epi_petri::Function, connection_graph::Catlab.Graphs.BasicGrap
     srcs = subpart(connection_graph, :src)
     tgts = subpart(connection_graph, :tgt)
     for i in 1:ne(connection_graph)
-        ep_map[Symbol("cross_$(srcs[i])_$(tgts[i])")] = diffusion_petri(srcs[i], tgts[i])
+      ep_map[Symbol("cross_$(srcs[i])_$(tgts[i])")] = diffusion_petri(srcs[i], tgts[i], ep_map[Symbol("ep$(srcs[i])")], ep_map[Symbol("ep$(tgts[i])")])
     end
 
     oapply(conn_uwd, ep_map)
 end
 
-dem_connection(epi_model::Function, sus_state::Symbol, exp_state::Symbol, inf_states::Array{Symbol}, x::Int, y::Int) = begin
+dem_connection(sus_state::Symbol, exp_state::Symbol, inf_states::Array{Symbol}, x::Int, y::Int, epx, epy) = begin
     append_ind(x::Symbol, ind::Int) = Symbol("$(x)_$ind")
+    matching_state(pattern, states) = first(filter(s->(string(pattern)==first(split(string(s), "_"))), states))
 
-    ep1 = apex(epi_model(x))
-    ep2 = apex(epi_model(y))
+    ep1 = apex(epx)
+    ep2 = apex(epy)
+    states1 = subpart(ep1, :sname)
+    states2 = subpart(ep2, :sname)
 
-    sus1 = append_ind(sus_state, x)
-    sus2 = append_ind(sus_state, y)
-    exp1 = append_ind(exp_state, x)
-    exp2 = append_ind(exp_state, y)
-    inf1 = [append_ind(inf, x) for inf in inf_states]
-    inf2 = [append_ind(inf, y) for inf in inf_states]
+    sus1 = matching_state(sus_state, states1)
+    sus2 = matching_state(sus_state, states2)
+    exp1 = matching_state(exp_state, states1)
+    exp2 = matching_state(exp_state, states2)
+    inf1 = [matching_state(inf, states1) for inf in inf_states]
+    inf2 = [matching_state(inf, states2) for inf in inf_states]
 
     LabelledPetriNet(vcat(subpart(ep1, :sname), subpart(ep2, :sname)),
                      [Symbol("crx_$(sus2)_$(inf)")=>((sus2, inf)=>(inf, exp2)) for inf in inf1]...)
 
 end
 
-diff_connection(epi_model::Function, x::Int, y::Int) = begin
-    ep1 = apex(epi_model(x))
-    ep2 = apex(epi_model(y))
+diff_connection(x::Int, y::Int, epx, epy) = begin
+    ep1 = apex(epx)
+    ep2 = apex(epy)
     states1 = subpart(ep1, :sname)
     states2 = subpart(ep2, :sname)
     LabelledPetriNet(vcat(states1, states2),
@@ -93,7 +97,7 @@ diff_connection(epi_model::Function, x::Int, y::Int) = begin
 end
 
 add_index(epi_model::LabelledPetriNet, ind::Int) = begin
-    new_petri = deepcopy(epi_model)
+    new_petri = copy(epi_model)
     snames = subpart(epi_model, :sname)
     tnames = subpart(epi_model, :tname)
     set_subpart!(new_petri, :sname, [Symbol("$(name)_$ind") for name in snames])
@@ -169,8 +173,8 @@ function diff_strat(epi_model::LabelledPetriNet, connection_graph::Catlab.Graphs
         ind_epi = add_index(epi_model, ind)
         Open(ind_epi, subpart(ind_epi, :sname))
     end
-    conn(x, y) = begin
-        conn_epi = diff_connection(epi_func, x, y)
+    conn(x, y, epx, epy) = begin
+        conn_epi = diff_connection(x, y, epx, epy)
         Open(conn_epi, subpart(conn_epi, :sname)[1:ns(epi_model)],
                        subpart(conn_epi, :sname)[(ns(epi_model)+1):(2*ns(epi_model))])
     end
@@ -192,9 +196,9 @@ function dem_strat(epi_model::LabelledPetriNet, connection_graph::Catlab.Graphs.
         ind_epi = add_index(epi_model, ind)
         Open(ind_epi, subpart(ind_epi, :sname))
     end
-    conn(x, y) = begin
-        conn_epi = dem_connection(epi_func, sus_state::Symbol,
-                                  exp_state::Symbol, inf_states::Array{Symbol}, x, y)
+    conn(x, y, epx, epy) = begin
+        conn_epi = dem_connection(sus_state::Symbol,
+                                  exp_state::Symbol, inf_states::Array{Symbol}, x, y, epx, epy)
         Open(conn_epi, subpart(conn_epi, :sname)[1:ns(epi_model)],
                        subpart(conn_epi, :sname)[(ns(epi_model)+1):(2*ns(epi_model))])
     end
@@ -234,7 +238,7 @@ begin
   flush(stdout)
   println(now(), " Generating city strat with $(cities)-cycle")
   flush(stdout)
-  coex_diff = apex(diff_strat(coex_dem, cycle(1)))
+  coex_diff = apex(diff_strat(coex_dem, cycle(cities)))
   println(now(), " Finished city strat with $(cities)-cycle")
   flush(stdout)
 end
@@ -245,3 +249,15 @@ println("\nBenchmark with 10 cities with 10 populations")
 benchmark(10,10)
 println("\nBenchmark with 100 cities with 100 populations")
 benchmark(100,100)
+#
+#
+#
+coex_diff = apex(diff_strat(coex, cycle(2)));
+coex_dem = apex(dem_strat(coex_diff, cycle(2), :S, :E, [:I, :E, :I2, :A]));
+save_fig(AlgebraicPetri.Graph(coex_dem), "3cycle_dem", "svg");
+save_fig(AlgebraicPetri.Graph(coex_diff), "3cycle_diff", "svg");
+#
+#Profile.clear()
+#@profile benchmark(100, 100)
+#
+#Profile.print()
