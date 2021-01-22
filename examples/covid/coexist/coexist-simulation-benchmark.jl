@@ -5,105 +5,10 @@ using Dates
 using Profile
 println(now(), " Starting compilation")
 flush(stdout)
-using AlgebraicPetri
-
-using OrdinaryDiffEq
-using Plots
-using JSON
-
-using Catlab
-using Catlab.CategoricalAlgebra
-using Catlab.Graphics
-using Catlab.Programs
-using Catlab.Theories
-using Catlab.WiringDiagrams
-using Catlab.Graphics.Graphviz: run_graphviz
+include("stratification.jl")
 
 println(now(), " Starting coexist construction")
 flush(stdout)
-
-display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=>"1"));
-save_fig(g, fname::AbstractString, format::AbstractString) = begin
-    open(string(fname, ".", format), "w") do io
-        run_graphviz(io, g, format=format)
-    end
-end
-
-# Define helper functions for defining the two types of
-# reactions in an epidemiology Model. Either a state
-# spontaneously changes, or one state causes another to change
-
-using Catlab.Graphs.BasicGraphs
-function cross_uwd(g::Catlab.Graphs.BasicGraphs.Graph)
-    rel = RelationDiagram{Symbol}(0)
-
-    # Add populations
-    juncs = add_junctions!(rel, nv(g), variable=[Symbol("pop$i") for i in 1:nv(g)])
-    srcs = subpart(g, :src)
-    tgts = subpart(g, :tgt)
-    # Add cross boxes
-    add_parts!(rel, :Box, ne(g), name=[Symbol("cross_$(srcs[i])_$(tgts[i])") for i in 1:ne(g)])
-    add_parts!(rel, :Port, ne(g), junction=srcs, box=1:ne(g))
-    add_parts!(rel, :Port, ne(g), junction=tgts, box=1:ne(g))
-
-    # Add epidemiology model boxes
-    boxes = add_parts!(rel, :Box, nv(g), name=[Symbol("ep$i") for i in 1:nv(g)])
-    add_parts!(rel, :Port, nv(g), junction=juncs, box=boxes)
-    rel
-end
-
-function stratify(epi_petri::Function, connection_graph::Catlab.Graphs.BasicGraphs.Graph, diffusion_petri::Function)
-    conn_uwd = cross_uwd(connection_graph)
-
-    # Calls diffusion_petri for each edge as (src, tgt)
-    ep_map = Dict{Symbol, OpenLabelledPetriNet}([Symbol("ep$i")=>epi_petri(i) for i in 1:nv(connection_graph)])
-    srcs = subpart(connection_graph, :src)
-    tgts = subpart(connection_graph, :tgt)
-    for i in 1:ne(connection_graph)
-      ep_map[Symbol("cross_$(srcs[i])_$(tgts[i])")] = diffusion_petri(srcs[i], tgts[i], ep_map[Symbol("ep$(srcs[i])")], ep_map[Symbol("ep$(tgts[i])")])
-    end
-
-    oapply(conn_uwd, ep_map)
-end
-
-dem_connection(sus_state::Symbol, exp_state::Symbol, inf_states::Array{Symbol}, x::Int, y::Int, epx, epy) = begin
-    append_ind(x::Symbol, ind::Int) = Symbol("$(x)_$ind")
-    matching_state(pattern, states) = first(filter(s->(string(pattern)==first(split(string(s), "_"))), states))
-
-    ep1 = apex(epx)
-    ep2 = apex(epy)
-    states1 = subpart(ep1, :sname)
-    states2 = subpart(ep2, :sname)
-
-    sus1 = matching_state(sus_state, states1)
-    sus2 = matching_state(sus_state, states2)
-    exp1 = matching_state(exp_state, states1)
-    exp2 = matching_state(exp_state, states2)
-    inf1 = [matching_state(inf, states1) for inf in inf_states]
-    inf2 = [matching_state(inf, states2) for inf in inf_states]
-
-    LabelledPetriNet(vcat(subpart(ep1, :sname), subpart(ep2, :sname)),
-                     [Symbol("crx_$(sus2)_$(inf)")=>((sus2, inf)=>(inf, exp2)) for inf in inf1]...)
-
-end
-
-diff_connection(x::Int, y::Int, epx, epy) = begin
-    ep1 = apex(epx)
-    ep2 = apex(epy)
-    states1 = subpart(ep1, :sname)
-    states2 = subpart(ep2, :sname)
-    LabelledPetriNet(vcat(states1, states2),
-                     [Symbol("diff_$(states1[i])_$(states2[i])")=>(states1[i]=>states2[i]) for i in 1:ns(ep1)]...)
-end
-
-add_index(epi_model::LabelledPetriNet, ind::Int) = begin
-    new_petri = copy(epi_model)
-    snames = subpart(epi_model, :sname)
-    tnames = subpart(epi_model, :tname)
-    set_subpart!(new_petri, :sname, [Symbol("$(name)_$ind") for name in snames])
-    set_subpart!(new_petri, :tname, [Symbol("$(name)_$ind") for name in tnames])
-    new_petri
-end
 
 
 ob(x::Symbol) = codom(Open([x], LabelledPetriNet(x), [x])).ob;
@@ -205,26 +110,6 @@ function dem_strat(epi_model::LabelledPetriNet, connection_graph::Catlab.Graphs.
     stratify(epi_func, connection_graph, conn)
 end
 
-clique(n) = begin
-  c = Catlab.Graphs.BasicGraphs.Graph(n)
-  for i in 1:n
-    for j in 1:n
-      if i != j
-        add_edges!(c, [i],[j])
-      end
-    end
-  end
-  c
-end
-
-cycle(n) = begin
-  c = Catlab.Graphs.BasicGraphs.Graph(n)
-  for i in 1:n
-    add_edges!(c, [i],[(i)%n+1])
-  end
-  c
-end
-
 coex = apex(F(coexist));
 println(now(), " Finished generating coexist")
 flush(stdout)
@@ -233,12 +118,14 @@ benchmark(demo, cities) =
 begin
   println(now(), " Generating dem strat with $(demo)-clique")
   flush(stdout)
-  coex_dem = apex(dem_strat(coex, clique(demo), :S, :E, [:I, :E, :I2, :A]));
+  dem_conn = dem_petri(coex, :S, :E, [:I, :E, :I2, :A])
+  coex_dem = stratify(coex, (dem_conn, clique(demo)));
   println(now(), " Finished generating dem with $(demo)-clique")
   flush(stdout)
   println(now(), " Generating city strat with $(cities)-cycle")
   flush(stdout)
-  coex_diff = apex(diff_strat(coex_dem, cycle(cities)))
+  dem_conn = diff_petri(coex_dem)
+  coex_diff = stratify(coex_dem, (dem_conn, cycle(cities)))
   println(now(), " Finished city strat with $(cities)-cycle")
   flush(stdout)
 end
@@ -249,13 +136,20 @@ println("\nBenchmark with 10 cities with 10 populations")
 benchmark(10,10)
 println("\nBenchmark with 100 cities with 100 populations")
 benchmark(100,100)
-#
-#
-#
-coex_diff = apex(diff_strat(coex, cycle(2)));
-coex_dem = apex(dem_strat(coex_diff, cycle(2), :S, :E, [:I, :E, :I2, :A]));
+
+dem_conn = dem_petri(coex, :S, :E, [:I, :E, :I2, :A])
+coex_dem = stratify(coex, (dem_conn, cycle(3)));
+diff_conn = diff_petri(coex_dem)
+coex_diff = stratify(coex_dem, (diff_conn, cycle(3)))
+
+
 save_fig(AlgebraicPetri.Graph(coex_dem), "3cycle_dem", "svg");
 save_fig(AlgebraicPetri.Graph(coex_diff), "3cycle_diff", "svg");
+
+dem_conn = dem_petri(coex, :S, :E, [:I, :E, :I2, :A])
+diff_conn = diff_petri(coex)
+coex_diff = stratify(coex, (diff_conn, cycle(5)), (dem_conn, clique(5)))
+save_fig(AlgebraicPetri.Graph(coex_diff), "dem_diff", "svg");
 #
 #Profile.clear()
 #@profile benchmark(100, 100)
