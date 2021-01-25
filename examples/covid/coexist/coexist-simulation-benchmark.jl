@@ -74,16 +74,8 @@ end;
 """
 
 function diff_strat(epi_model::LabelledPetriNet, connection_graph::Catlab.Graphs.BasicGraphs.Graph)
-    epi_func(ind) = begin
-        ind_epi = add_index(epi_model, ind)
-        Open(ind_epi, subpart(ind_epi, :sname))
-    end
-    conn(x, y, epx, epy) = begin
-        conn_epi = diff_connection(x, y, epx, epy)
-        Open(conn_epi, subpart(conn_epi, :sname)[1:ns(epi_model)],
-                       subpart(conn_epi, :sname)[(ns(epi_model)+1):(2*ns(epi_model))])
-    end
-    stratify(epi_func, connection_graph, conn)
+  diff_conn = diff_petri(epi_model)
+  stratify(epi_model, (diff_conn, connection_graph))
 end
 
 """ dem_strat(epi_model, connection_graph, sus_state, exp_state, inf_states)
@@ -97,17 +89,8 @@ end
 """
 
 function dem_strat(epi_model::LabelledPetriNet, connection_graph::Catlab.Graphs.BasicGraphs.Graph, sus_state::Symbol, exp_state::Symbol, inf_states::Array{Symbol})
-    epi_func(ind) = begin
-        ind_epi = add_index(epi_model, ind)
-        Open(ind_epi, subpart(ind_epi, :sname))
-    end
-    conn(x, y, epx, epy) = begin
-        conn_epi = dem_connection(sus_state::Symbol,
-                                  exp_state::Symbol, inf_states::Array{Symbol}, x, y, epx, epy)
-        Open(conn_epi, subpart(conn_epi, :sname)[1:ns(epi_model)],
-                       subpart(conn_epi, :sname)[(ns(epi_model)+1):(2*ns(epi_model))])
-    end
-    stratify(epi_func, connection_graph, conn)
+  dem_conn = dem_petri(epi_model, sus_state, exp_state, inf_states)
+  stratify(epi_model, (dem_conn, connection_graph))
 end
 
 coex = apex(F(coexist));
@@ -118,14 +101,12 @@ benchmark(demo, cities) =
 begin
   println(now(), " Generating dem strat with $(demo)-clique")
   flush(stdout)
-  dem_conn = dem_petri(coex, :S, :E, [:I, :E, :I2, :A])
-  coex_dem = stratify(coex, (dem_conn, clique(demo)));
+  coex_dem = dem_strat(coex, clique(demo), :S, :E, [:I, :E, :I2, :A]);
   println(now(), " Finished generating dem with $(demo)-clique")
   flush(stdout)
   println(now(), " Generating city strat with $(cities)-cycle")
   flush(stdout)
-  dem_conn = diff_petri(coex_dem)
-  coex_diff = stratify(coex_dem, (dem_conn, cycle(cities)))
+  coex_diff = diff_strat(coex_dem, cycle(cities))
   println(now(), " Finished city strat with $(cities)-cycle")
   flush(stdout)
 end
