@@ -1,21 +1,29 @@
+module ModelStratify
+
+# The available functions, all have necessary docstrings
+export dem_strat, diff_strat, diff_petri, dem_petri, stratify,
+       serialize, deserialize,
+       save_petri, save_json, save_model
+
 using AlgebraicPetri
 
-import Base.:+
+using JSON
+
 using Catlab
 using Catlab.CategoricalAlgebra
-using Catlab.Graphics
-using Catlab.Programs
-using Catlab.Theories
-using Catlab.WiringDiagrams
 using Catlab.Graphs.BasicGraphs
-import Catlab.Graphs.BasicGraphs: Graph
+using Catlab.Graphs.BasicGraphs: Graph
+using Catlab.WiringDiagrams
+using Catlab.Programs
+using Catlab.Graphics
 using Catlab.Graphics.Graphviz: run_graphviz
 
-save_fig(g, fname::AbstractString, format::AbstractString) = begin
-    open(string(fname, ".", format), "w") do io
-        run_graphviz(io, g, format=format)
-    end
-end
+import Base.convert
+Base.convert(::Type{Symbol}, str::String) = Symbol(str)
+
+# Define helper functions for defining the two types of
+# reactions in an epidemiology Model. Either a state
+# spontaneously changes, or one state causes another to change
 
 matching_states(pattern, states) = collect(filter(s->(string(pattern)==first(split(string(s), "_"))), states))
 
@@ -128,24 +136,86 @@ end
 
 
 
-test_petri = LabelledPetriNet([:S,:I,:R], :inf=>((:S,:I)=>(:I,:I)),:rec=>(:I=>:R))
-
-clique(n) = begin
-  c = Graph(n)
-  for i in 1:n
-    for j in 1:n
-      if i != j
-        add_edges!(c, [i],[j])
-      end
-    end
-  end
-  c
+""" diff_strat(epi_model, connection_graph)
+  This function takes in a LabelledPetriNet and a graph which describes
+  geographical connections. It returns a LabelledPetriNet which models
+  diffusion between geographic populations described by the given graph.
+"""
+function diff_strat(epi_model::LabelledPetriNet, connection_graph::Catlab.Graphs.BasicGraphs.Graph)
+  diff_conn = diff_petri(epi_model)
+  stratify(epi_model, (diff_conn, connection_graph))
 end
 
-cycle(n) = begin
-  c = Graph(n)
-  for i in 1:n
-    add_edges!(c, [i],[(i)%n+1])
-  end
-  c
+""" dem_strat(epi_model, connection_graph, sus_state, exp_state, inf_states)
+  This function takes in a LabelledPetriNet and a graph which describes
+  infection connections between populations. It also takes in the symbol used
+  for susceptible states, the symbol used for the exposed state, and an array
+  of symbols for states that can expose susceptible states. It returns a
+  LabelledPetriNet which models diffusion between populations described by the
+  given graph.
+"""
+function dem_strat(epi_model::LabelledPetriNet, connection_graph::Catlab.Graphs.BasicGraphs.Graph,
+                   sus_state::Symbol, exp_state::Symbol, inf_states::Array{Symbol})
+  dem_conn = dem_petri(epi_model, sus_state, exp_state, inf_states)
+  stratify(epi_model, (dem_conn, connection_graph))
+end
+
+""" Serialize an ACSet object to a JSON string
+"""
+serialize(x::ACSet; io=stdout) = JSON.print(io, x.tables)
+
+""" Deserialize a dictionary from a parsed JSON string to an object of the given ACSet type
+"""
+function deserialize(input::Dict, type)
+    out = type()
+    for (k,v) ∈ input
+        add_parts!(out, Symbol(k), length(v))
+    end
+    for l ∈ values(input)
+        for (i, j) ∈ enumerate(l)
+            for (k,v) ∈ j
+                set_subpart!(out, i, Symbol(k), v)
+            end
+        end
+    end
+    out
+end
+
+""" Deserialize a JSON string to an object of the given ACSet type
+"""
+deserialize(input::String, type) = deserialize(JSON.parse(input), type)
+
+""" Save Petri net as an svg image
+"""
+save_petri(g, fname::AbstractString, format::AbstractString) =
+    open(string(fname, ".", format), "w") do io
+        run_graphviz(io, AlgebraicPetri.Graph(g), format=format)
+    end
+
+""" Save Graph as an svg image
+"""
+save_graph(g, fname::AbstractString, format::AbstractString) =
+    open(string(fname, ".", format), "w") do io
+        run_graphviz(io, g, format=format)
+    end
+
+""" Show Graph
+"""
+show_graph(g) = to_graphviz(g, node_labels=true)
+
+""" Save serialization to json file
+"""
+save_json(C, fname::AbstractString) =
+    open(string(fname, ".json"),"w") do f
+        serialize(C; io=f)
+    end
+
+""" Save both Petri graph as svg and json file
+"""
+function save_model(model, fname::AbstractString)
+    save_json(model, fname)
+    save_petri(model, fname, "svg");
+end
+
+
 end
