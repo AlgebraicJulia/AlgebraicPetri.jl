@@ -2,7 +2,6 @@
 #
 #md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/covid/coexist/coexist.ipynb)
 using Dates
-using Profile
 println(now(), " Starting compilation")
 flush(stdout)
 include("stratification.jl")
@@ -131,8 +130,3 @@ dem_conn = dem_petri(coex, :S, :E, [:I, :E, :I2, :A])
 diff_conn = diff_petri(coex)
 coex_diff = stratify(coex, (diff_conn, cycle(5)), (dem_conn, clique(5)))
 save_fig(AlgebraicPetri.Graph(coex_diff), "dem_diff", "svg");
-#
-#Profile.clear()
-#@profile benchmark(100, 100)
-#
-#Profile.print()
