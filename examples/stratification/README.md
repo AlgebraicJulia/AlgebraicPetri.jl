@@ -1,4 +1,4 @@
-# GTRI Model Stratification using AlgebraicPetri
+# Stratification using AlgebraicPetri
 
 [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](https://nbviewer.jupyter.org/github/DARPA-ASKE/ASKE-E-Simulation-WG/blob/main/AlgebraicPetri-Stratification/stratification-notebook.ipynb)
 
