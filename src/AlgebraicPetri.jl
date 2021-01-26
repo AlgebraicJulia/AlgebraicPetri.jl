@@ -183,6 +183,7 @@ Note that this returns an index if labels are not present in the PetriNet
 """
 tname(p::AbstractPetriNet,t) = (1:nt(p))[t]
 
+
 """ Names of species in  a Petri net
 
 Note that this returns indices if labels are not present in the PetriNet
