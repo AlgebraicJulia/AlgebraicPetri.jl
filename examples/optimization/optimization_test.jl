@@ -1,6 +1,7 @@
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 
+using LabelledArrays
 using DifferentialEquations
 using Plots, StatsPlots, MCMCChains
 using Turing, Distributions
@@ -24,6 +25,8 @@ plot(sol)
 σ = 0.2
 dt = 0.1
 measurements = Array(sol) + σ * randn(size(Array(sol)))
+infected_measurement = measurements[2,:]
+infected_measurement = reshape(infected_measurement, 1, length(infected_measurement))
 scatter!(sol.t, measurements')
 
 # Fit to mock data
@@ -48,17 +51,16 @@ pred_arr = Array(predicted)
 
 scatter(sol.t, measurements', legend = false)
 resol = solve(remake(prob,p=pred_arr[rand(1:(size(pred_arr)[1])), 1:2]), Tsit5(), saveat=0.1)
-plot!(resol, color="#BBBBBB", legend = false)
+plot!(resol, legend = false)
 
 # Fit to just infected data
-
-infected_measurement = measurements[2,:]
 
 @model function fit_infection(measurements, prob′)
   σ ~ InverseGamma(2,3)
 
   # pick distribution with possible range of parameters
   p ~ product_distribution([Uniform(0,1) for i in 1:length(prob′.p)])
+  # p ~ product_distribution([truncated(Normal(.5,.5), 0, 1) for i in 1:length(prob′.p)])
 
   prob′′ = remake(prob′,p=p)
   predicted = solve(prob′′,Tsit5(),saveat=0.1)
@@ -73,7 +75,6 @@ model_inf = fit_infection(infected_measurement, prob)
 predicted = sample(model_inf,HMC(0.01,5),1000)
 pred_arr = Array(predicted)
 
-scatter(sol.t, infected_measurement, legend = false)
+scatter(sol.t, infected_measurement', legend = false)
 resol = solve(remake(prob,p=pred_arr[rand(1:(size(pred_arr)[1])), 1:2]), Tsit5(), saveat=0.1)
 plot!(resol, legend = false)
-
