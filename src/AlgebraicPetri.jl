@@ -53,7 +53,7 @@ Open(n, p::AbstractPetriNet, m) = Open(p, n, m)
 
 # PetriNet([:S, :I, :R], :infection=>((1, 2), 3))
 
-PetriNet(n,ts...) = begin
+PetriNet(n::Int, ts::Vararg{Union{Pair,Tuple}}) = begin
   p = PetriNet()
   add_species!(p, n)
   add_transitions!(p, length(ts))
@@ -126,15 +126,15 @@ valueat(f::Function, u, t) = try f(u,t) catch e f(t) end
 vectorfield(pn::AbstractPetriNet) = begin
   tm = TransitionMatrices(pn)
   dt = tm.output - tm.input
-  log_rates = zeros(nt(pn))
   f(du,u,p,t) = begin
+    rates = zeros(eltype(du),nt(pn))
     u_m = [u[sname(pn, i)] for i in 1:ns(pn)]
     p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
     for i in 1:nt(pn)
-      log_rates[i] = valueat(p_m[i],u,t) * prod(u_m[j] ^ tm.input[i,j] for j in 1:ns(pn))
+      rates[i] = valueat(p_m[i],u,t) * prod(u_m[j] ^ tm.input[i,j] for j in 1:ns(pn))
     end
     for j in 1:ns(pn)
-      du[sname(pn, j)] = sum(log_rates[i] * dt[i,j] for i in 1:nt(pn))
+      du[sname(pn, j)] = sum(rates[i] * dt[i,j] for i in 1:nt(pn))
     end
     return du
   end
@@ -161,7 +161,7 @@ Open(p::AbstractLabelledPetriNet, legs...) = begin
 end
 Open(n, p::AbstractLabelledPetriNet, m) = Open(p, n, m)
 
-LabelledPetriNet(n,ts...) = begin
+LabelledPetriNet(n, ts::Vararg{Union{Pair,Tuple}}) = begin
   p = LabelledPetriNet()
   n = vectorify(n)
   state_idx = state_dict(n)
@@ -195,7 +195,7 @@ Open(p::AbstractReactionNet{R,C}) where {R,C} = OpenReactionNet{R,C}(p, map(x->F
 Open(p::AbstractReactionNet{R,C}, legs...) where {R,C} = OpenReactionNet{R,C}(p, map(l->FinFunction(l, ns(p)), legs)...)
 Open(n, p::AbstractReactionNet, m) = Open(p, n, m)
 
-ReactionNet{R,C}(n,ts...) where {R,C} = begin
+ReactionNet{R,C}(n, ts::Vararg{Union{Pair,Tuple}}) where {R,C} = begin
   p = ReactionNet{R,C}()
   add_species!(p, length(n), concentration=n)
   for (i, (rate,(ins,outs))) in enumerate(ts)
@@ -236,7 +236,7 @@ end
 Open(n, p::AbstractLabelledReactionNet, m) = Open(p, n, m)
 
 # Ex. LabelledReactionNet{Number, Int}((:S=>990, :I=>10, :R=>0), (:inf, .3/1000)=>((:S, :I)=>(:I,:I)), (:rec, .2)=>(:I=>:R))
-LabelledReactionNet{R,C}(n,ts...) where {R,C} = begin
+LabelledReactionNet{R,C}(n, ts::Vararg{Union{Pair,Tuple}}) where {R,C} = begin
   p = LabelledReactionNet{R,C}()
   n = vectorify(n)
   states = map(first, collect(n))

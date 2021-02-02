@@ -15,11 +15,17 @@ using Catlab.Graphics
 using Catlab.Programs
 using Catlab.Theories
 using Catlab.WiringDiagrams
+using Catlab.Graphics.Graphviz: run_graphviz
 
 display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=>"1"));
+save_fig(g, fname::AbstractString, format::AbstractString) = begin
+    open(string(fname, ".", format), "w") do io
+        run_graphviz(io, g, format=format)
+    end
+end
 
 # Define helper functions for defining the two types of
-# reactions in an epidemiology Model. Either a state 
+# reactions in an epidemiology Model. Either a state
 # spontaneously changes, or one state causes another to change
 
 ob(x::Symbol,n::Int) = codom(Open([x], LabelledReactionNet{Number,Int}(x=>n), [x])).ob;
@@ -158,7 +164,10 @@ end;
 display_uwd(threeNCoexist)
 #-
 threeNCoexist_algpetri = apex(F_tcx(threeNCoexist))
-Graph(threeNCoexist_algpetri)
+Graph(threeNCoexist_algpetri);
+save_fig(Graph(threeNCoexist_algpetri), "3ncoexist_petri", "svg"); # hide
+
+# ![3-generation COEXIST model petri net](3ncoexist_petri.svg)
 
 # We can JSON to convert this Petri net into an
 # easily shareable format
