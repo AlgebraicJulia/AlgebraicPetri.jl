@@ -75,6 +75,41 @@ catXY = @relation (X, Xinact, Xdeg, Y, Yinact, Ydeg) where (X, Xinact, Xdeg, Y, 
 end
 display_uwd(catXY)
 
+function sub_enz(substrates::Array{Symbol}, enzymes::Array{Symbol})
+  rel = RelationDiagram{Symbol}(0)
+
+  chemicals = vcat(substrates, enzymes)
+  # Add substrates and enzyms
+  subs = add_junctions!(rel, length(substrates), variable=substrates)
+  enzs = add_junctions!(rel, length(enzymes), variable=enzymes)
+  nsubs = length(subs)
+  nenzs = length(enzs)
+
+  # Add catX
+  catx = add_parts!(rel, :Box, nenzs, name=[Symbol("cat$i") for i in enzymes])
+  add_parts!(rel, :Port, nenzs, junction=enzs, box=catx)
+
+  # Add catXcatY
+  for x in 1:nenzs
+    for y in 1:nenzs
+      if y != x
+        catxy = add_part!(rel, :Box, name=Symbol("cat$(enzymes[x])cat$(enzymes[y])"))
+        add_parts!(rel, :Port, 2, junction=[enzs[x], enzs[y]], box=catxy)
+      end
+    end
+  end
+
+  # Add catXsubY
+  for x in 1:nenzs
+    for y in 1:nsubs
+      catxy = add_part!(rel, :Box, name=Symbol("cat$(enzymes[x])sub$(substrates[y])"))
+      add_parts!(rel, :Port, 2, junction=[enzs[x], subs[y]], box=catxy)
+    end
+  end
+  add_parts!(rel, :OuterPort, length(chemicals), outer_junction = vcat(subs, enzs))
+  rel
+end
+
 # ## Define all enzyme reactions
 
 rxns = Dict(
@@ -206,7 +241,9 @@ KSE = @relation (K, S, E) begin
 end
 display_uwd(KSE)
 
-#- 
+KSE = sub_enz([:E], [:K, :S])
+display_uwd(KSE)
+#-
 
 KSE_petri = apex(functor(KSE))
 ode_prob = ode(KSE_petri, (0.0, 120.0))
@@ -236,6 +273,8 @@ KSLE = @relation (K, S, L, E) begin
 end
 display_uwd(KSLE)
 
+KSLE = sub_enz([:E], [:K, :S, :L])
+display_uwd(KSLE)
 #-
 
 KSLE_petri = apex(functor(KSLE))
@@ -268,6 +307,8 @@ KSLEG = @relation (K, S, L, E, G) begin
 end
 display_uwd(KSLEG)
 
+KSLEG = sub_enz([:E, :G], [:K, :S, :L])
+display_uwd(KSLEG)
 #-
 
 KSLEG_petri = apex(functor(KSLEG))
