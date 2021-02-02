@@ -1,11 +1,9 @@
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 
-using LabelledArrays
 using DifferentialEquations
 using Plots, StatsPlots, MCMCChains
 using Turing, Distributions
-Turing.setadbackend(:forwarddiff)
 
 # define model
 
@@ -28,6 +26,8 @@ measurements = Array(sol) + σ * randn(size(Array(sol)))
 infected_measurement = measurements[2,:]
 infected_measurement = reshape(infected_measurement, 1, length(infected_measurement))
 scatter!(sol.t, measurements')
+
+scatter(sol.t, measurements', legend=false)
 
 # Fit to mock data
 
