@@ -26,9 +26,6 @@ end
 for pn ∈ [sir_lrxn]
   @test LabelledReactionNet{Number, Int}(pn) == sir_lrxn
 end
-for pn ∈ [sir_lpetri, sir_lrxn]
-  @test LabelledReactionNet{Number, Int}(pn, [990, 10, 0], [.001, .25]) == sir_lrxn
-end
 for pn ∈ [sir_petri, sir_rxn]
   @test LabelledReactionNet{Number, Int}(pn, [:S=>990, :I=>10, :R=>0], [:inf=>.001, :rec=>.25]) == sir_lrxn
 end

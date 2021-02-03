@@ -325,14 +325,6 @@ LabelledReactionNet{R,C}(pn::Union{AbstractPetriNet}, states, transitions) where
   pn′
 end
 
-LabelledReactionNet{R,C}(pn::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}, concentrations, rates) where {R, C} = begin
-  pn′ = LabelledReactionNet{R,C}()
-  copy_parts!(pn′, pn)
-  map(k->set_subpart!(pn′, k, :concentration, concentrations[k]), keys(concentrations))
-  map(k->set_subpart!(pn′, k, :rate, rates[k]), keys(rates))
-  pn′
-end
-
 # Interoperability with Petri.jl
 Petri.Model(p::AbstractPetriNet) = begin
   ts = TransitionMatrices(p)
