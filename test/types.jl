@@ -5,6 +5,15 @@ sir_lrxn = LabelledReactionNet{Number, Int}((:S=>990, :I=>10, :R=>0), (:inf, .00
 
 sir_tpetri= PetriNet(TransitionMatrices(sir_petri))
 
+@test snames(sir_petri) == 1:3
+@test tnames(sir_petri) == 1:2
+@test snames(sir_lpetri) == [:S, :I, :R]
+@test tnames(sir_lpetri) == [:inf, :rec]
+@test snames(sir_rxn) == 1:3
+@test tnames(sir_rxn) == 1:2
+@test snames(sir_lrxn) == [:S, :I, :R]
+@test tnames(sir_lrxn) == [:inf, :rec]
+
 for pn ∈ [sir_petri, sir_lpetri, sir_rxn, sir_lrxn]
   @test PetriNet(pn) == sir_petri
 end
