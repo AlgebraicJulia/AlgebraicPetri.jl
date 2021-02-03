@@ -6,7 +6,7 @@ export TheoryPetriNet, PetriNet, OpenPetriNetOb, AbstractPetriNet, ns, nt, ni, n
   add_species!, add_transition!, add_transitions!,
   add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs,
   TransitionMatrices, vectorfield,
-  TheoryLabelledPetriNet, LabelledPetriNet, AbstractLabelledPetriNet, sname, tname,
+  TheoryLabelledPetriNet, LabelledPetriNet, AbstractLabelledPetriNet, sname, tname, snames, tnames,
   TheoryReactionNet, ReactionNet, AbstractReactionNet, concentration, concentrations, rate, rates,
   TheoryLabelledReactionNet, LabelledReactionNet, AbstractLabelledReactionNet,
   Open, OpenPetriNet, OpenLabelledPetriNet, OpenReactionNet, OpenLabelledReactionNet,
@@ -85,6 +85,9 @@ add_outputs!(p::AbstractPetriNet,n,t,s;kw...) = add_parts!(p,:O,n;ot=t,os=s,kw..
 
 sname(p::AbstractPetriNet,s) = (1:ns(p))[s]
 tname(p::AbstractPetriNet,t) = (1:nt(p))[t]
+
+snames(p::AbstractPetriNet) = map(s->sname(p, s), 1:ns(p))
+tnames(p::AbstractPetriNet) = map(t->tname(p, t), 1:nt(p))
 
 # Note: although indexing makes this pretty fast, it is often faster to bulk-convert
 # the PetriNet net into a transition matrix, if you are working with all of the transitions
@@ -255,6 +258,72 @@ end
 
 sname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},s) = subpart(p,s,:sname)
 tname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},t) = subpart(p,t,:tname)
+
+# Interoperability between different types
+
+PetriNet(pn::AbstractPetriNet) = begin
+  pn′ = PetriNet()
+  copy_parts!(pn′, pn)
+  pn′
+end
+
+LabelledPetriNet(pn::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}) = begin
+  pn′ = LabelledPetriNet()
+  copy_parts!(pn′, pn)
+  pn′
+end
+
+LabelledPetriNet(pn::AbstractPetriNet, snames, tnames) = begin
+  pn′ = LabelledPetriNet()
+  copy_parts!(pn′, pn)
+  map(k->set_subpart!(pn′, k, :sname, snames[k]), keys(snames))
+  map(k->set_subpart!(pn′, k, :tname, tnames[k]), keys(tnames))
+  pn′
+end
+
+ReactionNet{R,C}(pn::Union{AbstractReactionNet, AbstractLabelledReactionNet}) where {R, C} = begin
+  pn′ = ReactionNet{R,C}()
+  copy_parts!(pn′, pn)
+  pn′
+end
+
+ReactionNet{R,C}(pn::AbstractPetriNet, concentrations, rates) where {R, C} = begin
+  pn′ = ReactionNet{R,C}()
+  copy_parts!(pn′, pn)
+  map(k->set_subpart!(pn′, k, :concentration, concentrations[k]), keys(concentrations))
+  map(k->set_subpart!(pn′, k, :rate, rates[k]), keys(rates))
+  pn′
+end
+
+LabelledReactionNet{R,C}(pn::AbstractLabelledReactionNet) where {R, C} = begin
+  pn′ = LabelledReactionNet{R,C}()
+  copy_parts!(pn′, pn)
+  pn′
+end
+
+LabelledReactionNet{R,C}(pn::AbstractPetriNet, s_labels, t_labels, concentrations, rates) where {R, C} = begin
+  pn′ = LabelledReactionNet{R,C}()
+  copy_parts!(pn′, pn)
+  map(k->set_subpart!(pn′, k, :sname, s_labels[k]), keys(s_labels))
+  map(k->set_subpart!(pn′, k, :tname, t_labels[k]), keys(t_labels))
+  map(k->set_subpart!(pn′, k, :concentration, concentrations[k]), keys(concentrations))
+  map(k->set_subpart!(pn′, k, :rate, rates[k]), keys(rates))
+  pn′
+end
+
+LabelledReactionNet{R,C}(pn::Union{AbstractPetriNet}, states, transitions) where {R, C} = begin
+  pn′ = LabelledReactionNet{R,C}()
+  copy_parts!(pn′, pn)
+  for (i, (k, v)) in enumerate(states)
+    set_subpart!(pn′, i, :sname, k)
+    set_subpart!(pn′, i, :concentration, v)
+  end
+  for (i, (k, v)) in enumerate(transitions)
+    set_subpart!(pn′, i, :tname, k)
+    set_subpart!(pn′, i, :rate, v)
+  end
+  pn′
+end
 
 # Interoperability with Petri.jl
 Petri.Model(p::AbstractPetriNet) = begin

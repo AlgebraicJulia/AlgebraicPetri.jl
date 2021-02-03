@@ -192,9 +192,41 @@ functor(x) = oapply(x, Dict(
   :catSsubG=>cat_sub(S,G),
   :catLsubG=>cat_sub(L,G)));
 
-# # Defining Models
+function enzyme_uwd(enzymes::Array{Symbol}, substrates::Array{Symbol})
+  rel = RelationDiagram{Symbol}(0)
 
-# ## CatK, CatS, Elastin
+  chemicals = vcat(substrates, enzymes)
+
+  subs = add_junctions!(rel, length(substrates), variable=substrates)
+  enzs = add_junctions!(rel, length(enzymes), variable=enzymes)
+  nsubs = length(subs)
+  nenzs = length(enzs)
+
+  catx = add_parts!(rel, :Box, nenzs, name=[Symbol("cat$i") for i in enzymes])
+  add_parts!(rel, :Port, nenzs, junction=enzs, box=catx)
+
+  for x in 1:nenzs
+    for y in 1:nenzs
+      if y != x
+        catxy = add_part!(rel, :Box, name=Symbol("cat$(enzymes[x])cat$(enzymes[y])"))
+        add_parts!(rel, :Port, 2, junction=[enzs[x], enzs[y]], box=catxy)
+      end
+    end
+  end
+
+  for x in 1:nenzs
+    for y in 1:nsubs
+      catxy = add_part!(rel, :Box, name=Symbol("cat$(enzymes[x])sub$(substrates[y])"))
+      add_parts!(rel, :Port, 2, junction=[enzs[x], subs[y]], box=catxy)
+    end
+  end
+  add_parts!(rel, :OuterPort, length(chemicals), outer_junction = vcat(subs, enzs))
+  rel
+end
+
+enzyme_reaction(args...) = enzyme_uwd(args...) |> functor |> apex
+
+# # Manually Defining Models
 
 KSE = @relation (K, S, E) begin
   catK(K)
@@ -206,7 +238,13 @@ KSE = @relation (K, S, E) begin
 end
 display_uwd(KSE)
 
-#- 
+# # Defining Models using API
+
+# ## CatK, CatS, Elastin
+
+KSE = enzyme_uwd([:K, :S], [:E])
+display_uwd(KSE)
+#-
 
 KSE_petri = apex(functor(KSE))
 ode_prob = ode(KSE_petri, (0.0, 120.0))
@@ -220,26 +258,8 @@ plot(sol, lw = 2, ylims = (0, 15000), xlims = (0, 30))
 
 # ## CatK, CatS, CatL, Elastin
 
-KSLE = @relation (K, S, L, E) begin
-  catK(K)
-  catS(S)
-  catL(L)
-  catKcatS(K, S)
-  catKcatL(K, L)
-  catScatK(S, K)
-  catScatL(S, L)
-  catLcatK(L, K)
-  catLcatS(L, S)
-  catKsubE(K, E)
-  catSsubE(S, E)
-  catLsubE(L, E)
-end
-display_uwd(KSLE)
-
-#-
-
-KSLE_petri = apex(functor(KSLE))
-ode_prob = ode(KSLE_petri, (0.0,120.0))
+KSLE = enzyme_reaction([:K, :S, :L], [:E])
+ode_prob = ode(KSLE, (0.0,120.0))
 sol = solve(ode_prob)
 plot(sol, lw = 1, size = (1066, 600))
 
@@ -249,29 +269,8 @@ plot(sol, ylims = (0, 20000), xlims = (0, 30), lw = 2, size = (1066, 600))
 
 # ## CatK, CatS, CatL, Elastin, Gelatin
 
-KSLEG = @relation (K, S, L, E, G) begin
-  catK(K)
-  catS(S)
-  catL(L)
-  catKcatS(K, S)
-  catKcatL(K, L)
-  catScatK(S, K)
-  catScatL(S, L)
-  catLcatK(L, K)
-  catLcatS(L, S)
-  catKsubE(K, E)
-  catSsubE(S, E)
-  catLsubE(L, E)
-  catKsubG(K, G)
-  catSsubG(S, G)
-  catLsubG(L, G)
-end
-display_uwd(KSLEG)
-
-#-
-
-KSLEG_petri = apex(functor(KSLEG))
-ode_prob = ode(KSLEG_petri, (0.0,120.0))
+KSLEG = enzyme_reaction([:K, :S, :L], [:E, :G])
+ode_prob = ode(KSLEG, (0.0,120.0))
 sol = solve(ode_prob)
 plot(sol, lw = 1, size = (1066, 600))
 
