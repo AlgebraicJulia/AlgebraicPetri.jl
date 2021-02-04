@@ -37,7 +37,7 @@ function estimate_rates(rxn::Union{AbstractReactionNet, AbstractLabelledReaction
 end
 
 function estimate_rates(rxn::AbstractReactionNet, tspan, priors, data; mc_stepsize=0.01, mc_leapfrogsteps=5, sample_steps=1000)
-  est_prob = EstimationProblem(rxn, tspan, priors, data; kw...)
+  est_prob = EstimationProblem(rxn, tspan, priors, data)
   sample(est_prob, HMC(mc_stepsize, mc_leapfrogsteps), sample_steps)
 end
 
