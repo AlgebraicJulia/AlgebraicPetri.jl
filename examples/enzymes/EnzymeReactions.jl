@@ -10,12 +10,20 @@ using Distributions
 using DifferentialEquations
 using Plots
 
-export ob, inactivate, bindunbind, degrade,
+export ob, ode, meanRates,
+       inactivate, bindunbind, degrade,
        enzX, enzXY, enzXsubY,
        enz, enz_enz, enz_sub,
        enzyme_uwd
 
 ob(x) = codom(Open([first(x)], LabelledReactionNet{Distribution,Number}(x), [first(x)])).ob;
+
+ode(x::Union{AbstractReactionNet{Distribution, Number},AbstractLabelledReactionNet{Distribution, Number}}, t) = begin
+  β = mean.(rates(x))
+  ODEProblem(vectorfield(x), concentrations(x), t, β)
+end
+ode(x, t) = ODEProblem(vectorfield(x), concentrations(x), t, rates(x));
+meanRates(rxn, pred) = Dict(tname(rxn,t)=>mean(pred).nt.mean[t] for t in 1:nt(rxn));
 
 function inactivate(in,on::Distribution)
   inact = Symbol(first(in), :inact)

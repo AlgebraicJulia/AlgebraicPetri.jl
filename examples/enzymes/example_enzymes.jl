@@ -5,6 +5,8 @@ using .Estimators
 
 using AlgebraicPetri
 using Catlab.WiringDiagrams
+using Catlab.CategoricalAlgebra
+using JSON
 
 using DifferentialEquations
 using Distributions
@@ -110,6 +112,15 @@ enzyme_reaction(args...) = enzyme_uwd(args...) |> functor |> apex
 ######################
 
 KSE = enzyme_reaction([:K, :S], [:E])
+
+j_data = JSON.parsefile("data/KSE_data.json");
+pred = Estimators.estimate_rates(KSE, j_data);
+plot(pred)
+tuned_KSE = LabelledReactionNet{Number, Number}(KSE, [], meanRates(pred))
+tspan = (minimum(j_data["time_data"]), maximum(j_data["time_data"]))
+prob = ode(tuned_rxn, tspan)
+plot(solve(prov))
+scatter!(j_data["data"])
 
 KSLE = enzyme_reaction([:K, :S, :L], [:E])
 
