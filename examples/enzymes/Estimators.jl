@@ -32,6 +32,17 @@ Turing.setadbackend(:forwarddiff)
 # = API CODE =
 # ============
 
+function estimate_rates(rxn::AbstractLabelledReactionNet, j_data; kw...)
+  tspan = j_data["time_data"]
+  data = j_data["data"]
+  d_keys = collect(keys(data))
+  estimate_rates(rxn, tspan, Symbol.(d_keys)=>collect(vcat([data[k]' for k in d_keys]...)))
+end
+
+function estimate_rates(rxn::Union{AbstractReactionNet, AbstractLabelledReactionNet}, tspan, data; kw...)
+  estimate_rates(rxn, tspan, rates(rxn), data; kw...)
+end
+
 function estimate_rates(rxn::Union{AbstractReactionNet, AbstractLabelledReactionNet}, tspan, data; kw...)
   estimate_rates(rxn, tspan, rates(rxn), data; kw...)
 end
@@ -46,7 +57,9 @@ function estimate_rates(rxn::AbstractLabelledReactionNet{X,Y}, tspan, priors, da
   snames = subpart(rxn, :sname)
   tname_ind = Dict(tnames[i]=>i for i in 1:length(tnames))
   sname_ind = Dict(snames[i]=>i for i in 1:length(snames))
-  pred = estimate_rates(ReactionNet{X,Y}(rxn), tspan, [priors[t] for t in tnames], [sname_ind[k] for k in data[1]]=>data[2]; kw...)
+  new_priors = [priors[t] for t in tnames]
+  new_data = [sname_ind[k] for k in data[1]]=>data[2]
+  pred = estimate_rates(ReactionNet{X,Y}(rxn), tspan, new_priors, new_data; kw...)
   replacenames(pred, [Symbol("p[$i]")=>tnames[i] for i in 1:length(tnames)]...)
 end
 
@@ -70,7 +83,7 @@ function turing_model(prob::EstimationProblem)
     p ~ product_distribution(prob.priors)
 
     prob′′ = remake(prob′,p=p)
-    predicted = solve(prob′′,Tsit5(),saveat=0.1)
+    predicted = solve(prob′′,Tsit5(),saveat=prob.tspan)
 
     # modify for data format
     for i = 1:length(predicted)
@@ -79,7 +92,7 @@ function turing_model(prob::EstimationProblem)
       end
     end
   end
-  fit_fun(prob.data..., ODEProblem(vectorfield(prob.petri), prob.u0, prob.tspan, rates(prob.petri)))
+  fit_fun(prob.data..., ODEProblem(vectorfield(prob.petri), prob.u0, (minimum(prob.tspan), maximum(prob.tspan)), rates(prob.petri)))
 end
 
 sample(prob::EstimationProblem, args...) = sample(turing_model(prob), args...)
