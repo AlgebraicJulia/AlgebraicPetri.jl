@@ -31,24 +31,21 @@ Turing.setadbackend(:forwarddiff)
 # = API CODE =
 # ============
 
-function estimate_rates(rxn::AbstractReactionNet, tspan, priors::Array{Tuple{Number,Number}}, data)
-  estimate_rates(rxn, tspan, [Truncated(Normal(p...), 0, Inf) for p in priors], data)
+function estimate_rates(rxn::Union{AbstractReactionNet, AbstractLabelledReactionNet}, tspan, data; kw...)
+  estimate_rates(rxn, tspan, rates(rxn), data; kw...)
 end
 
-function estimate_rates(rxn::LabelledReactionNet, tspan, priors::Array{Pair{Symbol,Tuple{Number,Number}}}, data)
-end
-
-function estimate_rates(rxn::AbstractReactionNet, tspan, priors, data)
-  est_prob = EstimationProblem(rxn, tspan, priors, data)
+function estimate_rates(rxn::AbstractReactionNet, tspan, priors, data; kw...)
+  est_prob = EstimationProblem(rxn, tspan, priors, data; kw...)
   sample(est_prob, HMC(0.01, 5), 1000)
 end
 
-function estimate_rates(rxn::AbstractLabelledReactionNet, tspan, priors, data)
+function estimate_rates(rxn::AbstractLabelledReactionNet{X,Y}, tspan, priors, data; kw...) where {X, Y}
   tnames = subpart(rxn, :tname)
   snames = subpart(rxn, :sname)
   tname_ind = Dict(tnames[i]=>i for i in 1:length(tnames))
   sname_ind = Dict(snames[i]=>i for i in 1:length(snames))
-  pred = estimate_rates(ReactionNet{Number, Number}(rxn), tspan, [priors[t] for t in tnames], [sname_ind[k] for k in data[1]]=>data[2])
+  pred = estimate_rates(ReactionNet{X,Y}(rxn), tspan, [priors[t] for t in tnames], [sname_ind[k] for k in data[1]]=>data[2])
   replacenames(pred, [Symbol("p[$i]")=>tnames[i] for i in 1:length(tnames)]...)
 end
 

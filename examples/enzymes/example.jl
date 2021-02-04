@@ -31,12 +31,10 @@ scatter(sol.t, infected_measurement', legend=false, xlabel="Time", ylabel="Popul
 
 # Fit to just infected data
 
-sir = ReactionNet{Number,Number}([10.0, 1.0, 0.0], (0.3, (1,2)=>(2,2)), (0.6, 2=>3))
+sir = LabelledReactionNet{Distribution,Number}([:S=>10.0, :I=>1.0, :R=>0.0], (:inf, Uniform(0,1))=>((:S,:I)=>(:I,:I)), (:rec, Uniform(0,1))=>(:I=>:R));
 Graph(sir)
-priors = [Uniform(0,1) for i in 1:nt(sir)]
-pred = estimate_rates(sir, tspan, priors, [2, 3]=>[infected_measurement; recovered_measurement])
-β = mean(pred).nt.mean[1:nt(sir)]
-
+pred = estimate_rates(sir, tspan, [:I, :R]=>[infected_measurement; recovered_measurement])
+β = Dict(tname(sir,t)=>mean(pred).nt.mean[t] for t in 1:nt(sir))
 plot(pred)
 
 scatter(sol.t, infected_measurement', legend = false)
@@ -47,9 +45,8 @@ plot!(sol, legend = false, xlabel="Time", ylabel="Population")
 
 # Fit to data for all states
 
-priors = [Uniform(0,1) for i in 1:nt(sir)]
-pred = estimate_rates(sir, tspan, priors, snames(sir)=>measurements)
-β = mean(pred).nt.mean[1:nt(sir)]
+pred = estimate_rates(sir, tspan, snames(sir)=>measurements)
+β = Dict(tname(sir,t)=>mean(pred).nt.mean[t] for t in 1:nt(sir))
 
 scatter(sol.t, measurements', legend = false)
 ode_prob = ODEProblem(vectorfield(sir), concentrations(sir), tspan,β)

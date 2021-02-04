@@ -7,43 +7,40 @@ using Catlab.Programs
 using Catlab.Graphics
 using Catlab.WiringDiagrams
 using Catlab.CategoricalAlgebra
+using Distributions
 
 using DifferentialEquations
 using Plots
 
 display_uwd(ex, prog="neato") = to_graphviz(ex, box_labels=:name, junction_labels=:variable, graph_attrs=Dict(:overlap => "false"), prog=prog)
+ode(x::Union{AbstractReactionNet{Distribution, Number},AbstractLabelledReactionNet{Distribution, Number}}, t) = begin
+  β = mean.(rates(x))
+  ODEProblem(vectorfield(x), concentrations(x), t, β)
+end
 ode(x, t) = ODEProblem(vectorfield(x), concentrations(x), t, rates(x));
 
 # ## Define objects and initial conditions
 
-ob(x) = codom(Open([first(x)], LabelledReactionNet{Number,Int}(x), [first(x)])).ob;
-K = :K=>33000;
-S = :S=>33000;
-L = :L=>33000;
-Kinact = :Kinact=>0;
-Sinact = :Sinact=>0;
-Linact = :Linact=>0;
-E = :E=>700000;
-G = :G=>1300000;
+ob(x) = codom(Open([first(x)], LabelledReactionNet{Distribution,Number}(x), [first(x)])).ob;
 
 # ## Helper functions for generating primitive Petri net operations
 
-inact(in,on::Number) = begin
+inact(in,on::Distribution) = begin
   inact = Symbol(first(in), :inact)
-  Open(LabelledReactionNet{Number,Int}(unique((in, inact=>0)), ((Symbol(:inact_,first(in)),on),first(in)=>inact)))
+  Open(LabelledReactionNet{Distribution,Number}(unique((in, inact=>0)), ((Symbol(:inact_,first(in)),on),first(in)=>inact)))
 end;
 
-bind(in1, in2, on::Number, off::Number) = begin
+bind(in1, in2, on::Distribution, off::Distribution) = begin
   out = Symbol(first(in1),first(in2))
-  Open(LabelledReactionNet{Number,Int}(unique((in1, in2,out=>0)), ((Symbol(:bind_,first(in1),first(in2)),on),(first(in1),first(in2))=>out),
+  Open(LabelledReactionNet{Distribution,Number}(unique((in1, in2,out=>0)), ((Symbol(:bind_,first(in1),first(in2)),on),(first(in1),first(in2))=>out),
                                                            ((Symbol(:unbind_,out),off),out=>(first(in1),first(in2)))))
 end;
 
-deg(prod1,prod2,on::Number) = begin
+deg(prod1,prod2,on::Distribution) = begin
   in = Symbol(first(prod1),first(prod2))
   prod2str = String(first(prod2))
   degprod2 = Symbol(endswith(prod2str, "inact") ? first(prod2str) : prod2str, :deg)
-  Open(LabelledReactionNet{Number,Int}(unique((in=>0, prod1,degprod2=>0)), ((Symbol(:deg_,in),on),in=>(first(prod1),degprod2))));
+  Open(LabelledReactionNet{Distribution,Number}(unique((in=>0, prod1,degprod2=>0)), ((Symbol(:deg_,in),on),in=>(first(prod1),degprod2))));
 end;
 
 # ## Cathepsin *X* reacting with itself
@@ -75,60 +72,75 @@ catXY = @relation (X, Xinact, Xdeg, Y, Yinact, Ydeg) where (X, Xinact, Xdeg, Y, 
 end
 display_uwd(catXY)
 
-# ## Define all enzyme reactions
+#######################
+# EDIT CONSTANTS HERE #
+#######################
+
+K = :K=>33000;
+S = :S=>33000;
+L = :L=>33000;
+Kinact = :Kinact=>0;
+Sinact = :Sinact=>0;
+Linact = :Linact=>0;
+E = :E=>700000;
+G = :G=>1300000;
+
+kon = Uniform(6e-5, 6e-2)
+koff = Uniform(6e-4, 6e-1)
+kcat = Uniform(0, 6e4)
 
 rxns = Dict(
-  :K => [inact(K, 7.494e-10)
-         bind(K, K, 7.814e-4, 3.867e-3)
-         deg(K, K, 2.265e-1)
-         bind(K, Kinact, 7.814e-4, 3.867e-3)
-         deg(K, Kinact, 2.265e-1)],
-  :S => [inact(S, 7.494e-10)
-         bind(S, S, 7.814e-4, 3.867e-3)
-         deg(S, S, 2.265e-1)
-         bind(S, Sinact, 7.814e-4, 3.867e-3)
-         deg(S, Sinact, 2.265e-1)],
-  :L => [inact(L, 7.494e-10)
-         bind(L, L, 7.814e-4, 3.867e-3)
-         deg(L, L, 2.265e-1)
-         bind(L, Linact, 7.814e-4, 3.867e-3)
-         deg(L, Linact, 2.265e-1)],
-  :KE => [bind(K, E, 9.668e-6, 1e-2)
-          deg(K, E, 1.728e0)],
-  :KG => [bind(K, G, 2.764e-6, 8.78e-1)
-          deg(K, G, 1.502)],
-  :SE => [bind(S, E, 4.197e-7, 1.06e-3)
-          deg(S, E, 1.384e4)],
-  :SG => [bind(S, G, 5.152e-8, 3.894e-3)
-          deg(S, G, 8.755e-1)],
-  :LE => [bind(L, E, 1.977e-8, 1e-2)
-          deg(L, E, 1.066e2)],
-  :LG => [bind(L, G, 3.394e-8, 2.365e1)
-          deg(L, G, 4.352)],
-  :KS => [bind(K, S, 8.822e-4, 4.114e5)
-          deg(K, S, 9e-10)
-          bind(K, Sinact, 8.822e-4, 4.114e5)
-          deg(K, Sinact, 9e-10)],
-  :KL => [bind(K, L, 1.756e-4, 3.729e4)
-          deg(K, L, 6.505e6)
-          bind(K, Linact, 1.756e-4, 3.729e4)
-          deg(K, Linact, 6.505e6)],
-  :SK => [bind(S, K, 8.822e-4, 4.114e5)
-          deg(S, K, 9e-10)
-          bind(S, Kinact, 8.822e-4, 4.114e5)
-          deg(S, Kinact, 9e-10)],
-  :SL => [bind(S, L, 1e-3, 5e2)
-          deg(S, L, 1e-7)
-          bind(S, Linact, 1e-3, 5e2)
-          deg(S, Linact, 1e-7)],
-  :LK => [bind(L, K, 1e-3, 4.118e3)
-          deg(L, K, 3.234e1)
-          bind(L, Kinact, 1e-3, 4.118e3)
-          deg(L, Kinact, 3.234e1)],
-  :LS => [bind(L, S, 1.056e-12, 5e2)
-          deg(L, S, 5e-1)
-          bind(L, Sinact, 1.056e-12, 5e2)
-          deg(L, Sinact, 5e-1)]
+  :K => [inact(K, kcat)
+         bind(K, K, kon, koff)
+         deg(K, K, kcat)
+         bind(K, Kinact, kon, koff)
+         deg(K, Kinact, kcat)],
+  :S => [inact(S, kcat)
+         bind(S, S, kon, koff)
+         deg(S, S, kcat)
+         bind(S, Sinact, kon, koff)
+         deg(S, Sinact, kcat)],
+  :L => [inact(L, kcat)
+         bind(L, L, kon, koff)
+         deg(L, L, kcat)
+         bind(L, Linact, kon, koff)
+         deg(L, Linact, kcat)],
+  :KE => [bind(K, E, kon, koff)
+          deg(K, E, kcat)],
+  :KG => [bind(K, G, kon, koff)
+          deg(K, G, kcat)],
+  :SE => [bind(S, E, kon, koff)
+          deg(S, E, kcat)],
+  :SG => [bind(S, G, kon, koff)
+          deg(S, G, kcat)],
+  :LE => [bind(L, E, kon, koff)
+          deg(L, E, kcat)],
+  :LG => [bind(L, G, kon, koff)
+          deg(L, G, kcat)],
+  :KS => [bind(K, S, kon, koff)
+          deg(K, S, kcat)
+          bind(K, Sinact, kon, koff)
+          deg(K, Sinact, kcat)],
+  :KL => [bind(K, L, kon, koff)
+          deg(K, L, kcat)
+          bind(K, Linact, kon, koff)
+          deg(K, Linact, kcat)],
+  :SK => [bind(S, K, kon, koff)
+          deg(S, K, kcat)
+          bind(S, Kinact, kon, koff)
+          deg(S, Kinact, kcat)],
+  :SL => [bind(S, L, kon, koff)
+          deg(S, L, kcat)
+          bind(S, Linact, kon, koff)
+          deg(S, Linact, kcat)],
+  :LK => [bind(L, K, kon, koff)
+          deg(L, K, kcat)
+          bind(L, Kinact, kon, koff)
+          deg(L, Kinact, kcat)],
+  :LS => [bind(L, S, kon, koff)
+          deg(L, S, kcat)
+          bind(L, Sinact, kon, koff)
+          deg(L, Sinact, kcat)]
 );
 
 # ## Helper functions to generate oapply calls
