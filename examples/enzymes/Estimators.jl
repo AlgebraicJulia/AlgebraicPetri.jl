@@ -19,13 +19,14 @@ Turing.setadbackend(:forwarddiff)
 # = GOAL =
 # ========
 
-# # Define estimation problem and sample
-# full_prob = EstimationProblem(sir, [Uniform(0,1) for i ∈ 1:nt(sir)], [:S, :I, :R]=>full_data, u0)
-# full_pred = sample(full_prob, HMC(0.01, 5), 1000)
-
-# # Define estimation problem and sample
-# inf_prob = EstimationProblem(sir, [Uniform(0,1) for i ∈ 1:nt(sir)], :I=>inf_data, u0)
-# inf_pred = sample(inf_prob, HMC(0.01, 5), 1000)
+# data = ...
+# tspan = (1, 180)
+# rxn = enzyme_reaction([:K, :L], [:E])
+# pred_rates = estimate_rates(rxn, tspan, data)
+# tuned_rxn = LabelledReactionNet{Number, Number}(rxn, [], meanRates(pred_rates))
+# prob = ODEProblem(tuned_rxn, tspan)
+# plot(solve(prob))
+# scatter!(data)
 
 # ============
 # = API CODE =
@@ -35,9 +36,9 @@ function estimate_rates(rxn::Union{AbstractReactionNet, AbstractLabelledReaction
   estimate_rates(rxn, tspan, rates(rxn), data; kw...)
 end
 
-function estimate_rates(rxn::AbstractReactionNet, tspan, priors, data; kw...)
+function estimate_rates(rxn::AbstractReactionNet, tspan, priors, data; mc_stepsize=0.01, mc_leapfrogsteps=5, sample_steps=1000)
   est_prob = EstimationProblem(rxn, tspan, priors, data; kw...)
-  sample(est_prob, HMC(0.01, 5), 1000)
+  sample(est_prob, HMC(mc_stepsize, mc_leapfrogsteps), sample_steps)
 end
 
 function estimate_rates(rxn::AbstractLabelledReactionNet{X,Y}, tspan, priors, data; kw...) where {X, Y}
@@ -45,7 +46,7 @@ function estimate_rates(rxn::AbstractLabelledReactionNet{X,Y}, tspan, priors, da
   snames = subpart(rxn, :sname)
   tname_ind = Dict(tnames[i]=>i for i in 1:length(tnames))
   sname_ind = Dict(snames[i]=>i for i in 1:length(snames))
-  pred = estimate_rates(ReactionNet{X,Y}(rxn), tspan, [priors[t] for t in tnames], [sname_ind[k] for k in data[1]]=>data[2])
+  pred = estimate_rates(ReactionNet{X,Y}(rxn), tspan, [priors[t] for t in tnames], [sname_ind[k] for k in data[1]]=>data[2]; kw...)
   replacenames(pred, [Symbol("p[$i]")=>tnames[i] for i in 1:length(tnames)]...)
 end
 

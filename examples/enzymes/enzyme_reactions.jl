@@ -18,6 +18,7 @@ ode(x::Union{AbstractReactionNet{Distribution, Number},AbstractLabelledReactionN
   ODEProblem(vectorfield(x), concentrations(x), t, β)
 end
 ode(x, t) = ODEProblem(vectorfield(x), concentrations(x), t, rates(x));
+meanRates(rxn, pred) = Dict(tname(rxn,t)=>mean(pred).nt.mean[t] for t in 1:nt(rxn))
 
 # ## Define objects and initial conditions
 
@@ -86,7 +87,7 @@ E = :E=>700000;
 G = :G=>1300000;
 
 kon = Uniform(6e-5, 6e-2)
-koff = Uniform(6e-4, 6e-1)
+koff = Uniform(6e-4, 6e3)
 kcat = Uniform(0, 6e4)
 
 rxns = Dict(
