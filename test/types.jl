@@ -1,13 +1,52 @@
 sir_petri = PetriNet(3, ((1, 2), (2, 2)), (2, 3))
 sir_lpetri = LabelledPetriNet([:S, :I, :R], :inf=>((:S, :I), (:I, :I)), :rec=>(:I, :R))
+sir_rxn = ReactionNet{Number, Int}([990, 10, 0], (.001, ((1, 2)=>(2,2))), (.25, (2=>3)))
+sir_lrxn = LabelledReactionNet{Number, Int}((:S=>990, :I=>10, :R=>0), (:inf, .001)=>((:S, :I)=>(:I,:I)), (:rec, .25)=>(:I=>:R))
+
+sir_tpetri= PetriNet(TransitionMatrices(sir_petri))
+
+@test snames(sir_petri) == 1:3
+@test tnames(sir_petri) == 1:2
+@test snames(sir_lpetri) == [:S, :I, :R]
+@test tnames(sir_lpetri) == [:inf, :rec]
+@test snames(sir_rxn) == 1:3
+@test tnames(sir_rxn) == 1:2
+@test snames(sir_lrxn) == [:S, :I, :R]
+@test tnames(sir_lrxn) == [:inf, :rec]
+
+for pn ∈ [sir_petri, sir_lpetri, sir_rxn, sir_lrxn]
+  @test PetriNet(pn) == sir_petri
+end
+
+for pn ∈ [sir_lpetri, sir_lrxn]
+  @test LabelledPetriNet(pn) == sir_lpetri
+end
+for pn ∈ [sir_petri, sir_lpetri, sir_rxn, sir_lrxn]
+  @test LabelledPetriNet(pn, [:S, :I, :R], [:inf, :rec]) == sir_lpetri
+end
+
+for pn ∈ [sir_rxn, sir_lrxn]
+  @test ReactionNet{Number, Int}(pn) == sir_rxn
+end
+for pn ∈ [sir_petri, sir_lpetri, sir_rxn, sir_lrxn]
+  @test ReactionNet{Number, Int}(pn, [990, 10, 0], [.001, .25]) == sir_rxn
+end
+
+for pn ∈ [sir_lrxn]
+  @test LabelledReactionNet{Number, Int}(pn) == sir_lrxn
+end
+for pn ∈ [sir_petri, sir_rxn]
+  @test LabelledReactionNet{Number, Int}(pn, [:S=>990, :I=>10, :R=>0], [:inf=>.001, :rec=>.25]) == sir_lrxn
+end
+for pn ∈ [sir_petri, sir_lpetri, sir_rxn, sir_lrxn]
+  @test LabelledReactionNet{Number, Int}(pn, [:S, :I, :R], [:inf, :rec], [990, 10, 0], [.001, .25]) == sir_lrxn
+end
+
 β(u,t) = 1 / sum(u)
 γ = .25
 sir_rxn = ReactionNet{Function, Int}([990, 10, 0], (β)=>((1, 2)=>(2,2)), (t->γ)=>(2=>3))
 open_sir_rxn = Open([1,2], sir_rxn, [3])
-sir_lrxn = LabelledReactionNet{Number, Int}((:S=>990, :I=>10, :R=>0), (:inf, .001)=>((:S, :I)=>(:I,:I)), (:rec, .25)=>(:I=>:R))
 open_sir_lrxn = Open([:S,:I], sir_lrxn, [:R])
-
-sir_tpetri= PetriNet(TransitionMatrices(sir_petri))
 
 @test sir_tpetri == sir_petri
 @test Petri.Model(sir_petri) == Petri.Model(sir_rxn)
