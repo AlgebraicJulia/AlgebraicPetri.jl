@@ -9,7 +9,7 @@ using MCMCChains
 using Turing, Distributions
 
 import Turing: sample
-export estimate_rates
+export estimate_rates, sample, meanRates
 
 Turing.setadbackend(:forwarddiff)
 
@@ -47,7 +47,7 @@ function estimate_rates(rxn::Union{AbstractReactionNet, AbstractLabelledReaction
   estimate_rates(rxn, tspan, rates(rxn), data; kw...)
 end
 
-function estimate_rates(rxn::AbstractReactionNet, tspan, priors, data; mc_stepsize=0.01, mc_leapfrogsteps=5, sample_steps=1000)
+function estimate_rates(rxn::AbstractReactionNet, tspan, priors, data; mc_stepsize=0.0001, mc_leapfrogsteps=5, sample_steps=1000)
   est_prob = EstimationProblem(rxn, tspan, priors, data)
   sample(est_prob, HMC(mc_stepsize, mc_leapfrogsteps), sample_steps)
 end
@@ -83,7 +83,7 @@ function turing_model(prob::EstimationProblem)
     p ~ product_distribution(prob.priors)
 
     prob′′ = remake(prob′,p=p)
-    predicted = solve(prob′′,Tsit5(),saveat=prob.tspan)
+    predicted = solve(prob′′,saveat=prob.tspan)
 
     # modify for data format
     for i = 1:length(predicted)
@@ -96,4 +96,6 @@ function turing_model(prob::EstimationProblem)
 end
 
 sample(prob::EstimationProblem, args...) = sample(turing_model(prob), args...)
+
+meanRates(pred::Chains) = Dict(zip(mean(pred).nt.parameters, mean(pred).nt.mean))
 end

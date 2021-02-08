@@ -10,7 +10,7 @@ using Distributions
 using DifferentialEquations
 using Plots
 
-export ob, ode, meanRates,
+export ob, ode,
        inactivate, bindunbind, degrade,
        enzX, enzXY, enzXsubY,
        enz, enz_enz, enz_sub,
@@ -23,7 +23,6 @@ ode(x::Union{AbstractReactionNet{Distribution, Number},AbstractLabelledReactionN
   ODEProblem(vectorfield(x), concentrations(x), t, β)
 end
 ode(x, t) = ODEProblem(vectorfield(x), concentrations(x), t, rates(x));
-meanRates(rxn, pred) = Dict(tname(rxn,t)=>mean(pred).nt.mean[t] for t in 1:nt(rxn));
 
 function inactivate(in,on::Distribution)
   inact = Symbol(first(in), :inact)
