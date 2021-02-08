@@ -116,10 +116,10 @@ KSE = enzyme_reaction([:K, :S], [:E])
 j_data = JSON.parsefile("data/KSE_data.json");
 pred = Estimators.estimate_rates(KSE, j_data);
 plot(pred)
-tuned_KSE = LabelledReactionNet{Number, Number}(KSE, [], meanRates(pred))
+tuned_KSE = LabelledReactionNet{Number, Number}(KSE, concentrations(KSE), meanRates(pred))
 tspan = (minimum(j_data["time_data"]), maximum(j_data["time_data"]))
-prob = ode(tuned_rxn, tspan)
-plot(solve(prov))
+prob = ode(tuned_KSE, tspan)
+plot(solve(prob))
 scatter!(j_data["data"])
 
 KSLE = enzyme_reaction([:K, :S, :L], [:E])

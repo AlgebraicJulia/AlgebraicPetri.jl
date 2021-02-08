@@ -97,5 +97,5 @@ end
 
 sample(prob::EstimationProblem, args...) = sample(turing_model(prob), args...)
 
-meanRates(pred::Chains) = Dict(zip(mean(pred).nt.parameters, mean(pred).nt.mean))
+meanRates(pred::Chains) = filter(x->x.first != :σ, Dict(zip(mean(pred).nt.parameters, mean(pred).nt.mean)))
 end
