@@ -1,0 +1,206 @@
+{
+  "T": [
+    {
+      "rate": 0.5,
+      "tname": "exp"
+    },
+    {
+      "rate": 0.4,
+      "tname": "exp_i2"
+    },
+    {
+      "rate": 0.3,
+      "tname": "exp_a"
+    },
+    {
+      "rate": 0.4,
+      "tname": "exp_e"
+    },
+    {
+      "rate": 0.2,
+      "tname": "asymp"
+    },
+    {
+      "rate": 0.1,
+      "tname": "arec"
+    },
+    {
+      "rate": 0.1,
+      "tname": "ill"
+    },
+    {
+      "rate": 0.4,
+      "tname": "prog"
+    },
+    {
+      "rate": 0.1,
+      "tname": "death2"
+    },
+    {
+      "rate": 0.2,
+      "tname": "rec"
+    },
+    {
+      "rate": 0.3,
+      "tname": "rec2"
+    }
+  ],
+  "S": [
+    {
+      "concentration": 100000,
+      "sname": "S"
+    },
+    {
+      "concentration": 100,
+      "sname": "I"
+    },
+    {
+      "concentration": 0,
+      "sname": "E"
+    },
+    {
+      "concentration": 0,
+      "sname": "I2"
+    },
+    {
+      "concentration": 0,
+      "sname": "A"
+    },
+    {
+      "concentration": 0,
+      "sname": "R"
+    },
+    {
+      "concentration": 0,
+      "sname": "D"
+    },
+    {
+      "concentration": 0,
+      "sname": "R2"
+    }
+  ],
+  "I": [
+    {
+      "it": 1,
+      "is": 1
+    },
+    {
+      "it": 1,
+      "is": 2
+    },
+    {
+      "it": 2,
+      "is": 1
+    },
+    {
+      "it": 2,
+      "is": 4
+    },
+    {
+      "it": 3,
+      "is": 1
+    },
+    {
+      "it": 3,
+      "is": 5
+    },
+    {
+      "it": 4,
+      "is": 1
+    },
+    {
+      "it": 4,
+      "is": 3
+    },
+    {
+      "it": 5,
+      "is": 3
+    },
+    {
+      "it": 6,
+      "is": 5
+    },
+    {
+      "it": 7,
+      "is": 3
+    },
+    {
+      "it": 8,
+      "is": 2
+    },
+    {
+      "it": 9,
+      "is": 4
+    },
+    {
+      "it": 10,
+      "is": 4
+    },
+    {
+      "it": 11,
+      "is": 6
+    }
+  ],
+  "O": [
+    {
+      "ot": 1,
+      "os": 3
+    },
+    {
+      "ot": 1,
+      "os": 2
+    },
+    {
+      "ot": 2,
+      "os": 3
+    },
+    {
+      "ot": 2,
+      "os": 4
+    },
+    {
+      "ot": 3,
+      "os": 3
+    },
+    {
+      "ot": 3,
+      "os": 5
+    },
+    {
+      "ot": 4,
+      "os": 3
+    },
+    {
+      "ot": 4,
+      "os": 3
+    },
+    {
+      "ot": 5,
+      "os": 5
+    },
+    {
+      "ot": 6,
+      "os": 6
+    },
+    {
+      "ot": 7,
+      "os": 2
+    },
+    {
+      "ot": 8,
+      "os": 4
+    },
+    {
+      "ot": 9,
+      "os": 7
+    },
+    {
+      "ot": 10,
+      "os": 6
+    },
+    {
+      "ot": 11,
+      "os": 8
+    }
+  ]
+}
