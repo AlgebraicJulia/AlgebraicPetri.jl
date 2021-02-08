@@ -491,7 +491,7 @@ end
 
 LabelledReactionNet{R,C}(pn::AbstractPetriNet, s_labels, t_labels, concentrations, rates) where {R, C} = begin
   pn′ = LabelledReactionNet{R,C}()
-  copy_parts!(pn′, pn)
+  copy_parts!(pn′, PetriNet(pn))
   map(k->set_subpart!(pn′, k, :sname, s_labels[k]), keys(s_labels))
   map(k->set_subpart!(pn′, k, :tname, t_labels[k]), keys(t_labels))
   map(k->set_subpart!(pn′, k, :concentration, concentrations[k]), keys(concentrations))
@@ -501,12 +501,14 @@ end
 
 LabelledReactionNet{R,C}(pn::Union{AbstractPetriNet}, states, transitions) where {R, C} = begin
   pn′ = LabelledReactionNet{R,C}()
-  copy_parts!(pn′, pn)
-  for (i, (k, v)) in enumerate(states)
+  copy_parts!(pn′, PetriNet(pn))
+  states = typeof(states) <: LArray ? [(k=>states[k]) for k ∈ keys(states)] : states
+  transitions = typeof(transitions) <: LArray ? [(k=>transitions[k]) for k ∈ keys(transitions)] : transitions
+  for (i, (k,v)) in enumerate(states)
     set_subpart!(pn′, i, :sname, k)
     set_subpart!(pn′, i, :concentration, v)
   end
-  for (i, (k, v)) in enumerate(transitions)
+  for (i, (k,v)) in enumerate(transitions)
     set_subpart!(pn′, i, :tname, k)
     set_subpart!(pn′, i, :rate, v)
   end
