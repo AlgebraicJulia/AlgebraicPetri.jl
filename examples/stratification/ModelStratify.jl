@@ -12,11 +12,13 @@ using JSON
 using Catlab
 using Catlab.CategoricalAlgebra
 using Catlab.Graphs.BasicGraphs
+using Catlab.Graphs
 using Catlab.Graphs.BasicGraphs: Graph, TheoryGraph
 using Catlab.WiringDiagrams
 using Catlab.Programs
 using Catlab.Graphics
 using Catlab.Graphics.Graphviz: run_graphviz
+using Catlab.Graphics.GraphvizGraphs
 
 import Base.convert
 Base.convert(::Type{Symbol}, str::String) = Symbol(str)
@@ -340,6 +342,18 @@ save_graph(g, fname::AbstractString, format::AbstractString) =
 
 """ Show Graph
 """
+show_graph(sg::ScaleGraph) = begin
+	g = BasicGraphs.Graph()
+	copy_parts!(g, sg)
+	vprops(i) = Dict(:label=>"p: $(sg[i, :conc_scale])\n r: $(sg[i, :rate_scale])")
+	eprops(i) = Dict(:label=>"$(sg[i, :edge_scale])")
+	p = PropertyGraph{Any}(g, vprops, eprops; prog="dot",
+	                            graph=Dict(:rankdir => "LR"),
+	                            node = GraphvizGraphs.default_node_attrs(true),
+	                            edge = Dict(:arrowsize => "0.5"))
+	to_graphviz(p)
+end
+
 show_graph(g) = to_graphviz(g, node_labels=true)
 
 """ Save serialization to json file
