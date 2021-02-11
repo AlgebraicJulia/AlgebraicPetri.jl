@@ -2,14 +2,14 @@
   "V": [
     {
       "conc_scale": 1.0,
+      "rate_scale": 1.0
+    },
+    {
+      "conc_scale": 0.7,
       "rate_scale": 0.3
     },
     {
-      "conc_scale": 0.1,
-      "rate_scale": 0.3
-    },
-    {
-      "conc_scale": 0.1,
+      "conc_scale": 1.6,
       "rate_scale": 0.8
     }
   ],
@@ -17,22 +17,22 @@
     {
       "src": 1,
       "tgt": 2,
-      "edge_scale": 0.5
+      "edge_scale": 1.0
     },
     {
       "src": 2,
       "tgt": 1,
-      "edge_scale": 0.5
+      "edge_scale": 1.0
     },
     {
       "src": 2,
       "tgt": 3,
-      "edge_scale": 1.0
+      "edge_scale": 0.2
     },
     {
       "src": 3,
       "tgt": 2,
-      "edge_scale": 1.0
+      "edge_scale": 0.2
     }
   ]
 }
