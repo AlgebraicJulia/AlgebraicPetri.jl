@@ -6,11 +6,11 @@
     },
     {
       "conc_scale": 0.7,
-      "rate_scale": 0.3
+      "rate_scale": 0.5
     },
     {
       "conc_scale": 1.6,
-      "rate_scale": 0.8
+      "rate_scale": 0.1
     }
   ],
   "E": [

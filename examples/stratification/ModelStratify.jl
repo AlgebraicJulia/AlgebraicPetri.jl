@@ -132,15 +132,19 @@ end
 
 # Creates a copy of a petrinet with indices added to the names to create
 # uniquely named states
-function index_petri(model::LabelledReactionNet, ind::Int, rscale::Number, cscale::Number)
+function index_petri(model::LabelledReactionNet, ind::Int, rscale::Number, cscale::Number; scaled_transitions::Union{Nothing, Array{Symbol}}=nothing)
   new_petri = copy(model)
   snames = subpart(model, :sname)
   tnames = subpart(model, :tname)
 
+  rscales = [(isnothing(scaled_transitions) ||
+              new_petri[i, :tname] ∈ scaled_transitions) ? rscale : 1
+              for i in 1:nparts(new_petri, :T)]
+
   set_subpart!(new_petri, :sname, [Symbol("$(name)_$ind") for name in snames])
   set_subpart!(new_petri, :tname, [Symbol("$(name)_$ind") for name in tnames])
 
-  set_subpart!(new_petri, :rate, rscale*subpart(new_petri, :rate))
+  set_subpart!(new_petri, :rate, rscales.*subpart(new_petri, :rate))
   set_subpart!(new_petri, :concentration, cscale*subpart(new_petri, :concentration))
   Open(new_petri, subpart(new_petri, :sname))
 end
@@ -240,14 +244,14 @@ function stratify(model::LabelledPetriNet, connections::Tuple{LabelledPetriNet, 
     apex(oapply(conn_uwd, ep_map))
 end
 
-function stratify(model::LabelledReactionNet, connections::Tuple{LabelledReactionNet, ScaleGraph}...)
+function stratify(model::LabelledReactionNet, connections::Tuple{LabelledReactionNet, ScaleGraph}...; scaled_transitions::Union{Nothing, Array{Symbol}}=nothing)
     conn_uwd = cross_uwd(connections...)
 
     # Calls diffusion_petri for each edge as (src, tgt)
     g = first(connections)[2]
     ep_map = Dict{Symbol, OpenLabelledReactionNet}(
                  [Symbol("ep$i") =>
-                     index_petri(model, i, rscale(g,i), cscale(g,i)) for i in 1:nv(g)])
+                     index_petri(model, i, rscale(g,i), cscale(g,i); scaled_transitions=scaled_transitions) for i in 1:nv(g)])
 
     for conn in 1:length(connections)
       p = connections[conn][1]
@@ -276,9 +280,9 @@ function diff_strat(epi_model::LabelledPetriNet, connection_graph::Catlab.Graphs
 end
 
 function diff_strat(epi_model::LabelledReactionNet, connection_graph::ScaleGraph,
-                    labels::Array{<:Pair{Symbol, <:Number}})
+                    labels::Array{<:Pair{Symbol, <:Number}}; kw...)
   diff_conn = diff_petri(epi_model, labels)
-  stratify(epi_model, (diff_conn, connection_graph))
+  stratify(epi_model, (diff_conn, connection_graph); kw...)
 end
 
 """ dem_strat(epi_model, connection_graph, sus_state, exp_state, inf_states)
@@ -296,9 +300,9 @@ function dem_strat(epi_model::LabelledPetriNet, connection_graph::Catlab.Graphs.
 end
 
 function dem_strat(epi_model::LabelledReactionNet, connection_graph::ScaleGraph,
-                   sus_state::Symbol, exp_state::Symbol, inf_states::Array{<:Pair{Symbol, <:Number}})
+                   sus_state::Symbol, exp_state::Symbol, inf_states::Array{<:Pair{Symbol, <:Number}}; kw...)
   dem_conn = dem_petri(epi_model, sus_state, exp_state, inf_states)
-  stratify(epi_model, (dem_conn, connection_graph))
+  stratify(epi_model, (dem_conn, connection_graph); kw...)
 end
 
 """ Serialize an ACSet object to a JSON string
