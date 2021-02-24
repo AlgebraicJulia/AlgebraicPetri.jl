@@ -36,7 +36,7 @@ function estimate_rates(rxn::AbstractLabelledReactionNet, j_data; kw...)
   tspan = j_data["time_data"]
   data = j_data["data"]
   d_keys = collect(keys(data))
-  estimate_rates(rxn, tspan, Symbol.(d_keys)=>collect(vcat([data[k]' for k in d_keys]...)))
+  estimate_rates(rxn, tspan, Symbol.(d_keys)=>collect(vcat([data[k]' for k in d_keys]...)); kw...)
 end
 
 function estimate_rates(rxn::Union{AbstractReactionNet, AbstractLabelledReactionNet}, tspan, data; kw...)
@@ -47,9 +47,12 @@ function estimate_rates(rxn::Union{AbstractReactionNet, AbstractLabelledReaction
   estimate_rates(rxn, tspan, rates(rxn), data; kw...)
 end
 
-function estimate_rates(rxn::AbstractReactionNet, tspan, priors, data; mc_stepsize=0.0001, mc_leapfrogsteps=5, sample_steps=1000)
-  est_prob = EstimationProblem(rxn, tspan, priors, data)
-  sample(est_prob, HMC(mc_stepsize, mc_leapfrogsteps), sample_steps)
+function estimate_rates(rxn::AbstractReactionNet, tspan, priors, data; iter_method=PG(10, 100), sample_steps=1000,
+                                                                       error_scale=x->x, param_scale=x->x,
+                                                                       error_dist = InverseGamma(1,1))
+  data[2] .= error_scale.(data[2])
+  est_prob = EstimationProblem(rxn, tspan, priors, data, error_scale, param_scale, error_dist)
+  sample(est_prob, iter_method, sample_steps)
 end
 
 function estimate_rates(rxn::AbstractLabelledReactionNet{X,Y}, tspan, priors, data; kw...) where {X, Y}
@@ -69,26 +72,30 @@ struct EstimationProblem
   priors
   data
   u0
+  error_scale::Function
+  param_scale::Function
+  error_dist::Distribution
 end
 
-function EstimationProblem(rxn::Union{AbstractReactionNet,AbstractLabelledReactionNet}, tspan, priors, data)
-  EstimationProblem(rxn, tspan, priors, data, concentrations(rxn))
+function EstimationProblem(rxn::Union{AbstractReactionNet,AbstractLabelledReactionNet},
+                           tspan, priors, data, error_scale, param_scale, error_dist)
+  EstimationProblem(rxn, tspan, priors, data, concentrations(rxn), error_scale, param_scale, error_dist)
 end
 
 function turing_model(prob::EstimationProblem)
   @model function fit_fun(data_idxs, data, prob′)
-    σ ~ InverseGamma(2,3)
+    σ ~ prob.error_dist
 
     # pick distribution with possible range of parameters
     p ~ product_distribution(prob.priors)
 
-    prob′′ = remake(prob′,p=p)
+    prob′′ = remake(prob′,p=prob.param_scale.(p))
     predicted = solve(prob′′,saveat=prob.tspan)
 
     # modify for data format
-    for i = 1:length(predicted)
+    for i = 1:length(prob.tspan)
       for (j,s) in enumerate(data_idxs)
-        data[j,i] ~ Normal(predicted[i][s], σ)
+        data[j,i] ~ Normal(prob.error_scale(predicted(prob.tspan[i])[s]), σ)
       end
     end
   end

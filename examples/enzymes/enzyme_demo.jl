@@ -10,6 +10,7 @@ using JSON
 
 using DifferentialEquations
 using Distributions
+using Turing
 using Plots, StatsPlots
 
 #######################
@@ -27,9 +28,9 @@ E = :E=>700000;
 G = :G=>1300000;
 
 # Parameter Distributions
-kon = Uniform(6e-5, 6e-2)
-koff = Uniform(6e-4, 6e3)
-kcat = Uniform(0, 6e4)
+kon = Uniform(log(6e-5), log(6e-2))
+koff = Uniform(log(6e-4), log(6e3))
+kcat = Uniform(log(1e-10), log(6e4))
 
 # Parameter distributions for each type of reaction
 rxns = Dict(
@@ -111,17 +112,38 @@ enzyme_reaction(args...) = enzyme_uwd(args...) |> functor |> apex
 # DEFINE MODELS HERE #
 ######################
 
+# Define the Enzyme system
 KSE = enzyme_reaction([:K, :S], [:E])
 
+# Upload data from .json file
 j_data = JSON.parsefile("data/KSE_data.json");
-pred = Estimators.estimate_rates(KSE, j_data);
+
+# Perform parameter estimation using Enzyme system and .json files
+pred = Estimators.estimate_rates(KSE, j_data, iter_method=PG(100, 100), sample_steps=100,
+                                 error_scale=x->log(x+1e-15), param_scale=x->exp(x));
 plot(pred)
-tuned_KSE = LabelledReactionNet{Number, Number}(KSE, concentrations(KSE), meanRates(pred))
+savefig("pred_results.png")
+
+tspan = (minimum(j_data["time_data"]), maximum(j_data["time_data"]))
+
+# First show plot with the means of the priors
+prior_KSE = LabelledReactionNet{Number, Number}(KSE, concentrations(KSE), exp.(mean.(rates(KSE))))
+prob = ode(prior_KSE, tspan)
+plot(solve(prob))
+plot!(j_data["time_data"], [j_data["data"][k] for k in keys(j_data["data"])], seriestype = :scatter)
+savefig("prior_model.png")
+
+# Then show the plot with the means of the posteriors
+pred_rates = meanRates(pred)
+tuned_KSE = LabelledReactionNet{Number, Number}(KSE, concentrations(KSE),
+                                                Dict(k=>exp(pred_rates[k]) for k in keys(pred_rates)))
 tspan = (minimum(j_data["time_data"]), maximum(j_data["time_data"]))
 prob = ode(tuned_KSE, tspan)
 plot(solve(prob))
-scatter!(j_data["data"])
+plot!(j_data["time_data"], [j_data["data"][k] for k in keys(j_data["data"])], seriestype = :scatter)
+savefig("posterior_model.png")
 
+# Other examples of enzyme reactions
 KSLE = enzyme_reaction([:K, :S, :L], [:E])
 
 KSLEG = enzyme_reaction([:K, :S, :L], [:E, :G])
