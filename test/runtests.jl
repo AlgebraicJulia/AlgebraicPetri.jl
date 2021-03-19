@@ -28,3 +28,7 @@ end
 @testset "BilayerNetworks" begin
     include("bilayernetworks.jl")
 end
+
+@testset "Catalyst Tooling" begin
+  include("CatalystInterop.jl")
+end
