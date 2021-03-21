@@ -24,3 +24,7 @@ end
 @testset "Epidemiology" begin
     include("epidemiology.jl")
 end
+
+@testset "BilayerNetworks" begin
+    include("bilayernetworks.jl")
+end

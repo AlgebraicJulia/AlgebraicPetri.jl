@@ -361,6 +361,6 @@ end
 
 include("visualization.jl")
 include("Epidemiology.jl")
-
+include("Bilayernetworks.jl")
 
 end
