@@ -54,3 +54,11 @@ bnsir_test = @acset BilayerNetwork begin
 end
 
 @test bnsir == bnsir_test
+
+
+roundtrippetri = PetriNet()
+migrate!(roundtrippetri, bnsir)
+
+psir_structure = PetriNet()
+copy_parts!(psir_structure, psir)
+@test roundtrippetri == psir_structure
