@@ -2,10 +2,9 @@ using Requires
 
 @require Petri="4259d249-1051-49fa-8328-3f8ab9391c33" begin
   import .Petri
-  import .Petri: Model
 
   # Interoperability with Petri.jl
-  Model(p::AbstractPetriNet) = begin
+  Petri.Model(p::AbstractPetriNet) = begin
     ts = TransitionMatrices(p)
     t_in = map(i->Dict(k=>v for (k,v) in enumerate(ts.input[i,:]) if v != 0), 1:nt(p))
     t_out = map(i->Dict(k=>v for (k,v) in enumerate(ts.output[i,:]) if v != 0), 1:nt(p))
@@ -14,7 +13,7 @@ using Requires
     return Model(ns(p), Δ)
   end
 
-  Model(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}) = begin
+  Petri.Model(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}) = begin
     snames = [sname(p, s) for s in 1:ns(p)]
     tnames = [tname(p, t) for t in 1:nt(p)]
     ts = TransitionMatrices(p)

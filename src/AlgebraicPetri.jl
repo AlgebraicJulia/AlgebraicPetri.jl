@@ -17,7 +17,6 @@ using Catlab.CategoricalAlgebra
 using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Present
 using Catlab.Theories
-using Petri
 using LabelledArrays
 using LinearAlgebra: mul!
 
