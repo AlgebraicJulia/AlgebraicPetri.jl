@@ -1,6 +1,6 @@
 using Test
 
-using Petri
+import Petri
 using LabelledArrays
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
