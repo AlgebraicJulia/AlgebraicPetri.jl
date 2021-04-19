@@ -56,9 +56,31 @@ end
 @test bnsir == bnsir_test
 
 
-roundtrippetri = PetriNet()
-migrate!(roundtrippetri, bnsir)
 
-psir_structure = PetriNet()
-copy_parts!(psir_structure, psir)
-@test roundtrippetri == psir_structure
+function roundtrip(pn::AbstractPetriNet, bn::AbstractBilayerNetwork)
+    roundtrippetri = PetriNet()
+    migrate!(roundtrippetri, bn)
+    pn_structure = PetriNet()
+    copy_parts!(pn_structure, pn)
+    return roundtrippetri, pn_structure
+end
+
+function test_roundtrip(pn::AbstractPetriNet, bn::AbstractBilayerNetwork)
+    roundtrippetri, pn_structure = roundtrip(pn, bn)
+    @test roundtrippetri == pn_structure
+end
+
+test_roundtrip(psir, bnsir)
+
+seir = @relation (s,e,i,r) begin
+    exposure(s,i,e)
+    illness(e,i)
+    recovery(i,r)
+end
+
+pseir = apex(oapply_epi(seir))
+
+bnseir = BilayerNetwork()
+migrate!(bnseir, pseir)
+
+bnrt,pnstr = roundtrip(pseir, bnseir)
