@@ -17,7 +17,6 @@ using Catlab.CategoricalAlgebra
 using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Present
 using Catlab.Theories
-using LinearAlgebra: mul!
 
 vectorify(n::Vector) = n
 vectorify(n::Tuple) = length(n) == 1 ? [n] : n
