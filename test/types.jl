@@ -67,8 +67,8 @@ open_sir_lrxn = Open([:S,:I], sir_lrxn, [:R])
 @test concentrations(sir_rxn) == [990, 10, 0]
 @test typeof(rates(sir_rxn)) <: Array{Function}
 
-@test concentrations(sir_lrxn) == LVector(S=990, I=10, R=0)
-@test rates(sir_lrxn) == LVector(inf=.001, rec=.25)
+@test concentrations(sir_lrxn) == Dict(:S=>990, :I=>10, :R=>0)
+@test rates(sir_lrxn) == Dict(:inf=>.001, :rec=>.25)
 
 @test length(dom(open_sir_rxn).ob.tables.S) == length(dom(open_sir_lrxn).ob.tables.S)
 
@@ -78,11 +78,11 @@ out = vectorfield(sir_rxn)(du, concentrations(sir_rxn), rates(sir_rxn), 0.01)
 @test out[2] ≈ 7.4
 @test out[3] ≈ 2.5
 
-du = LVector(S=0.0, I=0.0, R=0.0)
+du = Dict(:S=>0.0, :I=>0.0, :R=>0.0)
 out = vectorfield(sir_lrxn)(du, concentrations(sir_lrxn), rates(sir_lrxn), 0.01)
-@test out.S ≈ -9.9
-@test out.I ≈ 7.4
-@test out.R ≈ 2.5
+@test out[:S] ≈ -9.9
+@test out[:I] ≈ 7.4
+@test out[:R] ≈ 2.5
 
 @test ns(sir_petri) == 3
 add_species!(sir_petri)

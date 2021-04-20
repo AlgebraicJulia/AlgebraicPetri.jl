@@ -1,7 +1,6 @@
 using Test
 
 import Petri
-using LabelledArrays
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 using Catlab.Theories

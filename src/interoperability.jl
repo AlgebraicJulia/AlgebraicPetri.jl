@@ -18,11 +18,11 @@ function __init__()
       snames = [sname(p, s) for s in 1:ns(p)]
       tnames = [tname(p, t) for t in 1:nt(p)]
       ts = TransitionMatrices(p)
-      t_in = map(i->LVector(;[(snames[k]=>v) for (k,v) in enumerate(ts.input[i,:]) if v != 0]...), 1:nt(p))
-      t_out = map(i->LVector(;[(snames[k]=>v) for (k,v) in enumerate(ts.output[i,:]) if v != 0]...), 1:nt(p))
+      t_in = map(i->Dict(snames[k]=>v for (k,v) in enumerate(ts.input[i,:]) if v != 0), 1:nt(p))
+      t_out = map(i->Dict(snames[k]=>v for (k,v) in enumerate(ts.output[i,:]) if v != 0), 1:nt(p))
 
-      Δ = LVector(;[(tnames[i]=>t) for (i,t) in enumerate(zip(t_in, t_out))]...)
-      return Petri.Model(collect(values(snames)), Δ)
+      return Petri.Model(collect(values(snames)),
+        Dict(tnames[i]=>t for (i,t) in enumerate(zip(t_in, t_out))))
     end
   end
 end

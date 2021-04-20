@@ -17,7 +17,6 @@ using Catlab.CategoricalAlgebra
 using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Present
 using Catlab.Theories
-using LabelledArrays
 using LinearAlgebra: mul!
 
 vectorify(n::Vector) = n
@@ -259,7 +258,7 @@ vectorfield(pn::AbstractPetriNet) = begin
   tm = TransitionMatrices(pn)
   dt = tm.output - tm.input
   f(du,u,p,t) = begin
-    rates = zeros(eltype(du),nt(pn))
+    rates = zeros(nt(pn))
     u_m = [u[sname(pn, i)] for i in 1:ns(pn)]
     p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
     for i in 1:nt(pn)
