@@ -339,6 +339,6 @@ end
 include("interoperability.jl")
 include("visualization.jl")
 include("Epidemiology.jl")
-include("Bilayernetworks.jl")
+include("BilayerNetworks.jl")
 
 end
