@@ -197,4 +197,78 @@ function GraphvizGraphs.to_graphviz(g::AbstractLabelledBilayerNetwork; kwargs...
     to_graphviz(propertygraph(g; kwargs...))
 end
 
+function evaluate!(du, ϕ, bn::AbstractLabelledBilayerNetwork, state; params...)
+    du.= 0.0
+    ϕ .= 1.0
+    for i in parts(bn, :Win)
+        ϕ[bn[i, :call]] *= state[bn[i, :arg]]
+    end
+    for i in parts(bn, :Box)
+        ϕ[i] *= params[bn[i, :parameter]]
+    end
+
+    for i in parts(bn, :Wn)
+        du[bn[i, :effusion]] -= ϕ[bn[i, :efflux]]
+    end
+    for i in parts(bn, :Wa)
+        du[bn[i, :infusion]] += ϕ[bn[i, :influx]]
+    end
+    return du
+end
+
+evaluate(bn::AbstractLabelledBilayerNetwork, state; params...) = evaluate!(zeros(length(state)), ones(nparts(bn, :Box)), bn, state; params...)
+
+function paramexps(bn::AbstractLabelledBilayerNetwork, params::Symbol)
+    map(parts(bn, :Box)) do i
+        p = bn[i, :parameter]
+        :(ϕ[$i] *= params[$p])
+    end
+end
+
+function paramexps(bn::AbstractLabelledBilayerNetwork, params)
+    map(parts(bn, :Box)) do i
+        p = bn[i, :parameter]
+        β = params[p]
+        :(ϕ[$i] *= $β)
+    end
+end
+
+funcwrap(du, ϕ, state, params::Symbol, body::Expr) = :(f!($du, $ϕ, $state, $params, t) = $body)
+funcwrap(du, ϕ, state, params, body::Expr) = :(f!($du, $ϕ, $state, t) = $body)
+
+
+function compile(bn::Union{AbstractLabelledBilayerNetwork, AbstractBilayerNetwork}, du::Symbol, ϕ::Symbol, state::Symbol, params)
+    body = quote
+        $du.= 0.0
+        $ϕ .= 1.0
+    end
+
+    ϕs = map(parts(bn, :Win)) do i
+        j = bn[i, :arg]
+        k = bn[i, :call]
+        :(ϕ[$k] *= $state[$j])
+    end
+    append!(body.args, ϕs)
+    ps = paramexps(bn, params)
+    append!(body.args, ps)
+
+    effs = map(parts(bn, :Wn)) do i
+        j = bn[i, :efflux]
+        k = bn[i, :effusion]
+        :(du[$k] -= ϕ[$j])
+    end
+    append!(body.args, effs)
+
+    infs = map(parts(bn, :Wa)) do i
+        j = bn[i,:influx]
+        k = bn[i,:infusion]
+        :(du[$k] += ϕ[$j])
+    end
+    append!(body.args, infs)
+    push!(body.args, :(return $du))
+    return funcwrap(du, ϕ, state, params, body)
+end
+
+compile(bn, du, ϕ, state; params...) = compile(bn, du, ϕ, state, params)
+
 end
