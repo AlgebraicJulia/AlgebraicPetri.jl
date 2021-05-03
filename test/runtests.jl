@@ -29,6 +29,8 @@ end
     include("bilayernetworks.jl")
 end
 
-@testset "Catalyst Tooling" begin
-  include("CatalystInterop.jl")
+if VERSION >= v"1.3.0"
+  @testset "Catalyst Tooling" begin
+    include("CatalystInterop.jl")
+  end
 end
