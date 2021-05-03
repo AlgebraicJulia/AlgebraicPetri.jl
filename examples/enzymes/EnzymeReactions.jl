@@ -25,7 +25,7 @@ end
 ode(x, t) = ODEProblem(vectorfield(x), concentrations(x), t, rates(x));
 
 function inactivate(in,on::T) where T
-  inact = Symbol(first(in), :inact)
+  inact = Symbol(first(in), :_inact)
   Open(LabelledReactionNet{T,Number}(unique((in, inact=>0)), ((Symbol(:inact_,first(in)),on),first(in)=>inact)))
 end;
 
@@ -38,7 +38,7 @@ end;
 function degrade(prod1,prod2,on::T) where T
   in = Symbol(first(prod1),first(prod2))
   prod2str = String(first(prod2))
-  degprod2 = Symbol(endswith(prod2str, "inact") ? first(prod2str) : prod2str, :deg)
+  degprod2 = Symbol(endswith(prod2str, "inact") ? first(prod2str) : prod2str, :_deg)
   Open(LabelledReactionNet{T,Number}(unique((in=>0, prod1,degprod2=>0)), ((Symbol(:deg_,in),on),in=>(first(prod1),degprod2))));
 end;
 
@@ -73,10 +73,10 @@ function enz(rxns, cat)
   obtype = valtype(rates(apex(first(last(first(rxns))))))
   out = oapply(enzX, Dict([:inactX, :bindXX, :degXX, :bindXXinact, :degXXinact] .=> rxns[catsym]), Dict(
     :X=>ob(obtype, cat),
-    :Xinact=>ob(obtype, Symbol(catsym,:inact)=>0),
-    :Xdeg=>ob(obtype, Symbol(catsym,:deg)=>0),
+    :Xinact=>ob(obtype, Symbol(catsym,:_inact)=>0),
+    :Xdeg=>ob(obtype, Symbol(catsym,:_deg)=>0),
     :XX=>ob(obtype, Symbol(catsym,catsym)=>0),
-    :XXinact=>ob(obtype, Symbol(catsym,catsym,:inact)=>0)))
+    :XXinact=>ob(obtype, Symbol(catsym,catsym,:_inact)=>0)))
   bundle_legs(out, [[1,2,3]])
 end
 
@@ -87,11 +87,11 @@ function enz_sub(rxns, cat1, sub)
   obtype = valtype(rates(apex(first(last(first(rxns))))))
   out = oapply(enzXsubY, Dict([:bindXY, :degXY] .=> rxns[catsub]), Dict(
     :X=>ob(obtype, cat1),
-    :Xinact=>ob(obtype, Symbol(catsym,:inact)=>0),
-    :Xdeg=>ob(obtype, Symbol(catsym,:deg)=>0),
+    :Xinact=>ob(obtype, Symbol(catsym,:_inact)=>0),
+    :Xdeg=>ob(obtype, Symbol(catsym,:_deg)=>0),
     :Y=>ob(obtype, sub),
     :XY=>ob(obtype, Symbol(catsym,subsym)=>0),
-    :Ydeg=>ob(obtype, Symbol(subsym,:deg)=>0)))
+    :Ydeg=>ob(obtype, Symbol(subsym,:_deg)=>0)))
   bundle_legs(out, [[1,2,3], [4,5]])
 end
 
@@ -102,13 +102,13 @@ function enz_enz(rxns, cat1, cat2)
   obtype = valtype(rates(apex(first(last(first(rxns))))))
   out = oapply(enzXY, Dict([:bindXY, :degXY, :bindXYinact, :degXYinact] .=> rxns[catcat]), Dict(
     :X=>ob(obtype, cat1),
-    :Xinact=>ob(obtype, Symbol(cat1sym,:inact)=>0),
-    :Xdeg=>ob(obtype, Symbol(cat1sym,:deg)=>0),
+    :Xinact=>ob(obtype, Symbol(cat1sym,:_inact)=>0),
+    :Xdeg=>ob(obtype, Symbol(cat1sym,:_deg)=>0),
     :Y=>ob(obtype, cat2),
-    :Yinact=>ob(obtype, Symbol(cat2sym,:inact)=>0),
-    :Ydeg=>ob(obtype, Symbol(cat2sym,:deg)=>0),
+    :Yinact=>ob(obtype, Symbol(cat2sym,:_inact)=>0),
+    :Ydeg=>ob(obtype, Symbol(cat2sym,:_deg)=>0),
     :XY=>ob(obtype, catcat=>0),
-    :XYinact=>ob(obtype, Symbol(catcat,:inact)=>0)))
+    :XYinact=>ob(obtype, Symbol(catcat,:_inact)=>0)))
   bundle_legs(out, [[1,2,3], [4,5,6]])
 end
 
