@@ -1,5 +1,5 @@
 # Library Reference
 
 ```@autodocs
-Modules = [AlgebraicPetri]
+Modules = [AlgebraicPetri, AlgebraicPetri.Epidemiology]
 ```
