@@ -221,11 +221,7 @@ evaluate(bn::AbstractLabelledBilayerNetwork, state; params...) = evaluate!(zeros
 function paramexps(bn::AbstractLabelledBilayerNetwork, params::Symbol)
     map(parts(bn, :Box)) do i
         p = bn[i, :parameter]
-        if p isa Symbol
-          :(ϕ[$i] *= params[$(Meta.quot(p))])
-        else
-          :(ϕ[$i] *= params[$p])
-        end
+        :(ϕ[$i] *= params[$(Meta.quot(p))])
     end
 end
 
