@@ -34,9 +34,12 @@ Graph(psir)
 # This model uses a computation graph to express the computation of the vector field of the Petri net.
 
 bnsir = BilayerNetwork()
+lab_bnsir = LabelledBilayerNetwork()
 migrate!(bnsir, psir)
+migrate!(lab_bnsir, psir)
 bnsir
-to_graphviz(bnsir)
+@test typeof(to_graphviz(bnsir)) == Graph
+@test typeof(to_graphviz(lab_bnsir)) == Graph
 
 bnsir_test = @acset BilayerNetwork begin
     Qin = 3
@@ -56,7 +59,9 @@ end
 @test bnsir == bnsir_test
 
 
-
+######################
+# Round Trip testing #
+######################
 function roundtrip(pn::AbstractPetriNet, bn::AbstractBilayerNetwork)
     roundtrippetri = PetriNet()
     migrate!(roundtrippetri, bn)
@@ -65,11 +70,19 @@ function roundtrip(pn::AbstractPetriNet, bn::AbstractBilayerNetwork)
     return roundtrippetri, pn_structure
 end
 
+function roundtrip(pn::AbstractLabelledPetriNet, bn::AbstractLabelledBilayerNetwork)
+    roundtrippetri = LabelledPetriNet()
+    migrate!(roundtrippetri, bn)
+    return roundtrippetri, pn
+end
+
 function test_roundtrip(pn::AbstractPetriNet, bn::AbstractBilayerNetwork)
     roundtrippetri, pn_structure = roundtrip(pn, bn)
     @test roundtrippetri == pn_structure
 end
 
+bnsir = BilayerNetwork()
+migrate!(bnsir, psir)
 test_roundtrip(psir, bnsir)
 
 seir = @relation (s,e,i,r) begin
@@ -79,8 +92,10 @@ seir = @relation (s,e,i,r) begin
 end
 
 pseir = apex(oapply_epi(seir))
-
 bnseir = BilayerNetwork()
 migrate!(bnseir, pseir)
+test_roundtrip(pseir, bnseir)
 
-bnrt,pnstr = roundtrip(pseir, bnseir)
+lbnseir = LabelledBilayerNetwork()
+migrate!(lbnseir, pseir)
+test_roundtrip(pseir, lbnseir)
