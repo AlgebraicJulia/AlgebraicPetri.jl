@@ -43,6 +43,7 @@ makedocs(
       "examples/covid/epidemiology.md",
       "examples/covid/coexist/coexist.md",
       "examples/enzymes/enzyme_reactions.md",
+      "examples/covid/bilayerconversion.md",
     ],
     "Library Reference" => "api.md",
   ]
