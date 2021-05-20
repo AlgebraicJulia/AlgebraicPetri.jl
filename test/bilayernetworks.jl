@@ -3,6 +3,7 @@ using Test
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 using AlgebraicPetri.BilayerNetworks
+using LabelledArrays
 
 using Catlab
 using Catlab.CategoricalAlgebra
@@ -99,3 +100,24 @@ test_roundtrip(pseir, bnseir)
 lbnseir = LabelledBilayerNetwork()
 migrate!(lbnseir, pseir)
 test_roundtrip(pseir, lbnseir)
+
+########################
+# Compile and Evaluate #
+########################
+
+du = LVector(S=0.0,I=0.0,R=0.0)
+u = LVector(S=10.0,I=1.0,R=0.0)
+params = LVector(inf=0.1,rec=0.05)
+
+bn_du =  AlgebraicPetri.BilayerNetworks.evaluate(lab_bnsir, u; inf=0.1,rec=0.05)
+vectorfield(psir)(du, u, params, 0)
+
+@test all(abs.(bn_du .- du[[:S,:I,:R]]) .< 1e-9)
+
+eval(AlgebraicPetri.BilayerNetworks.compile(lab_bnsir, :du, :ϕ, :u; inf=0.1, rec=0.05))
+comp_du = [0.0,0.0,0.0]
+comp_ϕ = [0.0,0.0,0.0]
+
+f!(comp_du, comp_ϕ, u, 0)
+
+@test all(abs.(comp_du .- du[[:S,:I,:R]]) .< 1e-9)
