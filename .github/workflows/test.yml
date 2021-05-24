@@ -22,7 +22,7 @@ jobs:
         if: matrix.julia_version != '1.0'
       - name: "Run tests (Julia v1.0)"
         run: |
-          julia -e 'using Pkg; Pkg.activate("test"); Pkg.develop(PackageSpec(path="."))'
+          julia -e 'using Pkg; Pkg.activate("test/v1.0"); Pkg.develop(PackageSpec(path="."))'
           julia --color=yes --check-bounds=yes --project=test test/runtests.jl
         # XXX: Julia 1.0 does not use the Project.toml in `tests` directory.
         if: matrix.julia_version == '1.0'
