@@ -2,7 +2,7 @@ using AlgebraicPetri
 using Catlab.Graphs.BasicGraphs
 using Catlab.CategoricalAlgebra
 
-include("ModelStratify.jl")
+include("_ModelStratify.jl")
 
 # DEFINE EPI MODEL
 # Read in json string

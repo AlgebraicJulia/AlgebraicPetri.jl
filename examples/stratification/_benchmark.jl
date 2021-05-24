@@ -6,7 +6,7 @@ println(now(), " Starting compilation")
 flush(stdout)
 include("stratification.jl")
 
-include("ModelStratify.jl")
+include("_ModelStratify.jl")
 
 println(now(), " Starting coexist construction")
 flush(stdout)
