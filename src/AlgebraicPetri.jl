@@ -538,9 +538,4 @@ include("interoperability.jl")
 include("visualization.jl")
 include("Epidemiology.jl")
 include("BilayerNetworks.jl")
-
-function __init__()
-  @require Catalyst="479239e8-5488-4da2-87a7-35f2df7eef83" include("CatalystInterop.jl")
-end
-
 end
