@@ -25,4 +25,6 @@ function __init__()
       return Petri.Model(collect(values(snames)), Δ)
     end
   end
+
+  @require Catalyst="479239e8-5488-4da2-87a7-35f2df7eef83" include("CatalystInterop.jl")
 end
