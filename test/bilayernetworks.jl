@@ -129,3 +129,90 @@ comp_ϕ = [0.0,0.0,0.0]
 f!(comp_du, comp_ϕ, u, params, 0)
 
 @test all(abs.(comp_du .- du[[:S,:I,:R]]) .< 1e-9)
+
+##############
+# Edge cases #
+##############
+
+function test_sir_equivalence(bn, pn)
+  du = LVector(S=0.0,I=0.0,R=0.0)
+  u = LVector(S=10.0,I=1.0,R=0.0)
+  params = LVector(inf=0.1,rec=0.05)
+
+  bn_du =  AlgebraicPetri.BilayerNetworks.evaluate(bn, u; inf=0.1,rec=0.05)
+  vectorfield(pn)(du, u, params, 0)
+
+  @test all(abs.(bn_du .- du[[:S,:I,:R]]) .< 1e-9)
+end
+
+# Ensure that the migration function properly balances the BLN
+bnsir_edge = @acset LabelledBilayerNetwork begin
+    Qin = 3
+    Qout = 3
+    Win = 3
+    Wa = 2
+    Wn = 2
+    Box = 2
+    arg = [1,2,2]
+    call = [1,1,2]
+    efflux = [1,2]
+    effusion = [1,2]
+    influx = [1,2]
+    infusion = [2,3]
+    parameter=[:inf, :rec]
+    variable=[:S, :I, :R]
+    tanvar=[:S, :I, :R]
+end
+
+test_sir_equivalence(bnsir_edge, psir)
+
+edge_sir = LabelledPetriNet()
+migrate!(edge_sir, bnsir_edge)
+test_sir_equivalence(bnsir_edge, edge_sir)
+
+bnsir_edge_add = @acset LabelledBilayerNetwork begin
+    Qin = 3
+    Qout = 3
+    Win = 3
+    Wa = 4
+    Wn = 4
+    Box = 2
+    arg = [1,2,2]
+    call = [1,1,2]
+    efflux = [1,1,1,2]
+    effusion = [1,2,2,2]
+    influx = [1,1,1,2]
+    infusion = [2,2,2,3]
+    parameter=[:inf, :rec]
+    variable=[:S, :I, :R]
+    tanvar=[:S, :I, :R]
+end
+
+test_sir_equivalence(bnsir_edge_add, psir)
+
+edge_sir = LabelledPetriNet()
+migrate!(edge_sir, bnsir_edge_add)
+test_sir_equivalence(bnsir_edge, edge_sir)
+
+
+
+bnsir_migrate_break = @acset LabelledBilayerNetwork begin
+    Qin = 3
+    Qout = 3
+    Win = 2
+    Wa = 2
+    Wn = 2
+    Box = 2
+    arg = [1,2]
+    call = [1,1]
+    efflux = [1,2]
+    effusion = [1,2]
+    influx = [1,2]
+    infusion = [2,3]
+    parameter=[:inf, :rec]
+    variable=[:S, :I, :R]
+    tanvar=[:S, :I, :R]
+end
+bn_error = "Mass action does not allow species $(bnsir_migrate_break[2, :variable]) to be "*
+           "removed without contributing to the rate."
+@test_throws ErrorException(bn_error) migrate!(edge_sir, bnsir_migrate_break)

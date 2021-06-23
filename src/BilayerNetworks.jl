@@ -33,6 +33,34 @@ const BilayerNetwork = ACSetType(ThBilayerNetwork)
 const AbstractLabelledBilayerNetwork = AbstractACSetType(ThLabelledBilayerNetwork)
 const LabelledBilayerNetwork = ACSetType(ThLabelledBilayerNetwork){Symbol}
 
+function balance!(bn::AbstractBilayerNetwork)
+  for t in 1:nparts(bn, :Box)
+    for s in 1:nparts(bn, :Qin)
+      n_in = count(i->(bn[i, :arg] == s), incident(bn, t, :call))
+      n_neg = count(i->(bn[i, :effusion] == s), incident(bn, t, :efflux))
+      n_pos = count(i->(bn[i, :infusion] == s), incident(bn, t, :influx))
+      n_diff = n_pos - n_neg
+
+      req_pairs = n_neg - n_in
+
+      req_pairs <= n_pos ||
+        error("Mass action does not allow species $(bn[s, :variable]) to be "*
+              "removed without contributing to the rate.")
+
+      if req_pairs < 0
+        add_parts!(bn, :Wn, -req_pairs, effusion=s, efflux=t)
+        add_parts!(bn, :Wa, -req_pairs, infusion=s, influx=t)
+      elseif req_pairs > 0
+        neg = filter(i -> s == bn[i, :effusion], incident(bn, t, :efflux)) |> sort
+        pos = filter(i -> s == bn[i, :infusion], incident(bn, t, :influx)) |> sort
+        rem_parts!(bn, :Wn, neg[1:req_pairs])
+        rem_parts!(bn, :Wa, pos[1:req_pairs])
+      end
+    end
+  end
+  bn
+end
+
 function migrate!(bn::AbstractBilayerNetwork, pn::AbstractPetriNet)
     migrate!(bn, pn,
              Dict(:Qin=>:S, :Qout=>:S, :Box=>:T, :Win=>:I, :Wn=>:I, :Wa=>:O),
@@ -60,6 +88,7 @@ end
 
 
 function migrate!(pn::AbstractPetriNet, bn::AbstractBilayerNetwork)
+    balance!(bn)
     migrate!(pn,bn,
          Dict(:S=>:Qin, :T=>:Box, :I=>:Win, :O=>:Wa),
          Dict(:is=>:arg,
@@ -69,6 +98,7 @@ function migrate!(pn::AbstractPetriNet, bn::AbstractBilayerNetwork)
 end
 
 function migrate!(pn::AbstractLabelledPetriNet, bn::AbstractLabelledBilayerNetwork)
+    balance!(bn)
     migrate!(pn,bn,
          Dict(:S=>:Qin, :T=>:Box, :I=>:Win, :O=>:Wa, :Name=>:Name),
          Dict(:is=>:arg,
