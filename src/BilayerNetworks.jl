@@ -88,8 +88,9 @@ end
 
 
 function migrate!(pn::AbstractPetriNet, bn::AbstractBilayerNetwork)
-    balance!(bn)
-    migrate!(pn,bn,
+    bnc = copy(bn)
+    balance!(bnc)
+    migrate!(pn,bnc,
          Dict(:S=>:Qin, :T=>:Box, :I=>:Win, :O=>:Wa),
          Dict(:is=>:arg,
               :it=>:call,
@@ -98,8 +99,9 @@ function migrate!(pn::AbstractPetriNet, bn::AbstractBilayerNetwork)
 end
 
 function migrate!(pn::AbstractLabelledPetriNet, bn::AbstractLabelledBilayerNetwork)
-    balance!(bn)
-    migrate!(pn,bn,
+    bnc = copy(bn)
+    balance!(bnc)
+    migrate!(pn,bnc,
          Dict(:S=>:Qin, :T=>:Box, :I=>:Win, :O=>:Wa, :Name=>:Name),
          Dict(:is=>:arg,
               :it=>:call,
