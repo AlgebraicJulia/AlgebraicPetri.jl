@@ -14,9 +14,10 @@ export ob, ode,
        inactivate, bindunbind, degrade,
        enzX, enzXY, enzXsubY,
        enz, enz_enz, enz_sub,
-       enzyme_uwd
+       enzyme_uwd, enzyme_generators
 
 ob(type, x) = codom(Open([first(x)], LabelledReactionNet{type,Number}(x), [first(x)])).ob;
+ob(x) = codom(Open([x], LabelledPetriNet(x), [x])).ob;
 
 ode(x::Union{AbstractReactionNet{Distribution, Number},AbstractLabelledReactionNet{Distribution, Number}}, t) = begin
   β = mean.(rates(x))
@@ -40,6 +41,24 @@ function degrade(prod1,prod2,on::T) where T
   prod2str = String(first(prod2))
   degprod2 = Symbol(endswith(prod2str, "inact") ? first(prod2str) : prod2str, :_deg)
   Open(LabelledReactionNet{T,Number}(unique((in=>0, prod1,degprod2=>0)), ((Symbol(:deg_,in),on),in=>(first(prod1),degprod2))));
+end;
+
+function inactivate(in)
+  inact = Symbol(in, :_inact)
+  Open(LabelledPetriNet(unique((in, inact)), (Symbol(:inact_,in),in=>inact)))
+end;
+
+function bindunbind(in1, in2)
+  out = Symbol(in1,in2)
+  Open(LabelledPetriNet(unique((in1, in2,out)), (Symbol(:bind_,in1,in2),(in1,in2)=>out),
+                                                (Symbol(:unbind_,out),out=>(in1,in2))))
+end;
+
+function degrade(prod1,prod2)
+  in = Symbol(prod1,prod2)
+  prod2str = String(prod2)
+  degprod2 = Symbol(endswith(prod2str, "inact") ? first(prod2str) : prod2str, :_deg)
+  Open(LabelledPetriNet(unique((in, prod1,degprod2)), (Symbol(:deg_,in),in=>(prod1,degprod2))));
 end;
 
 # ## Cathepsin *X* reacting with itself
@@ -112,6 +131,49 @@ function enz_enz(rxns, cat1, cat2)
   bundle_legs(out, [[1,2,3], [4,5,6]])
 end
 
+function enz(cat::Symbol)
+  catsym = cat
+  out = oapply(enzX, Dict(:inactX=>inactivate(cat), :bindXX=>bindunbind(cat, cat), :degXX=>degrade(cat, cat),
+                          :bindXXinact=>bindunbind(cat, Symbol(cat,:_inact)),
+                          :degXXinact=>degrade(cat, Symbol(cat, :_inact))), Dict(
+    :X=>ob(cat),
+    :Xinact=>ob(Symbol(catsym,:_inact)),
+    :Xdeg=>ob(Symbol(catsym,:_deg)),
+    :XX=>ob(Symbol(catsym,catsym)),
+    :XXinact=>ob(Symbol(catsym,catsym,:_inact))))
+  bundle_legs(out, [[1,2,3]])
+end
+
+function enz_sub(cat1::Symbol, sub::Symbol)
+  catsym = cat1
+  subsym = sub
+  catsub = Symbol(catsym, subsym)
+  out = oapply(enzXsubY, Dict(:bindXY=>bindunbind(cat1, sub), :degXY=>degrade(cat1, sub)), Dict(
+    :X=>ob(cat1),
+    :Xinact=>ob(Symbol(catsym,:_inact)),
+    :Xdeg=>ob(Symbol(catsym,:_deg)),
+    :Y=>ob(sub),
+    :XY=>ob(Symbol(catsym,subsym)),
+    :Ydeg=>ob(Symbol(subsym,:_deg))))
+  bundle_legs(out, [[1,2,3], [4,5]])
+end
+
+function enz_enz(cat1::Symbol, cat2::Symbol)
+  cat1sym = cat1
+  cat2sym = cat2
+  catcat = Symbol(cat1sym, cat2sym)
+  out = oapply(enzXY, Dict(:bindXY=>bindunbind(cat1, cat2), :degXY=>degrade(cat1, cat2), :bindXYinact=>bindunbind(cat1, Symbol(cat2, :_inact)), :degXYinact=>degrade(cat1, Symbol(cat2, :_inact))), Dict(
+    :X=>ob(cat1),
+    :Xinact=>ob(Symbol(cat1sym,:_inact)),
+    :Xdeg=>ob(Symbol(cat1sym,:_deg)),
+    :Y=>ob(cat2),
+    :Yinact=>ob(Symbol(cat2sym,:_inact)),
+    :Ydeg=>ob(Symbol(cat2sym,:_deg)),
+    :XY=>ob(catcat),
+    :XYinact=>ob(Symbol(catcat,:_inact))))
+  bundle_legs(out, [[1,2,3], [4,5,6]])
+end
+
 function enzyme_uwd(enzymes::Array{Symbol}, substrates::Array{Symbol})
   rel = RelationDiagram{Symbol}(0)
 
@@ -144,4 +206,20 @@ function enzyme_uwd(enzymes::Array{Symbol}, substrates::Array{Symbol})
   rel
 end
 
+function enzyme_generators(enzymes::Array{Symbol}, substrates::Array{Symbol})
+  gens = Dict{Symbol, Any}()
+  for e1 in enzymes
+    for e2 in enzymes
+      if e1 == e2
+        gens[Symbol(:cat, e1)] = enz(e1)
+      else
+        gens[Symbol(:cat, e1, :cat, e2)] = enz_enz(e1, e2)
+      end
+    end
+    for s in substrates
+      gens[Symbol(:cat, e1, :sub, s)] = enz_sub(e1, s)
+    end
+  end
+  gens
+end
 end
