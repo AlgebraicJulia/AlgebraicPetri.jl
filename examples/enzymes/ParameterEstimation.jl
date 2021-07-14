@@ -74,7 +74,7 @@ module ParameterEstimation
     real_p = Dict(rate_var[r] => 10.0 ^ res[r] for r in rate_ind)
     for t in 1:nt(model)
       if !(t ∈ sym_rates)
-        real_p[tname(model, t)] = 10.0 ^ reactions(rs)[t].rate
+        real_p[tname(model, t)] = reactions(rs)[t].rate
       end
     end
 
