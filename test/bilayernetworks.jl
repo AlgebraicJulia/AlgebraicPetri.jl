@@ -122,11 +122,12 @@ f!(comp_du, comp_ϕ, u, 0)
 
 @test all(abs.(comp_du .- du[[:S,:I,:R]]) .< 1e-9)
 
-eval(AlgebraicPetri.BilayerNetworks.compile(lab_bnsir, :du, :ϕ, :u, :params))
+p, params = params, nothing
+eval(AlgebraicPetri.BilayerNetworks.compile(lab_bnsir, :du, :ϕ, :u, :p))
 comp_du = [0.0,0.0,0.0]
 comp_ϕ = [0.0,0.0,0.0]
 
-f!(comp_du, comp_ϕ, u, params, 0)
+f!(comp_du, comp_ϕ, u, p, 0)
 
 @test all(abs.(comp_du .- du[[:S,:I,:R]]) .< 1e-9)
 
