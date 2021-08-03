@@ -6,7 +6,7 @@ using StatsBase
 
 export Graph
 
-function edgify(δ::Dict{Int64, Int64}, transition, reverse::Bool; pre="")
+function edgify(δ::Dict{Any, Int64}, transition, reverse::Bool; pre="")
   return [Edge(reverse ? ["\"$(pre)t$transition\"", "\"$(pre)s$k\""] :
                          ["\"$(pre)s$k\"", "\"$(pre)t$transition\""],
                Attributes(:label=>"$(δ[k])", :labelfontsize=>"6"))
@@ -32,8 +32,8 @@ function Graph(p::AbstractPetriNet)
   stmts = vcat(statenodes, transnodes)
 
   edges = map(1:nt(p)) do k
-    vcat(edgify(countmap(inputs(p, k)), k, false),
-         edgify(countmap(outputs(p, k)), k, true))
+    vcat(edgify(countmap(Vector{Any}(inputs(p, k))), k, false),
+         edgify(countmap(Vector{Any}(outputs(p, k))), k, true))
   end |> flatten |> collect
 
   stmts = vcat(stmts, edges)
@@ -56,8 +56,8 @@ function Subgraph(p::AbstractPetriNet; label="cluster", pre="")
   stmts = vcat(statenodes, transnodes)
 
   edges = map(1:nt(p)) do k
-    vcat(edgify(countmap(inputs(p, k)), k, false; pre=pre),
-         edgify(countmap(outputs(p, k)), k, true; pre=pre))
+    vcat(edgify(countmap(Vector{Any}(inputs(p, k))), k, false; pre=pre),
+         edgify(countmap(Vector{Any}(outputs(p, k))), k, true; pre=pre))
   end |> flatten |> collect
 
   stmts = vcat(stmts, edges)
