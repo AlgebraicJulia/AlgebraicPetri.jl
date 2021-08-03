@@ -538,4 +538,5 @@ include("interoperability.jl")
 include("visualization.jl")
 include("Epidemiology.jl")
 include("BilayerNetworks.jl")
+include("ModelComparison.jl")
 end
