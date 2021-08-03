@@ -5,6 +5,9 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # GR backend fix for Plots, discussed in https://github.com/jheinen/GR.jl/issues/422
+      GKSwstype: nul
     steps:
       - uses: actions/checkout@v2
       - name: "Set up Julia"
