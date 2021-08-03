@@ -19,11 +19,13 @@ for pn in [models,
   @test Graph(legs(c_res)[1]) isa Graph
   @test Graph(c_res) isa Graph
 
-  so = Subobject.(legs(c_res))
-  for s in so
-    @test Graph(s) isa Graph
-    @test codom(hom(s)) == pn[2]
-  end
+  if Catlab.VERSION >= v"0.12.7"
+    so = Subobject.(legs(c_res))
+    for s in so
+      @test Graph(s) isa Graph
+      @test codom(hom(s)) == pn[2]
+    end
 
-  @test dom(hom(~foldl(∨, so) ∨ foldl(∨, so))) == pn[2]
+    @test dom(hom(~foldl(∨, so) ∨ foldl(∨, so))) == pn[2]
+  end
 end
