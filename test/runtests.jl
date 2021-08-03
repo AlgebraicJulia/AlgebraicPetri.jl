@@ -4,6 +4,7 @@ import Petri
 using LabelledArrays
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
+using AlgebraicPetri.ModelComparison
 using Catlab.Theories
 using Catlab.CategoricalAlgebra
 using Catlab.CategoricalAlgebra.FinSets
@@ -27,6 +28,10 @@ end
 
 @testset "BilayerNetworks" begin
   include("bilayernetworks.jl")
+end
+
+@testset "ModelComparison" begin
+  include("modelcomparison.jl")
 end
 
 if VERSION >= v"1.3.0"
