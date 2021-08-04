@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Converting Models to Computation Graphs · AlgebraicPetri.jl</title><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script><script src="../../../assets/analytics.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">AlgebraicPetri.jl</a></span></div><form class="docs-search" action="../../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../../">AlgebraicPetri.jl</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../predation/lotka-volterra/">Lotka-Volterra Model</a></li><li><a class="tocitem" href="../epidemiology/">Basic Epidemiology Models</a></li><li><a class="tocitem" href="../coexist/coexist/">COEXIST Multi-Generational COVID Model</a></li><li><a class="tocitem" href="../../enzymes/enzyme_reactions/">Cathepsin Enzyme Reactions</a></li><li class="is-active"><a class="tocitem" href>Converting Models to Computation Graphs</a></li></ul></li><li><a class="tocitem" href="../../../api/">Library Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Converting Models to Computation Graphs</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Converting Models to Computation Graphs</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/examples/covid/bilayerconversion.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="bilayernetwork_example"><a class="docs-heading-anchor" href="#bilayernetwork_example">Converting Models to Computation Graphs</a><a id="bilayernetwork_example-1"></a><a class="docs-heading-anchor-permalink" href="#bilayernetwork_example" title="Permalink"></a></h1><p><a href="https://nbviewer.jupyter.org/github/AlgebraicJulia/AlgebraicPetri.jl/blob/gh-pages/dev/examples/covid/bilayerconversion.ipynb"><img src="https://img.shields.io/badge/show-nbviewer-579ACA.svg" alt/></a></p><p>using Pkg Pkg.status() Pkg.activate(&quot;.&quot;)</p><p>Pkg.instantiate()</p><p>Pkg.develop(path=&quot;../../&quot;) Pkg.instantiate()</p><pre><code class="language-julia">using AlgebraicPetri
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Converting Models to Computation Graphs · AlgebraicPetri.jl</title><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script><script src="../../../assets/analytics.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">AlgebraicPetri.jl</a></span></div><form class="docs-search" action="../../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../../">AlgebraicPetri.jl</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../predation/lotka-volterra/">Lotka-Volterra Model</a></li><li><a class="tocitem" href="../epidemiology/">Basic Epidemiology Models</a></li><li><a class="tocitem" href="../coexist/coexist/">COEXIST Multi-Generational COVID Model</a></li><li><a class="tocitem" href="../../enzymes/enzyme_reactions/">Cathepsin Enzyme Reactions</a></li><li class="is-active"><a class="tocitem" href>Converting Models to Computation Graphs</a></li></ul></li><li><a class="tocitem" href="../../../api/">Library Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Converting Models to Computation Graphs</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Converting Models to Computation Graphs</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/examples/covid/bilayerconversion.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="bilayernetwork_example"><a class="docs-heading-anchor" href="#bilayernetwork_example">Converting Models to Computation Graphs</a><a id="bilayernetwork_example-1"></a><a class="docs-heading-anchor-permalink" href="#bilayernetwork_example" title="Permalink"></a></h1><p><a href="https://nbviewer.jupyter.org/github/AlgebraicJulia/AlgebraicPetri.jl/blob/gh-pages/dev/examples/covid/bilayerconversion.ipynb"><img src="https://img.shields.io/badge/show-nbviewer-579ACA.svg" alt/></a></p><p>using Pkg Pkg.status() Pkg.activate(&quot;.&quot;)</p><p>Pkg.instantiate()</p><p>Pkg.develop(path=&quot;../../&quot;) Pkg.instantiate()</p><pre><code class="language-julia hljs">using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 using AlgebraicPetri.BilayerNetworks
 
@@ -14,7 +14,7 @@ display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, e
 using PrettyTables
 function printsoln(bn::AbstractLabelledBilayerNetwork, soln::Vector)
     pretty_table(soln)
-end</code></pre><pre class="documenter-example-output">printsoln (generic function with 1 method)</pre><h4 id="SIR-Model:"><a class="docs-heading-anchor" href="#SIR-Model:">SIR Model:</a><a id="SIR-Model:-1"></a><a class="docs-heading-anchor-permalink" href="#SIR-Model:" title="Permalink"></a></h4><p>define model</p><pre><code class="language-julia">sir = @relation (s,i,r) begin
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">printsoln (generic function with 1 method)</code></pre><h4 id="SIR-Model:"><a class="docs-heading-anchor" href="#SIR-Model:">SIR Model:</a><a id="SIR-Model:-1"></a><a class="docs-heading-anchor-permalink" href="#SIR-Model:" title="Permalink"></a></h4><p>define model</p><pre><code class="language-julia hljs">sir = @relation (s,i,r) begin
     infection(s,i)
     recovery(i,r)
 end
@@ -102,7 +102,7 @@ display_uwd(sir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1
 </g>
 </g>
 </svg>
-'/><p>Extract the Petri network form of the model.</p><pre><code class="language-julia">psir = apex(oapply_epi(sir))
+'/><p>Extract the Petri network form of the model.</p><pre><code class="language-julia hljs">psir = apex(oapply_epi(sir))
 psir
 Graph(psir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
@@ -110,79 +110,79 @@ Graph(psir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" e
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: G Pages: 1 -->
-<svg width="460pt" height="65pt"
- viewBox="0.00 0.00 460.49 65.19" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 61.19)">
+<svg width="375pt" height="47pt"
+ viewBox="0.00 0.00 375.00 47.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 43)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-61.19 456.49,-61.19 456.49,4 -4,4"/>
-<!-- S_S -->
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-43 371,-43 371,4 -4,4"/>
+<!-- S -->
 <g id="node1" class="node">
-<title>S_S</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="27.95" cy="-28.6" rx="27.9" ry="27.9"/>
-<text text-anchor="middle" x="27.95" y="-24.9" font-family="Times,serif" font-size="14.00">S_S</text>
+<title>S</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="18" cy="-19.5" rx="18" ry="18"/>
+<text text-anchor="middle" x="18" y="-15.8" font-family="Times,serif" font-size="14.00">S</text>
 </g>
-<!-- T_inf -->
+<!-- inf -->
 <g id="node4" class="node">
-<title>T_inf</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="152.9,-54.1 101.9,-54.1 101.9,-3.1 152.9,-3.1 152.9,-54.1"/>
-<text text-anchor="middle" x="127.4" y="-24.9" font-family="Times,serif" font-size="14.00">T_inf</text>
+<title>inf</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="118,-37.5 82,-37.5 82,-1.5 118,-1.5 118,-37.5"/>
+<text text-anchor="middle" x="100" y="-15.8" font-family="Times,serif" font-size="14.00">inf</text>
 </g>
-<!-- S_S&%2345;&gt;T_inf -->
+<!-- S&%2345;&gt;inf -->
 <g id="edge2" class="edge">
-<title>S_S&%2345;&gt;T_inf</title>
-<path fill="none" stroke="black" d="M56.09,-28.6C67.04,-28.6 79.82,-28.6 91.45,-28.6"/>
-<polygon fill="black" stroke="black" points="91.73,-32.1 101.73,-28.6 91.73,-25.1 91.73,-32.1"/>
-<text text-anchor="middle" x="78.9" y="-32.4" font-family="Times,serif" font-size="14.00">1</text>
+<title>S&%2345;&gt;inf</title>
+<path fill="none" stroke="black" d="M36.36,-19.5C46.7,-19.5 60.06,-19.5 71.78,-19.5"/>
+<polygon fill="black" stroke="black" points="71.95,-23 81.95,-19.5 71.95,-16 71.95,-23"/>
+<text text-anchor="middle" x="59" y="-23.3" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- S_I -->
+<!-- I -->
 <g id="node2" class="node">
-<title>S_I</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="223.59" cy="-28.6" rx="24.9" ry="24.9"/>
-<text text-anchor="middle" x="223.59" y="-24.9" font-family="Times,serif" font-size="14.00">S_I</text>
+<title>I</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="182" cy="-19.5" rx="18" ry="18"/>
+<text text-anchor="middle" x="182" y="-15.8" font-family="Times,serif" font-size="14.00">I</text>
 </g>
-<!-- S_I&%2345;&gt;T_inf -->
+<!-- I&%2345;&gt;inf -->
 <g id="edge1" class="edge">
-<title>S_I&%2345;&gt;T_inf</title>
-<path fill="none" stroke="black" d="M201.5,-17.52C195.06,-14.68 187.84,-12.03 180.9,-10.6 174.97,-9.37 168.8,-9.83 162.85,-11.22"/>
-<polygon fill="black" stroke="black" points="161.61,-7.94 153.14,-14.31 163.73,-14.61 161.61,-7.94"/>
-<text text-anchor="middle" x="175.9" y="-14.4" font-family="Times,serif" font-size="14.00">1</text>
+<title>I&%2345;&gt;inf</title>
+<path fill="none" stroke="black" d="M166.28,-9.96C160.25,-6.58 153.04,-3.2 146,-1.5 139.92,-0.03 133.58,-0.93 127.64,-2.95"/>
+<polygon fill="black" stroke="black" points="125.85,0.09 118.14,-7.18 128.7,-6.31 125.85,0.09"/>
+<text text-anchor="middle" x="141" y="-5.3" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_rec -->
+<!-- rec -->
 <g id="node5" class="node">
-<title>T_rec</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="349.29,-56.1 294.29,-56.1 294.29,-1.1 349.29,-1.1 349.29,-56.1"/>
-<text text-anchor="middle" x="321.79" y="-24.9" font-family="Times,serif" font-size="14.00">T_rec</text>
+<title>rec</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="285,-39 246,-39 246,0 285,0 285,-39"/>
+<text text-anchor="middle" x="265.5" y="-15.8" font-family="Times,serif" font-size="14.00">rec</text>
 </g>
-<!-- S_I&%2345;&gt;T_rec -->
+<!-- I&%2345;&gt;rec -->
 <g id="edge4" class="edge">
-<title>S_I&%2345;&gt;T_rec</title>
-<path fill="none" stroke="black" d="M248.37,-28.6C259.13,-28.6 272.09,-28.6 284.06,-28.6"/>
-<polygon fill="black" stroke="black" points="284.24,-32.1 294.24,-28.6 284.24,-25.1 284.24,-32.1"/>
-<text text-anchor="middle" x="271.29" y="-32.4" font-family="Times,serif" font-size="14.00">1</text>
+<title>I&%2345;&gt;rec</title>
+<path fill="none" stroke="black" d="M200.28,-19.5C210.52,-19.5 223.74,-19.5 235.53,-19.5"/>
+<polygon fill="black" stroke="black" points="235.82,-23 245.82,-19.5 235.82,-16 235.82,-23"/>
+<text text-anchor="middle" x="223" y="-23.3" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- S_R -->
+<!-- R -->
 <g id="node3" class="node">
-<title>S_R</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="423.89" cy="-28.6" rx="28.7" ry="28.7"/>
-<text text-anchor="middle" x="423.89" y="-24.9" font-family="Times,serif" font-size="14.00">S_R</text>
+<title>R</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="349" cy="-19.5" rx="18" ry="18"/>
+<text text-anchor="middle" x="349" y="-15.8" font-family="Times,serif" font-size="14.00">R</text>
 </g>
-<!-- T_inf&%2345;&gt;S_I -->
+<!-- inf&%2345;&gt;I -->
 <g id="edge3" class="edge">
-<title>T_inf&%2345;&gt;S_I</title>
-<path fill="none" stroke="black" d="M153.14,-28.6C163.91,-28.6 176.71,-28.6 188.36,-28.6"/>
-<polygon fill="black" stroke="black" points="188.66,-32.1 198.66,-28.6 188.66,-25.1 188.66,-32.1"/>
-<text text-anchor="middle" x="175.9" y="-32.4" font-family="Times,serif" font-size="14.00">2</text>
+<title>inf&%2345;&gt;I</title>
+<path fill="none" stroke="black" d="M118.36,-19.5C128.7,-19.5 142.06,-19.5 153.78,-19.5"/>
+<polygon fill="black" stroke="black" points="153.95,-23 163.95,-19.5 153.95,-16 153.95,-23"/>
+<text text-anchor="middle" x="141" y="-23.3" font-family="Times,serif" font-size="14.00">2</text>
 </g>
-<!-- T_rec&%2345;&gt;S_R -->
+<!-- rec&%2345;&gt;R -->
 <g id="edge5" class="edge">
-<title>T_rec&%2345;&gt;S_R</title>
-<path fill="none" stroke="black" d="M349.35,-28.6C360.28,-28.6 373.15,-28.6 385.03,-28.6"/>
-<polygon fill="black" stroke="black" points="385.15,-32.1 395.15,-28.6 385.15,-25.1 385.15,-32.1"/>
-<text text-anchor="middle" x="372.29" y="-32.4" font-family="Times,serif" font-size="14.00">1</text>
+<title>rec&%2345;&gt;R</title>
+<path fill="none" stroke="black" d="M285.4,-19.5C295.92,-19.5 309.18,-19.5 320.79,-19.5"/>
+<polygon fill="black" stroke="black" points="320.87,-23 330.87,-19.5 320.87,-16 320.87,-23"/>
+<text text-anchor="middle" x="308" y="-23.3" font-family="Times,serif" font-size="14.00">1</text>
 </g>
 </g>
 </svg>
-'/><p>Convert the Petri network into a bilayer network and draw it. This model uses a computation graph to express the computation of the vector field of the Petri net.</p><pre><code class="language-julia">bnsir = BilayerNetwork()
+'/><p>Convert the Petri network into a bilayer network and draw it. This model uses a computation graph to express the computation of the vector field of the Petri net.</p><pre><code class="language-julia hljs">bnsir = BilayerNetwork()
 migrate!(bnsir, psir)
 bnsir
 to_graphviz(bnsir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -300,7 +300,7 @@ to_graphviz(bnsir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version=
 </g>
 </g>
 </svg>
-'/><p>We can hand code a Bilayer netowork using the <code>@acset</code> macro provided by Catlab. As you can see from the code, there is a lot of typing to specify the incidence of all these wires. The Petri Net is more compact. This notion of Bilayer network comes from the definition of mass action kinetics for reaction networks.</p><p>hand coded Bilayer network</p><pre><code class="language-julia">bnsir_test = @acset BilayerNetwork begin
+'/><p>We can hand code a Bilayer netowork using the <code>@acset</code> macro provided by Catlab. As you can see from the code, there is a lot of typing to specify the incidence of all these wires. The Petri Net is more compact. This notion of Bilayer network comes from the definition of mass action kinetics for reaction networks.</p><p>hand coded Bilayer network</p><pre><code class="language-julia hljs">bnsir_test = @acset BilayerNetwork begin
     Qin = 3
     Qout = 3
     Win = 3
@@ -323,7 +323,7 @@ function roundtrip(pn::AbstractPetriNet, bn::AbstractBilayerNetwork)
     pn_structure = PetriNet()
     copy_parts!(pn_structure, pn)
     return roundtrippetri, pn_structure
-end</code></pre><pre class="documenter-example-output">roundtrip (generic function with 1 method)</pre><p>We can specify the SEIR model with the relation macro and functorial semantics as usual.</p><pre><code class="language-julia">seir = @relation (s,e,i,r) begin
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">roundtrip (generic function with 1 method)</code></pre><p>We can specify the SEIR model with the relation macro and functorial semantics as usual.</p><pre><code class="language-julia hljs">seir = @relation (s,e,i,r) begin
     exposure(s,i,e)
     illness(e,i)
     recovery(i,r)
@@ -426,7 +426,7 @@ pseir = apex(oapply_epi(seir))</code></pre><div class="c-set">
   </tr>
 </table>
 </div>
-<p>By converting this to a Bilayer network, we are able to visualize differences in the computational pattern of data flow between different reaction network models.</p><pre><code class="language-julia">bnseir = BilayerNetwork()
+<p>By converting this to a Bilayer network, we are able to visualize differences in the computational pattern of data flow between different reaction network models.</p><pre><code class="language-julia hljs">bnseir = BilayerNetwork()
 migrate!(bnseir, pseir)
 
 bnrt,pnstr = roundtrip(pseir, bnseir)
@@ -439,79 +439,79 @@ Graph(psir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" e
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: G Pages: 1 -->
-<svg width="460pt" height="65pt"
- viewBox="0.00 0.00 460.49 65.19" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 61.19)">
+<svg width="375pt" height="47pt"
+ viewBox="0.00 0.00 375.00 47.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 43)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-61.19 456.49,-61.19 456.49,4 -4,4"/>
-<!-- S_S -->
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-43 371,-43 371,4 -4,4"/>
+<!-- S -->
 <g id="node1" class="node">
-<title>S_S</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="27.95" cy="-28.6" rx="27.9" ry="27.9"/>
-<text text-anchor="middle" x="27.95" y="-24.9" font-family="Times,serif" font-size="14.00">S_S</text>
+<title>S</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="18" cy="-19.5" rx="18" ry="18"/>
+<text text-anchor="middle" x="18" y="-15.8" font-family="Times,serif" font-size="14.00">S</text>
 </g>
-<!-- T_inf -->
+<!-- inf -->
 <g id="node4" class="node">
-<title>T_inf</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="152.9,-54.1 101.9,-54.1 101.9,-3.1 152.9,-3.1 152.9,-54.1"/>
-<text text-anchor="middle" x="127.4" y="-24.9" font-family="Times,serif" font-size="14.00">T_inf</text>
+<title>inf</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="118,-37.5 82,-37.5 82,-1.5 118,-1.5 118,-37.5"/>
+<text text-anchor="middle" x="100" y="-15.8" font-family="Times,serif" font-size="14.00">inf</text>
 </g>
-<!-- S_S&%2345;&gt;T_inf -->
+<!-- S&%2345;&gt;inf -->
 <g id="edge2" class="edge">
-<title>S_S&%2345;&gt;T_inf</title>
-<path fill="none" stroke="black" d="M56.09,-28.6C67.04,-28.6 79.82,-28.6 91.45,-28.6"/>
-<polygon fill="black" stroke="black" points="91.73,-32.1 101.73,-28.6 91.73,-25.1 91.73,-32.1"/>
-<text text-anchor="middle" x="78.9" y="-32.4" font-family="Times,serif" font-size="14.00">1</text>
+<title>S&%2345;&gt;inf</title>
+<path fill="none" stroke="black" d="M36.36,-19.5C46.7,-19.5 60.06,-19.5 71.78,-19.5"/>
+<polygon fill="black" stroke="black" points="71.95,-23 81.95,-19.5 71.95,-16 71.95,-23"/>
+<text text-anchor="middle" x="59" y="-23.3" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- S_I -->
+<!-- I -->
 <g id="node2" class="node">
-<title>S_I</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="223.59" cy="-28.6" rx="24.9" ry="24.9"/>
-<text text-anchor="middle" x="223.59" y="-24.9" font-family="Times,serif" font-size="14.00">S_I</text>
+<title>I</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="182" cy="-19.5" rx="18" ry="18"/>
+<text text-anchor="middle" x="182" y="-15.8" font-family="Times,serif" font-size="14.00">I</text>
 </g>
-<!-- S_I&%2345;&gt;T_inf -->
+<!-- I&%2345;&gt;inf -->
 <g id="edge1" class="edge">
-<title>S_I&%2345;&gt;T_inf</title>
-<path fill="none" stroke="black" d="M201.5,-17.52C195.06,-14.68 187.84,-12.03 180.9,-10.6 174.97,-9.37 168.8,-9.83 162.85,-11.22"/>
-<polygon fill="black" stroke="black" points="161.61,-7.94 153.14,-14.31 163.73,-14.61 161.61,-7.94"/>
-<text text-anchor="middle" x="175.9" y="-14.4" font-family="Times,serif" font-size="14.00">1</text>
+<title>I&%2345;&gt;inf</title>
+<path fill="none" stroke="black" d="M166.28,-9.96C160.25,-6.58 153.04,-3.2 146,-1.5 139.92,-0.03 133.58,-0.93 127.64,-2.95"/>
+<polygon fill="black" stroke="black" points="125.85,0.09 118.14,-7.18 128.7,-6.31 125.85,0.09"/>
+<text text-anchor="middle" x="141" y="-5.3" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_rec -->
+<!-- rec -->
 <g id="node5" class="node">
-<title>T_rec</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="349.29,-56.1 294.29,-56.1 294.29,-1.1 349.29,-1.1 349.29,-56.1"/>
-<text text-anchor="middle" x="321.79" y="-24.9" font-family="Times,serif" font-size="14.00">T_rec</text>
+<title>rec</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="285,-39 246,-39 246,0 285,0 285,-39"/>
+<text text-anchor="middle" x="265.5" y="-15.8" font-family="Times,serif" font-size="14.00">rec</text>
 </g>
-<!-- S_I&%2345;&gt;T_rec -->
+<!-- I&%2345;&gt;rec -->
 <g id="edge4" class="edge">
-<title>S_I&%2345;&gt;T_rec</title>
-<path fill="none" stroke="black" d="M248.37,-28.6C259.13,-28.6 272.09,-28.6 284.06,-28.6"/>
-<polygon fill="black" stroke="black" points="284.24,-32.1 294.24,-28.6 284.24,-25.1 284.24,-32.1"/>
-<text text-anchor="middle" x="271.29" y="-32.4" font-family="Times,serif" font-size="14.00">1</text>
+<title>I&%2345;&gt;rec</title>
+<path fill="none" stroke="black" d="M200.28,-19.5C210.52,-19.5 223.74,-19.5 235.53,-19.5"/>
+<polygon fill="black" stroke="black" points="235.82,-23 245.82,-19.5 235.82,-16 235.82,-23"/>
+<text text-anchor="middle" x="223" y="-23.3" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- S_R -->
+<!-- R -->
 <g id="node3" class="node">
-<title>S_R</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="423.89" cy="-28.6" rx="28.7" ry="28.7"/>
-<text text-anchor="middle" x="423.89" y="-24.9" font-family="Times,serif" font-size="14.00">S_R</text>
+<title>R</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="349" cy="-19.5" rx="18" ry="18"/>
+<text text-anchor="middle" x="349" y="-15.8" font-family="Times,serif" font-size="14.00">R</text>
 </g>
-<!-- T_inf&%2345;&gt;S_I -->
+<!-- inf&%2345;&gt;I -->
 <g id="edge3" class="edge">
-<title>T_inf&%2345;&gt;S_I</title>
-<path fill="none" stroke="black" d="M153.14,-28.6C163.91,-28.6 176.71,-28.6 188.36,-28.6"/>
-<polygon fill="black" stroke="black" points="188.66,-32.1 198.66,-28.6 188.66,-25.1 188.66,-32.1"/>
-<text text-anchor="middle" x="175.9" y="-32.4" font-family="Times,serif" font-size="14.00">2</text>
+<title>inf&%2345;&gt;I</title>
+<path fill="none" stroke="black" d="M118.36,-19.5C128.7,-19.5 142.06,-19.5 153.78,-19.5"/>
+<polygon fill="black" stroke="black" points="153.95,-23 163.95,-19.5 153.95,-16 153.95,-23"/>
+<text text-anchor="middle" x="141" y="-23.3" font-family="Times,serif" font-size="14.00">2</text>
 </g>
-<!-- T_rec&%2345;&gt;S_R -->
+<!-- rec&%2345;&gt;R -->
 <g id="edge5" class="edge">
-<title>T_rec&%2345;&gt;S_R</title>
-<path fill="none" stroke="black" d="M349.35,-28.6C360.28,-28.6 373.15,-28.6 385.03,-28.6"/>
-<polygon fill="black" stroke="black" points="385.15,-32.1 395.15,-28.6 385.15,-25.1 385.15,-32.1"/>
-<text text-anchor="middle" x="372.29" y="-32.4" font-family="Times,serif" font-size="14.00">1</text>
+<title>rec&%2345;&gt;R</title>
+<path fill="none" stroke="black" d="M285.4,-19.5C295.92,-19.5 309.18,-19.5 320.79,-19.5"/>
+<polygon fill="black" stroke="black" points="320.87,-23 330.87,-19.5 320.87,-16 320.87,-23"/>
+<text text-anchor="middle" x="308" y="-23.3" font-family="Times,serif" font-size="14.00">1</text>
 </g>
 </g>
 </svg>
-'/><pre><code class="language-julia">to_graphviz(bnsir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+'/><pre><code class="language-julia hljs">to_graphviz(bnsir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- Generated by graphviz version 2.43.0 (0)
@@ -626,7 +626,7 @@ Graph(psir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" e
 </g>
 </g>
 </svg>
-'/><pre><code class="language-julia">to_graphviz(bnseir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+'/><pre><code class="language-julia hljs">to_graphviz(bnseir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- Generated by graphviz version 2.43.0 (0)
@@ -777,118 +777,100 @@ Graph(psir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" e
 </g>
 </g>
 </svg>
-'/><pre><code class="language-julia">Graph(bnrt)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+'/><pre><code class="language-julia hljs">Graph(bnrt)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: G Pages: 1 -->
-<svg width="625pt" height="130pt"
- viewBox="0.00 0.00 625.38 130.30" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 126.3)">
+<svg width="290pt" height="105pt"
+ viewBox="0.00 0.00 290.00 105.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 101)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-126.3 621.38,-126.3 621.38,4 -4,4"/>
-<!-- S_1 -->
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-101 286,-101 286,4 -4,4"/>
+<!-- 1 -->
 <g id="node1" class="node">
-<title>S_1</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="27.3" cy="-82.3" rx="27.1" ry="27.1"/>
-<text text-anchor="middle" x="27.3" y="-78.6" font-family="Times,serif" font-size="14.00">S_1</text>
+<title>1</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="36,-36 0,-36 0,0 36,0 36,-36"/>
+<text text-anchor="middle" x="18" y="-14.3" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_1 -->
-<g id="node5" class="node">
-<title>T_1</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="141.6,-102.8 100.6,-102.8 100.6,-61.8 141.6,-61.8 141.6,-102.8"/>
-<text text-anchor="middle" x="121.1" y="-78.6" font-family="Times,serif" font-size="14.00">T_1</text>
-</g>
-<!-- S_1&%2345;&gt;T_1 -->
+<!-- 1&%2345;&gt;1 -->
 <g id="edge2" class="edge">
-<title>S_1&%2345;&gt;T_1</title>
-<path fill="none" stroke="black" d="M54.85,-82.3C65.84,-82.3 78.65,-82.3 89.99,-82.3"/>
-<polygon fill="black" stroke="black" points="90.31,-85.8 100.31,-82.3 90.31,-78.8 90.31,-85.8"/>
-<text text-anchor="middle" x="77.6" y="-86.1" font-family="Times,serif" font-size="14.00">1</text>
+<title>1&%2345;&gt;1</title>
+<path fill="none" stroke="black" d="M10.76,-36.15C9.65,-45.54 12.06,-54 18,-54 21.62,-54 23.93,-50.86 24.93,-46.28"/>
+<polygon fill="black" stroke="black" points="28.43,-46.25 25.24,-36.15 21.43,-46.04 28.43,-46.25"/>
+<text text-anchor="middle" x="18" y="-57.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- S_2 -->
+<!-- 2 -->
 <g id="node2" class="node">
-<title>S_2</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="402.49" cy="-82.3" rx="27.1" ry="27.1"/>
-<text text-anchor="middle" x="402.49" y="-78.6" font-family="Times,serif" font-size="14.00">S_2</text>
+<title>2</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="118,-64 82,-64 82,-28 118,-28 118,-64"/>
+<text text-anchor="middle" x="100" y="-42.3" font-family="Times,serif" font-size="14.00">2</text>
 </g>
-<!-- S_2&%2345;&gt;T_1 -->
-<g id="edge1" class="edge">
-<title>S_2&%2345;&gt;T_1</title>
-<path fill="none" stroke="black" d="M375.11,-82.3C322.89,-82.3 206.7,-82.3 151.86,-82.3"/>
-<polygon fill="black" stroke="black" points="151.74,-78.8 141.74,-82.3 151.74,-85.8 151.74,-78.8"/>
-<text text-anchor="middle" x="265.19" y="-86.1" font-family="Times,serif" font-size="14.00">1</text>
-</g>
-<!-- T_3 -->
-<g id="node7" class="node">
-<title>T_3</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="516.79,-102.8 475.79,-102.8 475.79,-61.8 516.79,-61.8 516.79,-102.8"/>
-<text text-anchor="middle" x="496.29" y="-78.6" font-family="Times,serif" font-size="14.00">T_3</text>
-</g>
-<!-- S_2&%2345;&gt;T_3 -->
-<g id="edge7" class="edge">
-<title>S_2&%2345;&gt;T_3</title>
-<path fill="none" stroke="black" d="M430.04,-82.3C441.03,-82.3 453.84,-82.3 465.18,-82.3"/>
-<polygon fill="black" stroke="black" points="465.5,-85.8 475.5,-82.3 465.5,-78.8 465.5,-85.8"/>
-<text text-anchor="middle" x="452.79" y="-86.1" font-family="Times,serif" font-size="14.00">1</text>
-</g>
-<!-- S_3 -->
-<g id="node3" class="node">
-<title>S_3</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="214.89" cy="-27.3" rx="27.1" ry="27.1"/>
-<text text-anchor="middle" x="214.89" y="-23.6" font-family="Times,serif" font-size="14.00">S_3</text>
-</g>
-<!-- T_2 -->
-<g id="node6" class="node">
-<title>T_2</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="329.19,-52.8 288.19,-52.8 288.19,-11.8 329.19,-11.8 329.19,-52.8"/>
-<text text-anchor="middle" x="308.69" y="-28.6" font-family="Times,serif" font-size="14.00">T_2</text>
-</g>
-<!-- S_3&%2345;&gt;T_2 -->
-<g id="edge5" class="edge">
-<title>S_3&%2345;&gt;T_2</title>
-<path fill="none" stroke="black" d="M242.44,-28.74C253.44,-29.34 266.25,-30.04 277.59,-30.66"/>
-<polygon fill="black" stroke="black" points="277.73,-34.17 287.91,-31.22 278.11,-27.18 277.73,-34.17"/>
-<text text-anchor="middle" x="265.19" y="-34.1" font-family="Times,serif" font-size="14.00">1</text>
-</g>
-<!-- S_4 -->
-<g id="node4" class="node">
-<title>S_4</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="590.08" cy="-82.3" rx="27.1" ry="27.1"/>
-<text text-anchor="middle" x="590.08" y="-78.6" font-family="Times,serif" font-size="14.00">S_4</text>
-</g>
-<!-- T_1&%2345;&gt;S_2 -->
+<!-- 1&%2345;&gt;2 -->
 <g id="edge3" class="edge">
-<title>T_1&%2345;&gt;S_2</title>
-<path fill="none" stroke="black" d="M141.98,-91.14C147.57,-93.23 153.72,-95.18 159.6,-96.3 245.86,-112.76 270.56,-110.68 357.19,-96.3 360.27,-95.79 363.44,-95.11 366.59,-94.33"/>
-<polygon fill="black" stroke="black" points="367.81,-97.62 376.49,-91.55 365.92,-90.88 367.81,-97.62"/>
-<text text-anchor="middle" x="265.19" y="-111.1" font-family="Times,serif" font-size="14.00">1</text>
+<title>1&%2345;&gt;2</title>
+<path fill="none" stroke="black" d="M36.21,-26.56C41.8,-29.16 48.09,-31.88 54,-34 59.61,-36.01 65.73,-37.86 71.59,-39.48"/>
+<polygon fill="black" stroke="black" points="71.14,-42.98 81.7,-42.11 72.9,-36.2 71.14,-42.98"/>
+<text text-anchor="middle" x="59" y="-40.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_1&%2345;&gt;S_3 -->
+<!-- 3 -->
+<g id="node3" class="node">
+<title>3</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="200,-36 164,-36 164,0 200,0 200,-36"/>
+<text text-anchor="middle" x="182" y="-14.3" font-family="Times,serif" font-size="14.00">3</text>
+</g>
+<!-- 1&%2345;&gt;3 -->
 <g id="edge4" class="edge">
-<title>T_1&%2345;&gt;S_3</title>
-<path fill="none" stroke="black" d="M141.77,-65.83C147.36,-61.5 153.57,-57.01 159.6,-53.3 166.08,-49.3 173.27,-45.47 180.24,-42.04"/>
-<polygon fill="black" stroke="black" points="182,-45.08 189.53,-37.63 178.99,-38.76 182,-45.08"/>
-<text text-anchor="middle" x="164.6" y="-57.1" font-family="Times,serif" font-size="14.00">1</text>
+<title>1&%2345;&gt;3</title>
+<path fill="none" stroke="black" d="M36.21,-13.11C48.78,-9.8 66.3,-5.72 82,-4 97.9,-2.25 102.1,-2.25 118,-4 129.9,-5.31 142.84,-7.96 153.88,-10.61"/>
+<polygon fill="black" stroke="black" points="153.24,-14.06 163.79,-13.11 154.95,-7.27 153.24,-14.06"/>
+<text text-anchor="middle" x="100" y="-7.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_2&%2345;&gt;S_2 -->
+<!-- 2&%2345;&gt;1 -->
+<g id="edge1" class="edge">
+<title>2&%2345;&gt;1</title>
+<path fill="none" stroke="black" d="M81.79,-29.28C76.49,-25.14 70.37,-21.25 64,-19 58.47,-17.05 52.32,-16.15 46.39,-15.86"/>
+<polygon fill="black" stroke="black" points="46.11,-12.37 36.12,-15.9 46.13,-19.37 46.11,-12.37"/>
+<text text-anchor="middle" x="59" y="-22.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- 2&%2345;&gt;2 -->
 <g id="edge6" class="edge">
-<title>T_2&%2345;&gt;S_2</title>
-<path fill="none" stroke="black" d="M329.45,-40.18C338.12,-43.85 348.32,-48.47 357.19,-53.3 361.72,-55.76 366.39,-58.53 370.92,-61.36"/>
-<polygon fill="black" stroke="black" points="369.09,-64.35 379.39,-66.81 372.87,-58.46 369.09,-64.35"/>
-<text text-anchor="middle" x="352.19" y="-57.1" font-family="Times,serif" font-size="14.00">1</text>
+<title>2&%2345;&gt;2</title>
+<path fill="none" stroke="black" d="M92.76,-64.15C91.65,-73.54 94.06,-82 100,-82 103.62,-82 105.93,-78.86 106.93,-74.28"/>
+<polygon fill="black" stroke="black" points="110.43,-74.25 107.24,-64.15 103.43,-74.04 110.43,-74.25"/>
+<text text-anchor="middle" x="100" y="-85.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_3&%2345;&gt;S_4 -->
+<!-- 2&%2345;&gt;3 -->
+<g id="edge7" class="edge">
+<title>2&%2345;&gt;3</title>
+<path fill="none" stroke="black" d="M118.3,-42.11C126.76,-40.03 137.02,-37.22 146,-34 148.77,-33.01 151.62,-31.88 154.45,-30.7"/>
+<polygon fill="black" stroke="black" points="156.06,-33.81 163.79,-26.56 153.23,-27.41 156.06,-33.81"/>
+<text text-anchor="middle" x="141" y="-40.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- 3&%2345;&gt;2 -->
+<g id="edge5" class="edge">
+<title>3&%2345;&gt;2</title>
+<path fill="none" stroke="black" d="M163.88,-15.9C155.28,-15.46 144.84,-15.88 136,-19 132.82,-20.12 129.69,-21.66 126.7,-23.43"/>
+<polygon fill="black" stroke="black" points="124.46,-20.73 118.21,-29.28 128.43,-26.49 124.46,-20.73"/>
+<text text-anchor="middle" x="141" y="-22.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- 4 -->
+<g id="node4" class="node">
+<title>4</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="264" cy="-18" rx="18" ry="18"/>
+<text text-anchor="middle" x="264" y="-14.3" font-family="Times,serif" font-size="14.00">4</text>
+</g>
+<!-- 3&%2345;&gt;4 -->
 <g id="edge8" class="edge">
-<title>T_3&%2345;&gt;S_4</title>
-<path fill="none" stroke="black" d="M517.2,-82.3C527.48,-82.3 540.35,-82.3 552.35,-82.3"/>
-<polygon fill="black" stroke="black" points="552.58,-85.8 562.58,-82.3 552.58,-78.8 552.58,-85.8"/>
-<text text-anchor="middle" x="539.79" y="-86.1" font-family="Times,serif" font-size="14.00">1</text>
+<title>3&%2345;&gt;4</title>
+<path fill="none" stroke="black" d="M200.36,-18C210.7,-18 224.06,-18 235.78,-18"/>
+<polygon fill="black" stroke="black" points="235.95,-21.5 245.95,-18 235.95,-14.5 235.95,-21.5"/>
+<text text-anchor="middle" x="223" y="-21.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
 </g>
 </svg>
-'/><pre><code class="language-julia">qm = @relation (s,q) begin
+'/><pre><code class="language-julia hljs">qm = @relation (s,q) begin
     exposure(s,i,e)
     illness(e,i)
     recovery(i,r)
@@ -1040,7 +1022,7 @@ display_uwd(qm)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.
 </g>
 </g>
 </svg>
-'/><pre><code class="language-julia">import AlgebraicPetri.Epidemiology: exposure_petri, spontaneous_petri
+'/><pre><code class="language-julia hljs">import AlgebraicPetri.Epidemiology: exposure_petri, spontaneous_petri
 semantics = Dict(
     :infection =&gt; exposure_petri(:S, :I, :I, :inf),
     :exposure  =&gt; exposure_petri(:S, :I, :E, :exp),
@@ -1058,158 +1040,158 @@ Graph(pn_quar)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: G Pages: 1 -->
-<svg width="703pt" height="182pt"
- viewBox="0.00 0.00 702.68 181.60" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 177.6)">
+<svg width="571pt" height="159pt"
+ viewBox="0.00 0.00 571.40 159.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 155)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-177.6 698.68,-177.6 698.68,4 -4,4"/>
-<!-- S_S -->
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-155 567.4,-155 567.4,4 -4,4"/>
+<!-- S -->
 <g id="node1" class="node">
-<title>S_S</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="27.95" cy="-127" rx="27.9" ry="27.9"/>
-<text text-anchor="middle" x="27.95" y="-123.3" font-family="Times,serif" font-size="14.00">S_S</text>
+<title>S</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="18" cy="-110" rx="18" ry="18"/>
+<text text-anchor="middle" x="18" y="-106.3" font-family="Times,serif" font-size="14.00">S</text>
 </g>
-<!-- T_exp -->
+<!-- exp -->
 <g id="node6" class="node">
-<title>T_exp</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="159.9,-156 101.9,-156 101.9,-98 159.9,-98 159.9,-156"/>
-<text text-anchor="middle" x="130.9" y="-123.3" font-family="Times,serif" font-size="14.00">T_exp</text>
+<title>exp</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="124,-131 82,-131 82,-89 124,-89 124,-131"/>
+<text text-anchor="middle" x="103" y="-106.3" font-family="Times,serif" font-size="14.00">exp</text>
 </g>
-<!-- S_S&%2345;&gt;T_exp -->
+<!-- S&%2345;&gt;exp -->
 <g id="edge2" class="edge">
-<title>S_S&%2345;&gt;T_exp</title>
-<path fill="none" stroke="black" d="M56,-127C66.93,-127 79.75,-127 91.61,-127"/>
-<polygon fill="black" stroke="black" points="91.71,-130.5 101.71,-127 91.71,-123.5 91.71,-130.5"/>
-<text text-anchor="middle" x="78.9" y="-130.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>S&%2345;&gt;exp</title>
+<path fill="none" stroke="black" d="M36.2,-110C46.48,-110 59.84,-110 71.83,-110"/>
+<polygon fill="black" stroke="black" points="71.9,-113.5 81.9,-110 71.9,-106.5 71.9,-113.5"/>
+<text text-anchor="middle" x="59" y="-113.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- S_I -->
+<!-- I -->
 <g id="node2" class="node">
-<title>S_I</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="465.79" cy="-127" rx="24.9" ry="24.9"/>
-<text text-anchor="middle" x="465.79" y="-123.3" font-family="Times,serif" font-size="14.00">S_I</text>
+<title>I</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="378" cy="-110" rx="18" ry="18"/>
+<text text-anchor="middle" x="378" y="-106.3" font-family="Times,serif" font-size="14.00">I</text>
 </g>
-<!-- S_I&%2345;&gt;T_exp -->
+<!-- I&%2345;&gt;exp -->
 <g id="edge1" class="edge">
-<title>S_I&%2345;&gt;T_exp</title>
-<path fill="none" stroke="black" d="M440.97,-127C383.97,-127 239.34,-127 170.04,-127"/>
-<polygon fill="black" stroke="black" points="169.99,-123.5 159.99,-127 169.99,-130.5 169.99,-123.5"/>
-<text text-anchor="middle" x="286.09" y="-130.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>I&%2345;&gt;exp</title>
+<path fill="none" stroke="black" d="M359.76,-110C314.47,-110 191.69,-110 134.32,-110"/>
+<polygon fill="black" stroke="black" points="134.07,-106.5 124.07,-110 134.07,-113.5 134.07,-106.5"/>
+<text text-anchor="middle" x="229" y="-113.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_rec -->
+<!-- rec -->
 <g id="node8" class="node">
-<title>T_rec</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="591.49,-172.5 536.49,-172.5 536.49,-117.5 591.49,-117.5 591.49,-172.5"/>
-<text text-anchor="middle" x="563.99" y="-141.3" font-family="Times,serif" font-size="14.00">T_rec</text>
+<title>rec</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="481,-139.5 442,-139.5 442,-100.5 481,-100.5 481,-139.5"/>
+<text text-anchor="middle" x="461.5" y="-116.3" font-family="Times,serif" font-size="14.00">rec</text>
 </g>
-<!-- S_I&%2345;&gt;T_rec -->
+<!-- I&%2345;&gt;rec -->
 <g id="edge7" class="edge">
-<title>S_I&%2345;&gt;T_rec</title>
-<path fill="none" stroke="black" d="M490.57,-131.45C501.33,-133.46 514.29,-135.89 526.25,-138.13"/>
-<polygon fill="black" stroke="black" points="525.96,-141.63 536.43,-140.03 527.24,-134.75 525.96,-141.63"/>
-<text text-anchor="middle" x="513.49" y="-140.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>I&%2345;&gt;rec</title>
+<path fill="none" stroke="black" d="M395.89,-112.07C406.27,-113.35 419.85,-115.01 431.88,-116.49"/>
+<polygon fill="black" stroke="black" points="431.58,-119.98 441.93,-117.72 432.43,-113.03 431.58,-119.98"/>
+<text text-anchor="middle" x="419" y="-119.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_qi -->
+<!-- qi -->
 <g id="node10" class="node">
-<title>T_qi</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="586.99,-99 540.99,-99 540.99,-53 586.99,-53 586.99,-99"/>
-<text text-anchor="middle" x="563.99" y="-72.3" font-family="Times,serif" font-size="14.00">T_qi</text>
+<title>qi</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="479.5,-82 443.5,-82 443.5,-46 479.5,-46 479.5,-82"/>
+<text text-anchor="middle" x="461.5" y="-60.3" font-family="Times,serif" font-size="14.00">qi</text>
 </g>
-<!-- S_I&%2345;&gt;T_qi -->
+<!-- I&%2345;&gt;qi -->
 <g id="edge11" class="edge">
-<title>S_I&%2345;&gt;T_qi</title>
-<path fill="none" stroke="black" d="M488.14,-115.68C500.94,-108.89 517.46,-100.14 531.71,-92.58"/>
-<polygon fill="black" stroke="black" points="533.5,-95.59 540.69,-87.82 530.22,-89.41 533.5,-95.59"/>
-<text text-anchor="middle" x="513.49" y="-108.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>I&%2345;&gt;qi</title>
+<path fill="none" stroke="black" d="M393.95,-101.56C405.3,-95.16 421.19,-86.19 434.59,-78.62"/>
+<polygon fill="black" stroke="black" points="436.4,-81.62 443.39,-73.66 432.96,-75.52 436.4,-81.62"/>
+<text text-anchor="middle" x="419" y="-93.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- S_E -->
+<!-- E -->
 <g id="node3" class="node">
-<title>S_E</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="234.49" cy="-70" rx="28.7" ry="28.7"/>
-<text text-anchor="middle" x="234.49" y="-66.3" font-family="Times,serif" font-size="14.00">S_E</text>
+<title>E</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="188" cy="-64" rx="18" ry="18"/>
+<text text-anchor="middle" x="188" y="-60.3" font-family="Times,serif" font-size="14.00">E</text>
 </g>
-<!-- T_ill -->
+<!-- ill -->
 <g id="node7" class="node">
-<title>T_ill</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="355.09,-99 309.09,-99 309.09,-53 355.09,-53 355.09,-99"/>
-<text text-anchor="middle" x="332.09" y="-72.3" font-family="Times,serif" font-size="14.00">T_ill</text>
+<title>ill</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="288,-82 252,-82 252,-46 288,-46 288,-82"/>
+<text text-anchor="middle" x="270" y="-60.3" font-family="Times,serif" font-size="14.00">ill</text>
 </g>
-<!-- S_E&%2345;&gt;T_ill -->
+<!-- E&%2345;&gt;ill -->
 <g id="edge5" class="edge">
-<title>S_E&%2345;&gt;T_ill</title>
-<path fill="none" stroke="black" d="M263.14,-71.74C274.29,-72.44 287.22,-73.25 298.8,-73.97"/>
-<polygon fill="black" stroke="black" points="298.76,-77.48 308.96,-74.61 299.19,-70.49 298.76,-77.48"/>
-<text text-anchor="middle" x="286.09" y="-77.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>E&%2345;&gt;ill</title>
+<path fill="none" stroke="black" d="M206.36,-64C216.7,-64 230.06,-64 241.78,-64"/>
+<polygon fill="black" stroke="black" points="241.95,-67.5 251.95,-64 241.95,-60.5 241.95,-67.5"/>
+<text text-anchor="middle" x="229" y="-67.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_qe -->
+<!-- qe -->
 <g id="node9" class="node">
-<title>T_qe</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="423.09,-50 373.09,-50 373.09,0 423.09,0 423.09,-50"/>
-<text text-anchor="middle" x="398.09" y="-21.3" font-family="Times,serif" font-size="14.00">T_qe</text>
+<title>qe</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="342,-36 306,-36 306,0 342,0 342,-36"/>
+<text text-anchor="middle" x="324" y="-14.3" font-family="Times,serif" font-size="14.00">qe</text>
 </g>
-<!-- S_E&%2345;&gt;T_qe -->
+<!-- E&%2345;&gt;qe -->
 <g id="edge9" class="edge">
-<title>S_E&%2345;&gt;T_qe</title>
-<path fill="none" stroke="black" d="M261.46,-59.92C275.44,-54.72 293.05,-48.54 309.09,-44 326.61,-39.04 346.4,-34.66 362.78,-31.36"/>
-<polygon fill="black" stroke="black" points="363.85,-34.71 372.98,-29.35 362.5,-27.84 363.85,-34.71"/>
-<text text-anchor="middle" x="286.09" y="-56.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>E&%2345;&gt;qe</title>
+<path fill="none" stroke="black" d="M203.98,-54.93C210.05,-51.51 217.22,-47.77 224,-45 247.59,-35.36 275.74,-28.06 295.97,-23.5"/>
+<polygon fill="black" stroke="black" points="296.74,-26.91 305.77,-21.37 295.25,-20.08 296.74,-26.91"/>
+<text text-anchor="middle" x="229" y="-48.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- S_R -->
+<!-- R -->
 <g id="node4" class="node">
-<title>S_R</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="666.08" cy="-145" rx="28.7" ry="28.7"/>
-<text text-anchor="middle" x="666.08" y="-141.3" font-family="Times,serif" font-size="14.00">S_R</text>
+<title>R</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="545.2" cy="-120" rx="18" ry="18"/>
+<text text-anchor="middle" x="545.2" y="-116.3" font-family="Times,serif" font-size="14.00">R</text>
 </g>
-<!-- S_Q -->
+<!-- Q -->
 <g id="node5" class="node">
-<title>S_Q</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="666.08" cy="-48" rx="28.7" ry="28.7"/>
-<text text-anchor="middle" x="666.08" y="-44.3" font-family="Times,serif" font-size="14.00">S_Q</text>
+<title>Q</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="545.2" cy="-38" rx="18.4" ry="18.4"/>
+<text text-anchor="middle" x="545.2" y="-34.3" font-family="Times,serif" font-size="14.00">Q</text>
 </g>
-<!-- T_exp&%2345;&gt;S_I -->
+<!-- exp&%2345;&gt;I -->
 <g id="edge3" class="edge">
-<title>T_exp&%2345;&gt;S_I</title>
-<path fill="none" stroke="black" d="M160.32,-136.98C166.07,-138.62 172.12,-140.08 177.9,-141 285.52,-158.08 315.68,-159.39 423.09,-141 426.33,-140.45 429.65,-139.68 432.95,-138.8"/>
-<polygon fill="black" stroke="black" points="434.06,-142.12 442.61,-135.86 432.02,-135.42 434.06,-142.12"/>
-<text text-anchor="middle" x="286.09" y="-157.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>exp&%2345;&gt;I</title>
+<path fill="none" stroke="black" d="M124.16,-118.82C129.82,-120.91 136.06,-122.87 142,-124 229.31,-140.67 254.87,-141.62 342,-124 345.27,-123.34 348.63,-122.38 351.91,-121.28"/>
+<polygon fill="black" stroke="black" points="353.26,-124.51 361.34,-117.67 350.75,-117.98 353.26,-124.51"/>
+<text text-anchor="middle" x="229" y="-139.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_exp&%2345;&gt;S_E -->
+<!-- exp&%2345;&gt;E -->
 <g id="edge4" class="edge">
-<title>T_exp&%2345;&gt;S_E</title>
-<path fill="none" stroke="black" d="M160.35,-108.47C166.1,-104.89 172.14,-101.25 177.9,-98 184.62,-94.2 191.93,-90.33 198.97,-86.74"/>
-<polygon fill="black" stroke="black" points="200.95,-89.66 208.32,-82.04 197.81,-83.41 200.95,-89.66"/>
-<text text-anchor="middle" x="182.9" y="-101.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>exp&%2345;&gt;E</title>
+<path fill="none" stroke="black" d="M124.16,-92.9C129.72,-88.67 135.9,-84.38 142,-81 147.94,-77.7 154.65,-74.78 161.05,-72.34"/>
+<polygon fill="black" stroke="black" points="162.43,-75.56 170.67,-68.89 160.07,-68.97 162.43,-75.56"/>
+<text text-anchor="middle" x="147" y="-84.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_ill&%2345;&gt;S_I -->
+<!-- ill&%2345;&gt;I -->
 <g id="edge6" class="edge">
-<title>T_ill&%2345;&gt;S_I</title>
-<path fill="none" stroke="black" d="M355.29,-79.09C373.98,-82.23 401.1,-88.08 423.09,-98 427.99,-100.21 432.92,-103.01 437.58,-106"/>
-<polygon fill="black" stroke="black" points="435.93,-109.1 446.16,-111.86 439.88,-103.32 435.93,-109.1"/>
-<text text-anchor="middle" x="398.09" y="-101.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>ill&%2345;&gt;I</title>
+<path fill="none" stroke="black" d="M288.1,-65.87C302.97,-68.01 324.77,-72.39 342,-81 347.21,-83.6 352.32,-87.11 356.96,-90.79"/>
+<polygon fill="black" stroke="black" points="354.84,-93.59 364.71,-97.43 359.4,-88.27 354.84,-93.59"/>
+<text text-anchor="middle" x="324" y="-84.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_rec&%2345;&gt;S_R -->
+<!-- rec&%2345;&gt;R -->
 <g id="edge8" class="edge">
-<title>T_rec&%2345;&gt;S_R</title>
-<path fill="none" stroke="black" d="M591.55,-145C602.48,-145 615.34,-145 627.23,-145"/>
-<polygon fill="black" stroke="black" points="627.35,-148.5 637.35,-145 627.35,-141.5 627.35,-148.5"/>
-<text text-anchor="middle" x="614.49" y="-148.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>rec&%2345;&gt;R</title>
+<path fill="none" stroke="black" d="M481.04,-120C491.64,-120 505.12,-120 516.91,-120"/>
+<polygon fill="black" stroke="black" points="517.13,-123.5 527.13,-120 517.13,-116.5 517.13,-123.5"/>
+<text text-anchor="middle" x="504" y="-123.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_qe&%2345;&gt;S_Q -->
+<!-- qe&%2345;&gt;Q -->
 <g id="edge10" class="edge">
-<title>T_qe&%2345;&gt;S_Q</title>
-<path fill="none" stroke="black" d="M423.16,-27.08C469.54,-31.09 571.58,-39.91 627.17,-44.72"/>
-<polygon fill="black" stroke="black" points="627.05,-48.22 637.31,-45.6 627.65,-41.25 627.05,-48.22"/>
-<text text-anchor="middle" x="513.49" y="-39.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>qe&%2345;&gt;Q</title>
+<path fill="none" stroke="black" d="M342.2,-19.57C380.04,-23.02 470.79,-31.3 516.66,-35.49"/>
+<polygon fill="black" stroke="black" points="516.5,-38.99 526.77,-36.41 517.13,-32.02 516.5,-38.99"/>
+<text text-anchor="middle" x="419" y="-30.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_qi&%2345;&gt;S_Q -->
+<!-- qi&%2345;&gt;Q -->
 <g id="edge12" class="edge">
-<title>T_qi&%2345;&gt;S_Q</title>
-<path fill="none" stroke="black" d="M587.2,-69.79C599.34,-66.39 614.69,-62.1 628.55,-58.22"/>
-<polygon fill="black" stroke="black" points="629.62,-61.56 638.3,-55.49 627.73,-54.81 629.62,-61.56"/>
-<text text-anchor="middle" x="614.49" y="-66.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>qi&%2345;&gt;Q</title>
+<path fill="none" stroke="black" d="M479.83,-58.49C490.88,-54.97 505.41,-50.34 517.87,-46.38"/>
+<polygon fill="black" stroke="black" points="519.27,-49.61 527.73,-43.24 517.14,-42.94 519.27,-49.61"/>
+<text text-anchor="middle" x="504" y="-55.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
 </g>
 </svg>
-'/><pre><code class="language-julia">bnquar = LabelledBilayerNetwork()
+'/><pre><code class="language-julia hljs">bnquar = LabelledBilayerNetwork()
 migrate!(bnquar, pn_quar)
 to_graphviz(bnquar)
 
@@ -1388,185 +1370,185 @@ display_uwd(qm)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.
 </g>
 </g>
 </svg>
-'/><pre><code class="language-julia">pn_quar = oapply(qm, semantics)  |&gt; apex
+'/><pre><code class="language-julia hljs">pn_quar = oapply(qm, semantics)  |&gt; apex
 Graph(pn_quar)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: G Pages: 1 -->
-<svg width="936pt" height="177pt"
- viewBox="0.00 0.00 935.88 177.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 173)">
+<svg width="761pt" height="159pt"
+ viewBox="0.00 0.00 761.40 159.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 155)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-173 931.88,-173 931.88,4 -4,4"/>
-<!-- S_S -->
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-155 757.4,-155 757.4,4 -4,4"/>
+<!-- S -->
 <g id="node1" class="node">
-<title>S_S</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="27.95" cy="-127" rx="27.9" ry="27.9"/>
-<text text-anchor="middle" x="27.95" y="-123.3" font-family="Times,serif" font-size="14.00">S_S</text>
+<title>S</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="18" cy="-110" rx="18" ry="18"/>
+<text text-anchor="middle" x="18" y="-106.3" font-family="Times,serif" font-size="14.00">S</text>
 </g>
-<!-- T_exp -->
+<!-- exp -->
 <g id="node6" class="node">
-<title>T_exp</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="159.9,-156 101.9,-156 101.9,-98 159.9,-98 159.9,-156"/>
-<text text-anchor="middle" x="130.9" y="-123.3" font-family="Times,serif" font-size="14.00">T_exp</text>
+<title>exp</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="124,-131 82,-131 82,-89 124,-89 124,-131"/>
+<text text-anchor="middle" x="103" y="-106.3" font-family="Times,serif" font-size="14.00">exp</text>
 </g>
-<!-- S_S&%2345;&gt;T_exp -->
+<!-- S&%2345;&gt;exp -->
 <g id="edge2" class="edge">
-<title>S_S&%2345;&gt;T_exp</title>
-<path fill="none" stroke="black" d="M56,-127C66.93,-127 79.75,-127 91.61,-127"/>
-<polygon fill="black" stroke="black" points="91.71,-130.5 101.71,-127 91.71,-123.5 91.71,-130.5"/>
-<text text-anchor="middle" x="78.9" y="-130.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>S&%2345;&gt;exp</title>
+<path fill="none" stroke="black" d="M36.2,-110C46.48,-110 59.84,-110 71.83,-110"/>
+<polygon fill="black" stroke="black" points="71.9,-113.5 81.9,-110 71.9,-106.5 71.9,-113.5"/>
+<text text-anchor="middle" x="59" y="-113.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- S_I -->
+<!-- I -->
 <g id="node2" class="node">
-<title>S_I</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="465.79" cy="-127" rx="24.9" ry="24.9"/>
-<text text-anchor="middle" x="465.79" y="-123.3" font-family="Times,serif" font-size="14.00">S_I</text>
+<title>I</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="378" cy="-110" rx="18" ry="18"/>
+<text text-anchor="middle" x="378" y="-106.3" font-family="Times,serif" font-size="14.00">I</text>
 </g>
-<!-- S_I&%2345;&gt;T_exp -->
+<!-- I&%2345;&gt;exp -->
 <g id="edge1" class="edge">
-<title>S_I&%2345;&gt;T_exp</title>
-<path fill="none" stroke="black" d="M440.97,-127C383.97,-127 239.34,-127 170.04,-127"/>
-<polygon fill="black" stroke="black" points="169.99,-123.5 159.99,-127 169.99,-130.5 169.99,-123.5"/>
-<text text-anchor="middle" x="286.09" y="-130.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>I&%2345;&gt;exp</title>
+<path fill="none" stroke="black" d="M359.76,-110C314.47,-110 191.69,-110 134.32,-110"/>
+<polygon fill="black" stroke="black" points="134.07,-106.5 124.07,-110 134.07,-113.5 134.07,-106.5"/>
+<text text-anchor="middle" x="229" y="-113.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_rec -->
+<!-- rec -->
 <g id="node8" class="node">
-<title>T_rec</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="655.49,-154.5 600.49,-154.5 600.49,-99.5 655.49,-99.5 655.49,-154.5"/>
-<text text-anchor="middle" x="627.99" y="-123.3" font-family="Times,serif" font-size="14.00">T_rec</text>
+<title>rec</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="535,-129.5 496,-129.5 496,-90.5 535,-90.5 535,-129.5"/>
+<text text-anchor="middle" x="515.5" y="-106.3" font-family="Times,serif" font-size="14.00">rec</text>
 </g>
-<!-- S_I&%2345;&gt;T_rec -->
+<!-- I&%2345;&gt;rec -->
 <g id="edge7" class="edge">
-<title>S_I&%2345;&gt;T_rec</title>
-<path fill="none" stroke="black" d="M490.77,-127C517.08,-127 559.63,-127 590.18,-127"/>
-<polygon fill="black" stroke="black" points="590.43,-130.5 600.43,-127 590.43,-123.5 590.43,-130.5"/>
-<text text-anchor="middle" x="513.49" y="-130.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>I&%2345;&gt;rec</title>
+<path fill="none" stroke="black" d="M396.16,-110C418.67,-110 458.48,-110 485.66,-110"/>
+<polygon fill="black" stroke="black" points="485.74,-113.5 495.74,-110 485.74,-106.5 485.74,-113.5"/>
+<text text-anchor="middle" x="419" y="-113.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_qi -->
+<!-- qi -->
 <g id="node10" class="node">
-<title>T_qi</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="582.49,-99 536.49,-99 536.49,-53 582.49,-53 582.49,-99"/>
-<text text-anchor="middle" x="559.49" y="-72.3" font-family="Times,serif" font-size="14.00">T_qi</text>
+<title>qi</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="478,-82 442,-82 442,-46 478,-46 478,-82"/>
+<text text-anchor="middle" x="460" y="-60.3" font-family="Times,serif" font-size="14.00">qi</text>
 </g>
-<!-- S_I&%2345;&gt;T_qi -->
+<!-- I&%2345;&gt;qi -->
 <g id="edge11" class="edge">
-<title>S_I&%2345;&gt;T_qi</title>
-<path fill="none" stroke="black" d="M483.28,-109.22C490.45,-102.37 499.31,-95.01 508.49,-90 513.96,-87.01 520.13,-84.62 526.21,-82.71"/>
-<polygon fill="black" stroke="black" points="527.53,-85.98 536.24,-79.95 525.67,-79.23 527.53,-85.98"/>
-<text text-anchor="middle" x="513.49" y="-93.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>I&%2345;&gt;qi</title>
+<path fill="none" stroke="black" d="M389.07,-95.61C395.35,-87.73 404.1,-78.48 414,-73 419.45,-69.99 425.76,-67.97 431.91,-66.63"/>
+<polygon fill="black" stroke="black" points="432.63,-70.06 441.91,-64.95 431.47,-63.16 432.63,-70.06"/>
+<text text-anchor="middle" x="419" y="-76.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- S_E -->
+<!-- E -->
 <g id="node3" class="node">
-<title>S_E</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="234.49" cy="-70" rx="28.7" ry="28.7"/>
-<text text-anchor="middle" x="234.49" y="-66.3" font-family="Times,serif" font-size="14.00">S_E</text>
+<title>E</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="188" cy="-64" rx="18" ry="18"/>
+<text text-anchor="middle" x="188" y="-60.3" font-family="Times,serif" font-size="14.00">E</text>
 </g>
-<!-- T_ill -->
+<!-- ill -->
 <g id="node7" class="node">
-<title>T_ill</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="355.09,-99 309.09,-99 309.09,-53 355.09,-53 355.09,-99"/>
-<text text-anchor="middle" x="332.09" y="-72.3" font-family="Times,serif" font-size="14.00">T_ill</text>
+<title>ill</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="288,-82 252,-82 252,-46 288,-46 288,-82"/>
+<text text-anchor="middle" x="270" y="-60.3" font-family="Times,serif" font-size="14.00">ill</text>
 </g>
-<!-- S_E&%2345;&gt;T_ill -->
+<!-- E&%2345;&gt;ill -->
 <g id="edge5" class="edge">
-<title>S_E&%2345;&gt;T_ill</title>
-<path fill="none" stroke="black" d="M263.14,-71.74C274.29,-72.44 287.22,-73.25 298.8,-73.97"/>
-<polygon fill="black" stroke="black" points="298.76,-77.48 308.96,-74.61 299.19,-70.49 298.76,-77.48"/>
-<text text-anchor="middle" x="286.09" y="-77.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>E&%2345;&gt;ill</title>
+<path fill="none" stroke="black" d="M206.36,-64C216.7,-64 230.06,-64 241.78,-64"/>
+<polygon fill="black" stroke="black" points="241.95,-67.5 251.95,-64 241.95,-60.5 241.95,-67.5"/>
+<text text-anchor="middle" x="229" y="-67.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_qe -->
+<!-- qe -->
 <g id="node9" class="node">
-<title>T_qe</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="423.09,-50 373.09,-50 373.09,0 423.09,0 423.09,-50"/>
-<text text-anchor="middle" x="398.09" y="-21.3" font-family="Times,serif" font-size="14.00">T_qe</text>
+<title>qe</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="342,-36 306,-36 306,0 342,0 342,-36"/>
+<text text-anchor="middle" x="324" y="-14.3" font-family="Times,serif" font-size="14.00">qe</text>
 </g>
-<!-- S_E&%2345;&gt;T_qe -->
+<!-- E&%2345;&gt;qe -->
 <g id="edge9" class="edge">
-<title>S_E&%2345;&gt;T_qe</title>
-<path fill="none" stroke="black" d="M261.46,-59.92C275.44,-54.72 293.05,-48.54 309.09,-44 326.61,-39.04 346.4,-34.66 362.78,-31.36"/>
-<polygon fill="black" stroke="black" points="363.85,-34.71 372.98,-29.35 362.5,-27.84 363.85,-34.71"/>
-<text text-anchor="middle" x="286.09" y="-56.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>E&%2345;&gt;qe</title>
+<path fill="none" stroke="black" d="M203.98,-54.93C210.05,-51.51 217.22,-47.77 224,-45 247.59,-35.36 275.74,-28.06 295.97,-23.5"/>
+<polygon fill="black" stroke="black" points="296.74,-26.91 305.77,-21.37 295.25,-20.08 296.74,-26.91"/>
+<text text-anchor="middle" x="229" y="-48.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- S_R -->
+<!-- R -->
 <g id="node4" class="node">
-<title>S_R</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="899.28" cy="-101" rx="28.7" ry="28.7"/>
-<text text-anchor="middle" x="899.28" y="-97.3" font-family="Times,serif" font-size="14.00">S_R</text>
+<title>R</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="735.4" cy="-87" rx="18" ry="18"/>
+<text text-anchor="middle" x="735.4" y="-83.3" font-family="Times,serif" font-size="14.00">R</text>
 </g>
-<!-- S_Q -->
+<!-- Q -->
 <g id="node5" class="node">
-<title>S_Q</title>
-<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="702.08" cy="-70" rx="28.7" ry="28.7"/>
-<text text-anchor="middle" x="702.08" y="-66.3" font-family="Times,serif" font-size="14.00">S_Q</text>
+<title>Q</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="571.2" cy="-64" rx="18.4" ry="18.4"/>
+<text text-anchor="middle" x="571.2" y="-60.3" font-family="Times,serif" font-size="14.00">Q</text>
 </g>
-<!-- T_qr -->
+<!-- qr -->
 <g id="node11" class="node">
-<title>T_qr</title>
-<polygon fill="%23e28f41" stroke="%23e28f41" points="824.68,-98 776.68,-98 776.68,-50 824.68,-50 824.68,-98"/>
-<text text-anchor="middle" x="800.68" y="-70.3" font-family="Times,serif" font-size="14.00">T_qr</text>
+<title>qr</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="671.4,-82 635.4,-82 635.4,-46 671.4,-46 671.4,-82"/>
+<text text-anchor="middle" x="653.4" y="-60.3" font-family="Times,serif" font-size="14.00">qr</text>
 </g>
-<!-- S_Q&%2345;&gt;T_qr -->
+<!-- Q&%2345;&gt;qr -->
 <g id="edge13" class="edge">
-<title>S_Q&%2345;&gt;T_qr</title>
-<path fill="none" stroke="black" d="M730.76,-71.15C741.86,-71.61 754.75,-72.14 766.35,-72.62"/>
-<polygon fill="black" stroke="black" points="766.43,-76.13 776.56,-73.04 766.72,-69.13 766.43,-76.13"/>
-<text text-anchor="middle" x="753.68" y="-76.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>Q&%2345;&gt;qr</title>
+<path fill="none" stroke="black" d="M589.6,-64C599.97,-64 613.36,-64 625.11,-64"/>
+<polygon fill="black" stroke="black" points="625.3,-67.5 635.3,-64 625.3,-60.5 625.3,-67.5"/>
+<text text-anchor="middle" x="612.4" y="-67.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_exp&%2345;&gt;S_I -->
+<!-- exp&%2345;&gt;I -->
 <g id="edge3" class="edge">
-<title>T_exp&%2345;&gt;S_I</title>
-<path fill="none" stroke="black" d="M160.32,-136.98C166.07,-138.62 172.12,-140.08 177.9,-141 285.52,-158.08 315.68,-159.39 423.09,-141 426.33,-140.45 429.65,-139.68 432.95,-138.8"/>
-<polygon fill="black" stroke="black" points="434.06,-142.12 442.61,-135.86 432.02,-135.42 434.06,-142.12"/>
-<text text-anchor="middle" x="286.09" y="-157.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>exp&%2345;&gt;I</title>
+<path fill="none" stroke="black" d="M124.16,-118.82C129.82,-120.91 136.06,-122.87 142,-124 229.31,-140.67 254.87,-141.62 342,-124 345.27,-123.34 348.63,-122.38 351.91,-121.28"/>
+<polygon fill="black" stroke="black" points="353.26,-124.51 361.34,-117.67 350.75,-117.98 353.26,-124.51"/>
+<text text-anchor="middle" x="229" y="-139.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_exp&%2345;&gt;S_E -->
+<!-- exp&%2345;&gt;E -->
 <g id="edge4" class="edge">
-<title>T_exp&%2345;&gt;S_E</title>
-<path fill="none" stroke="black" d="M160.35,-108.47C166.1,-104.89 172.14,-101.25 177.9,-98 184.62,-94.2 191.93,-90.33 198.97,-86.74"/>
-<polygon fill="black" stroke="black" points="200.95,-89.66 208.32,-82.04 197.81,-83.41 200.95,-89.66"/>
-<text text-anchor="middle" x="182.9" y="-101.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>exp&%2345;&gt;E</title>
+<path fill="none" stroke="black" d="M124.16,-92.9C129.72,-88.67 135.9,-84.38 142,-81 147.94,-77.7 154.65,-74.78 161.05,-72.34"/>
+<polygon fill="black" stroke="black" points="162.43,-75.56 170.67,-68.89 160.07,-68.97 162.43,-75.56"/>
+<text text-anchor="middle" x="147" y="-84.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_ill&%2345;&gt;S_I -->
+<!-- ill&%2345;&gt;I -->
 <g id="edge6" class="edge">
-<title>T_ill&%2345;&gt;S_I</title>
-<path fill="none" stroke="black" d="M355.29,-79.09C373.98,-82.23 401.1,-88.08 423.09,-98 427.99,-100.21 432.92,-103.01 437.58,-106"/>
-<polygon fill="black" stroke="black" points="435.93,-109.1 446.16,-111.86 439.88,-103.32 435.93,-109.1"/>
-<text text-anchor="middle" x="398.09" y="-101.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>ill&%2345;&gt;I</title>
+<path fill="none" stroke="black" d="M288.1,-65.87C302.97,-68.01 324.77,-72.39 342,-81 347.21,-83.6 352.32,-87.11 356.96,-90.79"/>
+<polygon fill="black" stroke="black" points="354.84,-93.59 364.71,-97.43 359.4,-88.27 354.84,-93.59"/>
+<text text-anchor="middle" x="324" y="-84.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_rec&%2345;&gt;S_R -->
+<!-- rec&%2345;&gt;R -->
 <g id="edge8" class="edge">
-<title>T_rec&%2345;&gt;S_R</title>
-<path fill="none" stroke="black" d="M655.54,-124.99C697.47,-121.72 781.56,-114.85 852.68,-107 855.34,-106.71 858.09,-106.39 860.85,-106.05"/>
-<polygon fill="black" stroke="black" points="861.33,-109.52 870.81,-104.8 860.45,-102.57 861.33,-109.52"/>
-<text text-anchor="middle" x="753.68" y="-121.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>rec&%2345;&gt;R</title>
+<path fill="none" stroke="black" d="M535.06,-109.65C568.25,-108.79 639.86,-105.86 699.4,-96 702.15,-95.55 704.99,-94.98 707.82,-94.35"/>
+<polygon fill="black" stroke="black" points="708.91,-97.69 717.79,-91.91 707.24,-90.89 708.91,-97.69"/>
+<text text-anchor="middle" x="612.4" y="-110.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_qe&%2345;&gt;S_Q -->
+<!-- qe&%2345;&gt;Q -->
 <g id="edge10" class="edge">
-<title>T_qe&%2345;&gt;S_Q</title>
-<path fill="none" stroke="black" d="M423.24,-26.63C458.42,-29.2 525.76,-34.87 582.49,-44 610.04,-48.43 640.82,-55.24 664.11,-60.77"/>
-<polygon fill="black" stroke="black" points="663.39,-64.2 673.93,-63.13 665.03,-57.39 663.39,-64.2"/>
-<text text-anchor="middle" x="513.49" y="-39.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>qe&%2345;&gt;Q</title>
+<path fill="none" stroke="black" d="M342.13,-19.22C370.57,-21.45 429.25,-26.9 478,-37 500.63,-41.69 525.78,-49.21 544.08,-55.13"/>
+<polygon fill="black" stroke="black" points="543.15,-58.51 553.75,-58.31 545.34,-51.86 543.15,-58.51"/>
+<text text-anchor="middle" x="419" y="-31.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_qi&%2345;&gt;S_Q -->
+<!-- qi&%2345;&gt;Q -->
 <g id="edge12" class="edge">
-<title>T_qi&%2345;&gt;S_Q</title>
-<path fill="none" stroke="black" d="M582.76,-75.05C604.34,-74.13 637.47,-72.71 663.19,-71.62"/>
-<polygon fill="black" stroke="black" points="663.51,-75.11 673.35,-71.18 663.21,-68.11 663.51,-75.11"/>
-<text text-anchor="middle" x="627.99" y="-78.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>qi&%2345;&gt;Q</title>
+<path fill="none" stroke="black" d="M478.06,-64C495.35,-64 522.37,-64 542.69,-64"/>
+<polygon fill="black" stroke="black" points="542.9,-67.5 552.9,-64 542.9,-60.5 542.9,-67.5"/>
+<text text-anchor="middle" x="515.5" y="-67.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
-<!-- T_qr&%2345;&gt;S_R -->
+<!-- qr&%2345;&gt;R -->
 <g id="edge14" class="edge">
-<title>T_qr&%2345;&gt;S_R</title>
-<path fill="none" stroke="black" d="M825.06,-80.54C835.97,-83.58 849.21,-87.28 861.41,-90.7"/>
-<polygon fill="black" stroke="black" points="860.78,-94.15 871.35,-93.47 862.66,-87.41 860.78,-94.15"/>
-<text text-anchor="middle" x="847.68" y="-91.8" font-family="Times,serif" font-size="14.00">1</text>
+<title>qr&%2345;&gt;R</title>
+<path fill="none" stroke="black" d="M671.76,-68.99C682.35,-72.04 696.1,-75.99 708.02,-79.42"/>
+<polygon fill="black" stroke="black" points="707.31,-82.86 717.89,-82.25 709.25,-76.13 707.31,-82.86"/>
+<text text-anchor="middle" x="694.4" y="-80.8" font-family="Times,serif" font-size="14.00">1</text>
 </g>
 </g>
 </svg>
-'/><pre><code class="language-julia">bnquar = LabelledBilayerNetwork()
+'/><pre><code class="language-julia hljs">bnquar = LabelledBilayerNetwork()
 migrate!(bnquar, pn_quar)
 to_graphviz(bnquar)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
@@ -1803,7 +1785,7 @@ to_graphviz(bnquar)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version
 </g>
 </g>
 </svg>
-'/><pre><code class="language-julia">quarrt = LabelledPetriNet()
+'/><pre><code class="language-julia hljs">quarrt = LabelledPetriNet()
 migrate!(quarrt, bnquar) |&gt; Graph
 
 bnquar</code></pre><div class="c-set">
@@ -2017,7 +1999,7 @@ bnquar</code></pre><div class="c-set">
   </tr>
 </table>
 </div>
-<pre><code class="language-julia">import AlgebraicPetri.BilayerNetworks: evaluate!, evaluate
+<pre><code class="language-julia hljs">import AlgebraicPetri.BilayerNetworks: evaluate!, evaluate
 
 bnsir = LabelledBilayerNetwork()
 migrate!(bnsir, psir)
@@ -2042,7 +2024,7 @@ function euler(bn::AbstractLabelledBilayerNetwork, state, nsteps::Integer, steps
 end
 
 soln = euler(bnquar, (S=10.0, I=1, E=0, R=0, Q=0), 30, 0.15, exp=0.1, rec=0.03, qi=0.37, ill=0.7, qe=0.23, qr=0.03)
-printsoln(bnquar, soln)</code></pre><pre class="documenter-example-output">┌─────────┬──────────┬──────────┬────────────┬──────────┐
+printsoln(bnquar, soln)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┌─────────┬──────────┬──────────┬────────────┬──────────┐
 │       S │        I │        E │          R │        Q │
 ├─────────┼──────────┼──────────┼────────────┼──────────┤
 │    9.85 │     0.94 │     0.15 │     0.0045 │   0.0555 │
@@ -2075,8 +2057,8 @@ printsoln(bnquar, soln)</code></pre><pre class="documenter-example-output">┌�
 │ 6.52941 │  1.26071 │  0.87633 │   0.243074 │  2.09047 │
 │ 6.40594 │  1.27708 │ 0.877557 │   0.258154 │  2.18127 │
 │ 6.28322 │   1.2926 │ 0.877852 │   0.273717 │  2.27261 │
-└─────────┴──────────┴──────────┴────────────┴──────────┘</pre><pre><code class="language-julia">import AlgebraicPetri.BilayerNetworks: compile
-compile(bnquar, :du, :ϕ, :u, :p)</code></pre><pre class="documenter-example-output">:(f!(du, ϕ, u, p, t) = begin
+└─────────┴──────────┴──────────┴────────────┴──────────┘</code></pre><pre><code class="language-julia hljs">import AlgebraicPetri.BilayerNetworks: compile
+compile(bnquar, :du, :ϕ, :u, :p)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">:(f!(du, ϕ, u, p, t) = begin
           #= /home/runner/work/AlgebraicPetri.jl/AlgebraicPetri.jl/src/BilayerNetworks.jl:268 =#
           begin
               #= /home/runner/work/AlgebraicPetri.jl/AlgebraicPetri.jl/src/BilayerNetworks.jl:274 =#
@@ -2112,7 +2094,7 @@ compile(bnquar, :du, :ϕ, :u, :p)</code></pre><pre class="documenter-example-out
               du[4] += ϕ[6]
               return du
           end
-      end)</pre><pre><code class="language-julia">compile(bnquar, :du, :ϕ, :u, exp=0.1, rec=0.03, qi=0.37, ill=0.7, qe=0.23, qr=0.03)</code></pre><pre class="documenter-example-output">:(f!(du, ϕ, u, t) = begin
+      end)</code></pre><pre><code class="language-julia hljs">compile(bnquar, :du, :ϕ, :u, exp=0.1, rec=0.03, qi=0.37, ill=0.7, qe=0.23, qr=0.03)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">:(f!(du, ϕ, u, t) = begin
           #= /home/runner/work/AlgebraicPetri.jl/AlgebraicPetri.jl/src/BilayerNetworks.jl:269 =#
           begin
               #= /home/runner/work/AlgebraicPetri.jl/AlgebraicPetri.jl/src/BilayerNetworks.jl:274 =#
@@ -2148,7 +2130,7 @@ compile(bnquar, :du, :ϕ, :u, :p)</code></pre><pre class="documenter-example-out
               du[4] += ϕ[6]
               return du
           end
-      end)</pre><pre><code class="language-julia">function eulers(bn::AbstractLabelledBilayerNetwork, funcname::Symbol; params...)
+      end)</code></pre><pre><code class="language-julia hljs">function eulers(bn::AbstractLabelledBilayerNetwork, funcname::Symbol; params...)
     f = compile(bn, :du, :ϕ, :u; params...)
     varnames = tuple(bn[:,:variable]...)
     nϕ = nparts(bn, :Box)
@@ -2173,11 +2155,11 @@ compile(bnquar, :du, :ϕ, :u, :p)</code></pre><pre class="documenter-example-out
     end
 end
 
-eulers(bnsir, :eulsir, inf=0.3, rec=0.2)</code></pre><pre class="documenter-example-output">quote
-    #= none:6 =#
+eulers(bnsir, :eulsir, inf=0.3, rec=0.2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">quote
+    #= bilayerconversion.md:243 =#
     function eulsir(state, nsteps::Integer, stepsize::Real)
-        #= none:6 =#
-        #= none:7 =#
+        #= bilayerconversion.md:243 =#
+        #= bilayerconversion.md:244 =#
         f!(du, ϕ, u, t) = begin
                 #= /home/runner/work/AlgebraicPetri.jl/AlgebraicPetri.jl/src/BilayerNetworks.jl:269 =#
                 begin
@@ -2199,31 +2181,31 @@ eulers(bnsir, :eulsir, inf=0.3, rec=0.2)</code></pre><pre class="documenter-exam
                     return du
                 end
             end
-        #= none:9 =#
+        #= bilayerconversion.md:246 =#
         du = zeros(length(state))
-        #= none:10 =#
+        #= bilayerconversion.md:247 =#
         ϕ = ones(2)
-        #= none:11 =#
+        #= bilayerconversion.md:248 =#
         u = tuple(state...)
-        #= none:15 =#
+        #= bilayerconversion.md:252 =#
         results = Vector{NamedTuple{(:S, :I, :R)}}()
-        #= none:16 =#
+        #= bilayerconversion.md:253 =#
         for i = 1:nsteps
-            #= none:17 =#
+            #= bilayerconversion.md:254 =#
             Δ = f!(du, ϕ, u, 0)
-            #= none:18 =#
+            #= bilayerconversion.md:255 =#
             u = u .+ stepsize .* Δ
-            #= none:19 =#
+            #= bilayerconversion.md:256 =#
             push!(results, NamedTuple{(:S, :I, :R)}(u))
         end
-        #= none:21 =#
+        #= bilayerconversion.md:258 =#
         return results
     end
-end</pre><pre><code class="language-julia">eulseirqexp = eulers(bnquar, :eulseirq, exp=0.1, rec=0.03, qi=0.37, ill=0.7, qe=0.23, qr=0.03)</code></pre><pre class="documenter-example-output">quote
-    #= none:6 =#
+end</code></pre><pre><code class="language-julia hljs">eulseirqexp = eulers(bnquar, :eulseirq, exp=0.1, rec=0.03, qi=0.37, ill=0.7, qe=0.23, qr=0.03)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">quote
+    #= bilayerconversion.md:243 =#
     function eulseirq(state, nsteps::Integer, stepsize::Real)
-        #= none:6 =#
-        #= none:7 =#
+        #= bilayerconversion.md:243 =#
+        #= bilayerconversion.md:244 =#
         f!(du, ϕ, u, t) = begin
                 #= /home/runner/work/AlgebraicPetri.jl/AlgebraicPetri.jl/src/BilayerNetworks.jl:269 =#
                 begin
@@ -2261,31 +2243,31 @@ end</pre><pre><code class="language-julia">eulseirqexp = eulers(bnquar, :eulseir
                     return du
                 end
             end
-        #= none:9 =#
+        #= bilayerconversion.md:246 =#
         du = zeros(length(state))
-        #= none:10 =#
+        #= bilayerconversion.md:247 =#
         ϕ = ones(6)
-        #= none:11 =#
+        #= bilayerconversion.md:248 =#
         u = tuple(state...)
-        #= none:15 =#
+        #= bilayerconversion.md:252 =#
         results = Vector{NamedTuple{(:S, :I, :E, :R, :Q)}}()
-        #= none:16 =#
+        #= bilayerconversion.md:253 =#
         for i = 1:nsteps
-            #= none:17 =#
+            #= bilayerconversion.md:254 =#
             Δ = f!(du, ϕ, u, 0)
-            #= none:18 =#
+            #= bilayerconversion.md:255 =#
             u = u .+ stepsize .* Δ
-            #= none:19 =#
+            #= bilayerconversion.md:256 =#
             push!(results, NamedTuple{(:S, :I, :E, :R, :Q)}(u))
         end
-        #= none:21 =#
+        #= bilayerconversion.md:258 =#
         return results
     end
-end</pre><pre><code class="language-julia">eulsirexp = eulers(bnsir, :eulsir, inf=0.3, rec=0.2)</code></pre><pre class="documenter-example-output">quote
-    #= none:6 =#
+end</code></pre><pre><code class="language-julia hljs">eulsirexp = eulers(bnsir, :eulsir, inf=0.3, rec=0.2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">quote
+    #= bilayerconversion.md:243 =#
     function eulsir(state, nsteps::Integer, stepsize::Real)
-        #= none:6 =#
-        #= none:7 =#
+        #= bilayerconversion.md:243 =#
+        #= bilayerconversion.md:244 =#
         f!(du, ϕ, u, t) = begin
                 #= /home/runner/work/AlgebraicPetri.jl/AlgebraicPetri.jl/src/BilayerNetworks.jl:269 =#
                 begin
@@ -2307,29 +2289,29 @@ end</pre><pre><code class="language-julia">eulsirexp = eulers(bnsir, :eulsir, in
                     return du
                 end
             end
-        #= none:9 =#
+        #= bilayerconversion.md:246 =#
         du = zeros(length(state))
-        #= none:10 =#
+        #= bilayerconversion.md:247 =#
         ϕ = ones(2)
-        #= none:11 =#
+        #= bilayerconversion.md:248 =#
         u = tuple(state...)
-        #= none:15 =#
+        #= bilayerconversion.md:252 =#
         results = Vector{NamedTuple{(:S, :I, :R)}}()
-        #= none:16 =#
+        #= bilayerconversion.md:253 =#
         for i = 1:nsteps
-            #= none:17 =#
+            #= bilayerconversion.md:254 =#
             Δ = f!(du, ϕ, u, 0)
-            #= none:18 =#
+            #= bilayerconversion.md:255 =#
             u = u .+ stepsize .* Δ
-            #= none:19 =#
+            #= bilayerconversion.md:256 =#
             push!(results, NamedTuple{(:S, :I, :R)}(u))
         end
-        #= none:21 =#
+        #= bilayerconversion.md:258 =#
         return results
     end
-end</pre><pre><code class="language-julia">eval(eulsirexp)
+end</code></pre><pre><code class="language-julia hljs">eval(eulsirexp)
 soln_codegen = eulsir((S=10.0, I=1, R=0), 30, 0.15)
-pretty_table(soln_codegen)</code></pre><pre class="documenter-example-output">┌─────────────┬─────────┬──────────┐
+pretty_table(soln_codegen)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┌─────────────┬─────────┬──────────┐
 │           S │       I │        R │
 ├─────────────┼─────────┼──────────┤
 │        9.55 │    1.42 │     0.03 │
@@ -2362,9 +2344,9 @@ pretty_table(soln_codegen)</code></pre><pre class="documenter-example-output">�
 │ 0.000583872 │ 5.63527 │  5.36415 │
 │ 0.000435809 │ 5.46636 │  5.53321 │
 │ 0.000328606 │ 5.30247 │   5.6972 │
-└─────────────┴─────────┴──────────┘</pre><pre><code class="language-julia">eval(eulseirqexp)
+└─────────────┴─────────┴──────────┘</code></pre><pre><code class="language-julia hljs">eval(eulseirqexp)
 soln_codegen = eulseirq((S=10.0, I=1, E=0, R=0, Q=0), 30, 0.15)
-pretty_table(soln_codegen)</code></pre><pre class="documenter-example-output">┌─────────┬──────────┬──────────┬────────────┬──────────┐
+pretty_table(soln_codegen)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┌─────────┬──────────┬──────────┬────────────┬──────────┐
 │       S │        I │        E │          R │        Q │
 ├─────────┼──────────┼──────────┼────────────┼──────────┤
 │    9.85 │     0.94 │     0.15 │     0.0045 │   0.0555 │
@@ -2397,4 +2379,4 @@ pretty_table(soln_codegen)</code></pre><pre class="documenter-example-output">�
 │ 6.52941 │  1.26071 │  0.87633 │   0.243074 │  2.09047 │
 │ 6.40594 │  1.27708 │ 0.877557 │   0.258154 │  2.18127 │
 │ 6.28322 │   1.2926 │ 0.877852 │   0.273717 │  2.27261 │
-└─────────┴──────────┴──────────┴────────────┴──────────┘</pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../enzymes/enzyme_reactions/">« Cathepsin Enzyme Reactions</a><a class="docs-footer-nextpage" href="../../../api/">Library Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.3 on <span class="colophon-date" title="Thursday 15 July 2021 13:49">Thursday 15 July 2021</span>. Using Julia version 1.6.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+└─────────┴──────────┴──────────┴────────────┴──────────┘</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../enzymes/enzyme_reactions/">« Cathepsin Enzyme Reactions</a><a class="docs-footer-nextpage" href="../../../api/">Library Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.5 on <span class="colophon-date" title="Wednesday 4 August 2021 14:39">Wednesday 4 August 2021</span>. Using Julia version 1.6.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
