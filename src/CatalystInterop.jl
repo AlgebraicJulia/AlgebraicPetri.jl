@@ -8,6 +8,7 @@ module CatalystInterop
   using AlgebraicPetri
   using Catlab.CategoricalAlgebra
   using ...Catalyst
+  using ...Catalyst.Symbolics: scalarize
   import ...Catalyst: ReactionSystem
 
   counter(a) = [count(==(i),a) for i in unique(a)]
@@ -28,9 +29,11 @@ module CatalystInterop
       otpts = pn[incident(pn, t, :ot),:os]
       in_count = collect(counter(inpts))
       ot_count = collect(counter(otpts))
-      Reaction(k[t], S[unique(inpts)], S[unique(otpts)], in_count, ot_count)
+      Reaction(k[t], [S[i] for i in unique(inpts)],
+                     [S[o] for o in unique(otpts)],
+                     in_count, ot_count)
     end
 
-    ReactionSystem(rxs, t, S, k)
+    ReactionSystem(rxs, t, scalarize(S), scalarize(k))
   end
 end
