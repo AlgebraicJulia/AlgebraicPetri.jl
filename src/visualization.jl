@@ -2,11 +2,11 @@ using Catlab.CategoricalAlgebra
 using Catlab.Graphics.Graphviz
 import Catlab.Graphics.Graphviz: Graph, Edge, Subgraph
 import Base.Iterators: flatten
-import StatsBase: countmap
+using StatsBase
 
 export Graph
 
-countmap(a::Vector{Int}) = isempty(a) ? Dict{Int, Int}() : StatsBase.countmap(a)
+countmap_wrap(a) = isempty(a) ? Dict{Int, Int}() : countmap(a)
 
 function edgify(δ::Dict{Int64, Int64}, transition, reverse::Bool; pre="")
   return [Edge(reverse ? ["\"$(pre)t$transition\"", "\"$(pre)s$k\""] :
@@ -34,8 +34,8 @@ function Graph(p::AbstractPetriNet)
   stmts = vcat(statenodes, transnodes)
 
   edges = map(1:nt(p)) do k
-    vcat(edgify(countmap(inputs(p, k)), k, false),
-         edgify(countmap(outputs(p, k)), k, true))
+    vcat(edgify(countmap_wrap(inputs(p, k)), k, false),
+         edgify(countmap_wrap(outputs(p, k)), k, true))
   end |> flatten |> collect
 
   stmts = vcat(stmts, edges)
@@ -58,8 +58,8 @@ function Subgraph(p::AbstractPetriNet; label="cluster", pre="")
   stmts = vcat(statenodes, transnodes)
 
   edges = map(1:nt(p)) do k
-    vcat(edgify(countmap(inputs(p, k)), k, false; pre=pre),
-         edgify(countmap(outputs(p, k)), k, true; pre=pre))
+    vcat(edgify(countmap_wrap(inputs(p, k)), k, false; pre=pre),
+         edgify(countmap_wrap(outputs(p, k)), k, true; pre=pre))
   end |> flatten |> collect
 
   stmts = vcat(stmts, edges)
@@ -125,8 +125,8 @@ function Graph(so::Subobject)
   stmts = vcat(statenodes, transnodes)
 
   edges = map(1:nt(p)) do k
-    vcat(edgify(countmap(map(x->(p[x, :is], x ∈ inps), incident(p, k, :it))), k, false),
-         edgify(countmap(map(x->(p[x, :os], x ∈ otps), incident(p, k, :ot))), k, true))
+    vcat(edgify(countmap_wrap(map(x->(p[x, :is], x ∈ inps), incident(p, k, :it))), k, false),
+         edgify(countmap_wrap(map(x->(p[x, :os], x ∈ otps), incident(p, k, :ot))), k, true))
   end |> flatten |> collect
 
   stmts = vcat(stmts, edges)
