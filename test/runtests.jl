@@ -34,8 +34,6 @@ end
   include("modelcomparison.jl")
 end
 
-if VERSION >= v"1.3.0"
-  @testset "Catalyst Tooling" begin
-    include("CatalystInterop.jl")
-  end
+@testset "Catalyst Tooling" begin
+  include("CatalystInterop.jl")
 end

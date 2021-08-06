@@ -35,3 +35,6 @@ rn′ = Open([1], ReactionNet{Number,Int}([10, 0], (.25, 1=>2)), [2])
 lrn = Open(LabelledReactionNet{Number,Int}([:I=>10, :R=>0], ((:rec=>.25), :I=>:R)))
 lrn′ = Open([:I], LabelledReactionNet{Number,Int}([:I=>10, :R=>0], ((:rec=>.25), :I=>:R)), [:R])
 @test lrn == lrn′
+
+death_petri = Open(PetriNet(1, 1=>()));
+@test Graph(death_petri) isa Graph
