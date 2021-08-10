@@ -4,6 +4,7 @@ import Petri
 using LabelledArrays
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
+using AlgebraicPetri.ModelComparison
 using Catlab.Theories
 using Catlab.CategoricalAlgebra
 using Catlab.CategoricalAlgebra.FinSets
@@ -29,8 +30,10 @@ end
   include("bilayernetworks.jl")
 end
 
-if VERSION >= v"1.3.0"
-  @testset "Catalyst Tooling" begin
-    include("CatalystInterop.jl")
-  end
+@testset "ModelComparison" begin
+  include("modelcomparison.jl")
+end
+
+@testset "Catalyst Tooling" begin
+  include("CatalystInterop.jl")
 end
