@@ -15,11 +15,11 @@ function edgify(δ::Dict{Int64, Int64}, transition, reverse::Bool; pre="")
            for k in collect(keys(δ)) if δ[k] != 0]
 end
 
-function edgify(δ::Dict{Tuple{Int64, Bool}, Int64}, transition, reverse::Bool; pre="")
+function edgify(δ::Dict{Tuple{Int64, Bool}, Int64}, transition, reverse::Bool; pre="", lw=3.0)
   return [Edge(reverse ? ["\"$(pre)t$transition\"", "\"$(pre)s$(k[1])\""] :
                          ["\"$(pre)s$(k[1])\"", "\"$(pre)t$transition\""],
                Attributes(:label=>"$(δ[k])", :labelfontsize=>"6",
-                          :penwidth=>(k[2] ? "3.0" : "1.0")))
+                          :penwidth=>(k[2] ? "$lw" : "1.0")))
            for k in collect(keys(δ)) if δ[k] != 0]
 end
 
@@ -99,7 +99,7 @@ function Graph(p::ACSetTransformation)
   Graph(Multispan(p.dom, [p]))
 end
 
-function Graph(so::Subobject)
+function Graph(so::Subobject; kw...)
   p = ob(so)
   maps = hom(so)
   states = maps.components[:S].func
@@ -125,8 +125,8 @@ function Graph(so::Subobject)
   stmts = vcat(statenodes, transnodes)
 
   edges = map(1:nt(p)) do k
-    vcat(edgify(countmap_wrap(map(x->(p[x, :is], x ∈ inps), incident(p, k, :it))), k, false),
-         edgify(countmap_wrap(map(x->(p[x, :os], x ∈ otps), incident(p, k, :ot))), k, true))
+    vcat(edgify(countmap_wrap(map(x->(p[x, :is], x ∈ inps), incident(p, k, :it))), k, false; kw...),
+         edgify(countmap_wrap(map(x->(p[x, :os], x ∈ otps), incident(p, k, :ot))), k, true; kw...))
   end |> flatten |> collect
 
   stmts = vcat(stmts, edges)
