@@ -26,5 +26,7 @@ function __init__()
     end
   end
 
+  @require Semagrams="13530c0b-fe5b-42fd-9b7e-79367be16329" include("SemagramsInterop.jl")
+
   @require Catalyst="479239e8-5488-4da2-87a7-35f2df7eef83" include("CatalystInterop.jl")
 end
