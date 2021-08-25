@@ -250,18 +250,18 @@ end
 
 evaluate(bn::AbstractLabelledBilayerNetwork, state; params...) = evaluate!(zeros(length(state)), ones(nparts(bn, :Box)), bn, state; params...)
 
-function paramexps(bn::AbstractLabelledBilayerNetwork, params::Symbol)
+function paramexps(bn::AbstractLabelledBilayerNetwork, ϕ::Symbol, params::Symbol)
     map(parts(bn, :Box)) do i
         p = bn[i, :parameter]
-        :(ϕ[$i] *= $params[$(Meta.quot(p))])
+        :($ϕ[$i] *= $params[$(Meta.quot(p))])
     end
 end
 
-function paramexps(bn::AbstractLabelledBilayerNetwork, params)
+function paramexps(bn::AbstractLabelledBilayerNetwork, ϕ::Symbol, params)
     map(parts(bn, :Box)) do i
         p = bn[i, :parameter]
         β = params[p]
-        :(ϕ[$i] *= $β)
+        :($ϕ[$i] *= $β)
     end
 end
 
@@ -278,23 +278,23 @@ function compile(bn::Union{AbstractLabelledBilayerNetwork, AbstractBilayerNetwor
     ϕs = map(parts(bn, :Win)) do i
         j = bn[i, :arg]
         k = bn[i, :call]
-        :(ϕ[$k] *= $state[$j])
+        :($ϕ[$k] *= $state[$j])
     end
     append!(body.args, ϕs)
-    ps = paramexps(bn, params)
+    ps = paramexps(bn, ϕ, params)
     append!(body.args, ps)
 
     effs = map(parts(bn, :Wn)) do i
         j = bn[i, :efflux]
         k = bn[i, :effusion]
-        :(du[$k] -= ϕ[$j])
+        :($du[$k] -= $ϕ[$j])
     end
     append!(body.args, effs)
 
     infs = map(parts(bn, :Wa)) do i
         j = bn[i,:influx]
         k = bn[i,:infusion]
-        :(du[$k] += ϕ[$j])
+        :($du[$k] += $ϕ[$j])
     end
     append!(body.args, infs)
     push!(body.args, :(return $du))
