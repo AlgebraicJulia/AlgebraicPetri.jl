@@ -20,18 +20,19 @@ export ThBilayerNetwork, AbstractBilayerNetwork, BilayerNetwork,
 end
 
 @present ThLabelledBilayerNetwork <: ThBilayerNetwork begin
-    Name::Data
+    Name::AttrType
 
     parameter::Attr(Box, Name)
     variable::Attr(Qin, Name)
     tanvar::Attr(Qout, Name)
 end
 
-const AbstractBilayerNetwork = AbstractACSetType(ThBilayerNetwork)
-const BilayerNetwork = ACSetType(ThBilayerNetwork)
+@abstract_acset_type AbstractBilayerNetwork
+@acset_type BilayerNetwork(ThBilayerNetwork) <: AbstractBilayerNetwork
 
-const AbstractLabelledBilayerNetwork = AbstractACSetType(ThLabelledBilayerNetwork)
-const LabelledBilayerNetwork = ACSetType(ThLabelledBilayerNetwork){Symbol}
+@abstract_acset_type AbstractLabelledBilayerNetwork <: AbstractBilayerNetwork
+@acset_type LabelledBilayerNetworkUntyped(ThLabelledBilayerNetwork) <: AbstractLabelledBilayerNetwork
+const LabelledBilayerNetwork = LabelledBilayerNetworkUntyped{Symbol}
 
 function balance!(bn::AbstractBilayerNetwork)
   for t in 1:nparts(bn, :Box)
