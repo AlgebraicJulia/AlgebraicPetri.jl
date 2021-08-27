@@ -23,9 +23,17 @@ function edgify(δ::Dict{Tuple{Int64, Bool}, Int64}, transition, reverse::Bool; 
            for k in collect(keys(δ)) if δ[k] != 0]
 end
 
-function Graph(p::AbstractPetriNet)
-  statenodes = [Node("s$s", Attributes(:label=>"$(sname(p, s))",:shape=>"circle", :color=>"#6C9AC3")) for s in 1:ns(p)]
-  transnodes = [Node("t$k", Attributes(:label=>"$(tname(p, k))", :shape=>"square", :color=>"#E28F41")) for k in 1:nt(p)]
+function to_position(val)
+  isnothing(val) && return ""
+  "$(val[1]),$(val[2])!"
+end
+
+function Graph(p::AbstractPetriNet; positions=Dict(:T=>fill(nothing, nt(p)), :S=>fill(nothing, ns(p))))
+  statenodes = [Node("s$s", Attributes(:label=>"$(sname(p, s))",:shape=>"circle", :color=>"#6C9AC3",
+                                       :pos=>to_position(positions[:S][s]))) for s in 1:ns(p)]
+
+  transnodes = [Node("t$k", Attributes(:label=>"$(tname(p, k))", :shape=>"square", :color=>"#E28F41",
+                                       :pos=>to_position(positions[:T][k]))) for k in 1:nt(p)]
 
   graph_attrs = Attributes(:rankdir=>"LR")
   node_attrs  = Attributes(:shape=>"plain", :style=>"filled", :color=>"white")
@@ -39,32 +47,48 @@ function Graph(p::AbstractPetriNet)
   end |> flatten |> collect
 
   stmts = vcat(stmts, edges)
-  g = Graphviz.Digraph("G", stmts; graph_attrs=graph_attrs, node_attrs=node_attrs, edge_attrs=edge_attrs)
+  g = Graphviz.Graph(;name="G", stmts=stmts, directed=true,
+                     prog= all(isnothing.(vcat(positions[:T], positions[:S]))) ? "dot" : "fdp",
+                     graph_attrs=graph_attrs, node_attrs=node_attrs,
+                     edge_attrs=edge_attrs)
   return g
 end
 
-function Subgraph(p::AbstractPetriNet; label="cluster", pre="")
-   statenodes = [Node("\"$(pre)s$s\"",
-                      Attributes(:label => "$(sname(p, s))", :shape=>"circle",
-                                 :color=>"#6C9AC3")) for s in 1:ns(p)]
-
-  transnodes = [Node("\"$(pre)t$k\"",
-                     Attributes(:label => "$(tname(p, k))", :shape=>"square",
-                                :color=>"#E28F41")) for k in 1:nt(p)]
-
-  node_attrs  = Attributes(:shape=>"plain", :style=>"filled", :color=>"white")
-  edge_attrs  = Attributes(:splines=>"splines")
-
-  stmts = vcat(statenodes, transnodes)
-
-  edges = map(1:nt(p)) do k
-    vcat(edgify(countmap_wrap(inputs(p, k)), k, false; pre=pre),
-         edgify(countmap_wrap(outputs(p, k)), k, true; pre=pre))
-  end |> flatten |> collect
-
-  stmts = vcat(stmts, edges)
-  g = Graphviz.Subgraph(label, stmts; node_attrs=node_attrs, edge_attrs=edge_attrs)
+function Subgraph(g::Graph)
+  Subgraph(g.name, g.stmts, g.graph_attrs, g.node_attrs, g.edge_attrs)
 end
+
+function Subgraph(p::AbstractPetriNet; label="cluster", pre="", post="", kw...)
+  g = Graph(p; kw...)
+  g.name = label
+  for st in g.stmts
+    st.name = "$pre$(st.name)$post"
+  end
+  Subgraph(g)
+end
+
+#function Subgraph(p::AbstractPetriNet; label="cluster", pre="")
+#   statenodes = [Node("\"$(pre)s$s\"",
+#                      Attributes(:label => "$(sname(p, s))", :shape=>"circle",
+#                                 :color=>"#6C9AC3")) for s in 1:ns(p)]
+#
+#  transnodes = [Node("\"$(pre)t$k\"",
+#                     Attributes(:label => "$(tname(p, k))", :shape=>"square",
+#                                :color=>"#E28F41")) for k in 1:nt(p)]
+#
+#  node_attrs  = Attributes(:shape=>"plain", :style=>"filled", :color=>"white")
+#  edge_attrs  = Attributes(:splines=>"splines")
+#
+#  stmts = vcat(statenodes, transnodes)
+#
+#  edges = map(1:nt(p)) do k
+#    vcat(edgify(countmap_wrap(inputs(p, k)), k, false; pre=pre),
+#         edgify(countmap_wrap(outputs(p, k)), k, true; pre=pre))
+#  end |> flatten |> collect
+#
+#  stmts = vcat(stmts, edges)
+#  g = Graphviz.Subgraph(label, stmts; node_attrs=node_attrs, edge_attrs=edge_attrs)
+#end
 
 function Graph(m::Multispan)
   apex = Subgraph(m.apex; label="clusterApex", pre="ap_")
