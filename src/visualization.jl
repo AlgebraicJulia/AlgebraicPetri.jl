@@ -22,7 +22,7 @@ def_otpts(p, s, t, o) = (["t$t", "s$s"],Attributes(:labelfontsize=>"6"))
 
 function Graph(p::AbstractPetriNet; make_states::Function=def_states,
                make_trans::Function=def_trans, make_inpts::Function=def_inpts,
-               make_otpts::Function=def_otpts, name="G", prog="dot",
+               make_otpts::Function=def_otpts, name="G", prog=nothing,
                positions=Dict(:T=>fill("", nt(p)), :S=>fill("", ns(p))), kw...)
 
   graph_attrs = :graph_attrs ∈ keys(kw) ? Attributes(kw[:graph_attrs]) :
@@ -57,7 +57,9 @@ function Graph(p::AbstractPetriNet; make_states::Function=def_states,
   end
 
   stmts = vcat(stmts, edges)
-  g = Graphviz.Digraph(name, stmts; prog=prog,
+  g = Graphviz.Digraph(name, stmts; prog=isnothing(prog) ? \
+                      (all(isnothing.(vcat(positions[:T], positions[:S]))) ? \
+                        "dot" : "fdp") : prog,
                                     graph_attrs=graph_attrs,
                                     node_attrs=node_attrs,
                                     edge_attrs=edge_attrs)

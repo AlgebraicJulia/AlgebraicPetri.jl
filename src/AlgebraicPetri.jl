@@ -98,11 +98,11 @@ end
 
 """ Number of states in a Petri net
 """
-ns(p::AbstractPetriNet) = nparts(p,:S)
+ns(p::AbstractPetriNet)::Int64 = nparts(p,:S)
 
 """ Number of transitions in a Petri net
 """
-nt(p::AbstractPetriNet) = nparts(p,:T)
+nt(p::AbstractPetriNet)::Int64 = nparts(p,:T)
 
 """ Number of input relationships in a Petri net
 """
@@ -451,6 +451,32 @@ end
 
 sname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},s) = subpart(p,s,:sname)
 tname(p::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet},t) = subpart(p,t,:tname)
+
+vectorfield(pn::LabelledReactionNet; constants=[]) = begin
+
+  tm = TransitionMatrices(pn)
+  dt = tm.output - tm.input
+  p_m = Vector{Any}(undef, nt(pn))
+  c_vals = rates(pn)[constants]
+  c_inds = findall(t->t∈constants, tnames(pn))
+  p_m[c_inds] .= rates(pn)[c_inds]
+  p_inds = findall(t->!(t∈constants), tnames(pn))
+  f(du,u,p,t) = begin
+    rates = zeros(eltype(du),nt(pn))
+    u_m = [u[sname(pn, i)] for i in 1:ns(pn)]
+    for k in p_inds
+      p_m[k] = p[tname(pn, k)]
+    end
+    for i in 1:nt(pn)
+      rates[i] = valueat(p_m[i],u,t) * prod(u_m[j] ^ tm.input[i,j] for j in 1:ns(pn))
+    end
+    for j in 1:ns(pn)
+      du[sname(pn, j)] = sum(rates[i] * dt[i,j] for i in 1:nt(pn))
+    end
+    return du
+  end
+  return f
+end
 
 # Interoperability between different types
 
