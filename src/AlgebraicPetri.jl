@@ -3,6 +3,7 @@
 module AlgebraicPetri
 
 export TheoryPetriNet, PetriNet, OpenPetriNetOb, AbstractPetriNet, ns, nt, ni, no,
+  os, ot, is, it,
   add_species!, add_transition!, add_transitions!,
   add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs,
   TransitionMatrices, vectorfield,
@@ -110,6 +111,11 @@ ni(p::AbstractPetriNet) = nparts(p,:I)
 """ Number of output relationships in a Petri net
 """
 no(p::AbstractPetriNet) = nparts(p,:O)
+
+is(p::AbstractPetriNet, args...) = subpart(p, args..., :is)
+os(p::AbstractPetriNet, args...) = subpart(p, args..., :os)
+it(p::AbstractPetriNet, args...) = subpart(p, args..., :it)
+ot(p::AbstractPetriNet, args...) = subpart(p, args..., :ot)
 
 """ Add a species to the Petri net. Label and concentration can be provided
 depending on the kind of Petri net.

@@ -1,7 +1,7 @@
 SIRD = LabelledReactionNet{Float64, Float64}([:S=>0.0, :I=>0.0, :R=>0.0, :D=>0.0],
                                              (:inf=>0.0)=>((:S,:I)=>(:I,:I)),
                                              (:rec=>0.0)=>(:I=>:R),
-												                     (:death=>0.0)=>(:I=>:D))
+                                             (:death=>0.0)=>(:I=>:D))
 
 SIR  = LabelledReactionNet{Float64, Float64}([:S=>1.0, :I=>0.0, :R=>0.0],
                                              (:inf=>0.5)=>((:S,:I)=>(:I,:I)),
