@@ -2,77 +2,116 @@ using Catlab.CategoricalAlgebra
 using Catlab.Graphics.Graphviz
 import Catlab.Graphics.Graphviz: Graph, Edge, Subgraph
 import Base.Iterators: flatten
+import Base.:(==)
+import Base.hash
 using StatsBase
 
 export Graph
 
+==(a::NodeID, b::NodeID) = isequal(a.name, b.name) && isequal(a.port, b.port) && isequal(a.anchor, b.anchor) && true
+hash(a::NodeID, h::UInt) = hash(a.anchor, hash(a.port, hash(a.name, hash(:NodeID, h))))
+==(a::Edge, b::Edge) = isequal(a.path, b.path) && isequal(a.attrs, b.attrs) && true
+hash(a::Edge, h::UInt) = hash(a.path, hash(a.attrs, hash(:Edge, h)))
+
 countmap_wrap(a) = isempty(a) ? Dict{Int, Int}() : countmap(a)
 
-function edgify(δ::Dict{Int64, Int64}, transition, reverse::Bool; pre="")
-  return [Edge(reverse ? ["\"$(pre)t$transition\"", "\"$(pre)s$k\""] :
-                         ["\"$(pre)s$k\"", "\"$(pre)t$transition\""],
-               Attributes(:label=>"$(δ[k])", :labelfontsize=>"6"))
-           for k in collect(keys(δ)) if δ[k] != 0]
-end
+###########################
+# Base Graph Construction #
+###########################
+def_states(p, s; pos="") = ("s$s", Attributes(:label=>"$(sname(p, s))",
+                                              :shape=>"circle",
+                                              :color=>"#6C9AC3",
+                                              :pos=>pos))
+def_trans(p, t; pos="") = ("t$t", Attributes(:label=>"$(tname(p, t))",
+                                             :shape=>"square",
+                                             :color=>"#E28F41",
+                                             :pos=>pos))
+def_inpts(p, s, t, i) = (["s$s", "t$t"],Attributes(:labelfontsize=>"6"))
+def_otpts(p, s, t, o) = (["t$t", "s$s"],Attributes(:labelfontsize=>"6"))
 
-function edgify(δ::Dict{Tuple{Int64, Bool}, Int64}, transition, reverse::Bool; pre="", lw=3.0)
-  return [Edge(reverse ? ["\"$(pre)t$transition\"", "\"$(pre)s$(k[1])\""] :
-                         ["\"$(pre)s$(k[1])\"", "\"$(pre)t$transition\""],
-               Attributes(:label=>"$(δ[k])", :labelfontsize=>"6",
-                          :penwidth=>(k[2] ? "$lw" : "1.0")))
-           for k in collect(keys(δ)) if δ[k] != 0]
-end
+function Graph(p::AbstractPetriNet; make_states::Function=def_states,
+               make_trans::Function=def_trans, make_inpts::Function=def_inpts,
+               make_otpts::Function=def_otpts, name="G", prog="dot",
+               positions=Dict(:T=>fill("", nt(p)), :S=>fill("", ns(p))), kw...)
 
-function Graph(p::AbstractPetriNet)
-  statenodes = [Node("s$s", Attributes(:label=>"$(sname(p, s))",:shape=>"circle", :color=>"#6C9AC3")) for s in 1:ns(p)]
-  transnodes = [Node("t$k", Attributes(:label=>"$(tname(p, k))", :shape=>"square", :color=>"#E28F41")) for k in 1:nt(p)]
+  graph_attrs = :graph_attrs ∈ keys(kw) ? Attributes(kw[:graph_attrs]) :
+                                          Attributes(:rankdir=>"LR")
+  node_attrs  = :node_attrs ∈ keys(kw) ? Attributes(kw[:node_attrs]) :
+                                         Attributes(:shape=>"plain",
+                                                    :style=>"filled",
+                                                    :color=>"white")
+  edge_attrs  = :edge_attrs ∈ keys(kw) ? Attributes(kw[:edge_attrs]) :
+                                         Attributes(:splines=>"splines")
 
-  graph_attrs = Attributes(:rankdir=>"LR")
-  node_attrs  = Attributes(:shape=>"plain", :style=>"filled", :color=>"white")
-  edge_attrs  = Attributes(:splines=>"splines")
-
+  statenodes = [Node(make_states(p,s; pos=positions[:S][s])...) for s in 1:ns(p)]
+  transnodes = [Node(make_trans(p,t; pos=positions[:T][t])...) for t in 1:nt(p)]
   stmts = vcat(statenodes, transnodes)
 
-  edges = map(1:nt(p)) do k
-    vcat(edgify(countmap_wrap(inputs(p, k)), k, false),
-         edgify(countmap_wrap(outputs(p, k)), k, true))
-  end |> flatten |> collect
+  i_edges = map(1:ni(p)) do i
+    Edge(make_inpts(p, is(p, i), it(p, i), i)...)
+  end |> collect
+  o_edges = map(1:no(p)) do o
+    Edge(make_otpts(p, os(p, o), ot(p, o), o)...)
+  end |> collect
+  edges = vcat(i_edges, o_edges)
+
+  # Add count labels if no labels provided
+  if all(!(:label ∈ keys(e.attrs)) for e in edges)
+    edge_vals = countmap_wrap(edges)
+    edges = map(filter((v)->v[2] != 0, collect(edge_vals))) do v
+      attrs = v[1].attrs
+      attrs[:label] = "$(v[2])"
+      Edge(v[1].path, attrs)
+    end |> collect
+  end
 
   stmts = vcat(stmts, edges)
-  g = Graphviz.Digraph("G", stmts; graph_attrs=graph_attrs, node_attrs=node_attrs, edge_attrs=edge_attrs)
+  g = Graphviz.Digraph(name, stmts; prog=prog,
+                                    graph_attrs=graph_attrs,
+                                    node_attrs=node_attrs,
+                                    edge_attrs=edge_attrs)
   return g
 end
 
-function Subgraph(p::AbstractPetriNet; label="cluster", pre="")
-   statenodes = [Node("\"$(pre)s$s\"",
-                      Attributes(:label => "$(sname(p, s))", :shape=>"circle",
-                                 :color=>"#6C9AC3")) for s in 1:ns(p)]
 
-  transnodes = [Node("\"$(pre)t$k\"",
-                     Attributes(:label => "$(tname(p, k))", :shape=>"square",
-                                :color=>"#E28F41")) for k in 1:nt(p)]
-
-  node_attrs  = Attributes(:shape=>"plain", :style=>"filled", :color=>"white")
-  edge_attrs  = Attributes(:splines=>"splines")
-
-  stmts = vcat(statenodes, transnodes)
-
-  edges = map(1:nt(p)) do k
-    vcat(edgify(countmap_wrap(inputs(p, k)), k, false; pre=pre),
-         edgify(countmap_wrap(outputs(p, k)), k, true; pre=pre))
-  end |> flatten |> collect
-
-  stmts = vcat(stmts, edges)
-  g = Graphviz.Subgraph(label, stmts; node_attrs=node_attrs, edge_attrs=edge_attrs)
+####################
+# Subgraph Drawing #
+####################
+add_label(n::Node, pre, post) = Node("$pre$(n.name)$post", n.attrs)
+add_label(e::Edge, pre, post) = begin
+  path = map(e.path) do n_id
+    NodeID("$pre$(n_id.name)$post", n_id.port, n_id.anchor)
+  end
+  Edge(path, e.attrs)
+end
+add_label(g::Subgraph, pre, post) = begin
+  stmts = map(g.stmts) do st
+    add_label(st, pre, post)
+  end
+  name = "$pre$(g.name)$post"
+  Subgraph(name, stmts, g.graph_attrs, g.node_attrs, g.edge_attrs)
 end
 
+function Subgraph(g::Graph; pre="", post="")
+  stmts = map(g.stmts) do st
+    add_label(st, pre, post)
+  end
+  Subgraph(g.name, stmts, g.graph_attrs, g.node_attrs, g.edge_attrs)
+end
+
+function Subgraph(p::AbstractPetriNet; pre="", post="", kw...)
+  Subgraph(Graph(p; kw...); pre=pre, post=post)
+end
+
+######################
+# Specialized Graphs #
+######################
 function Graph(m::Multispan)
-  apex = Subgraph(m.apex; label="clusterApex", pre="ap_")
+  apex = Subgraph(m.apex; name="clusterApex", pre="ap_")
 
   leg_graphs = map(enumerate(m.legs)) do (i, l)
-    Subgraph(l.codom; label="clusterLeg$i", pre="leg$(i)_")
+    Subgraph(l.codom; name="clusterLeg$i", pre="leg$(i)_")
   end
-
 
   graph_attrs = Attributes(:rankdir=>"LR")
   node_attrs  = Attributes(:shape=>"plain", :style=>"filled", :color=>"white")
@@ -99,38 +138,47 @@ function Graph(p::ACSetTransformation)
   Graph(Multispan(p.dom, [p]))
 end
 
-function Graph(so::Subobject; kw...)
+function Graph(so::Subobject; lw = 3.0, kw...)
   p = ob(so)
   maps = hom(so)
-  states = maps.components[:S].func
+  sts = maps.components[:S].func
   trans = maps.components[:T].func
   inps = maps.components[:I].func
   otps = maps.components[:O].func
-  sns = sname(p, states)
+  sns = sname(p, sts)
   tns = tname(p, trans)
-  statenodes = [Node("s$s",
-                      Attributes(:label => "$(sname(p, s))", :shape=>"circle",
-                                 :fillcolor=>"#6C9AC3", :color=>"black",
-                                 :penwidth=>(s ∈ states ? "3.0" : "0.0" ))) for s in 1:ns(p)]
+  mkstate(p,s; kw...) = begin
+    ds = def_states(p,s; kw...)
+    attrs = ds[2]
+    attrs[:fillcolor] = "#6C9AC3"
+    attrs[:color] = "black"
+    attrs[:penwidth] = s ∈ sts ? "$lw" : "0.0"
+    (ds[1], attrs)
+  end
+  mktrans(p,t; kw...) = begin
+    dt = def_trans(p,t; kw...)
+    attrs = dt[2]
+    attrs[:fillcolor] = "#E28F41"
+    attrs[:color] = "black"
+    attrs[:penwidth] = t ∈ trans ? "$lw" : "0.0"
+    (dt[1], attrs)
+  end
 
-  transnodes = [Node("t$k",
-                     Attributes(:label => "$(tname(p, k))", :shape=>"square",
-                                :fillcolor=>"#E28F41", :color=>"black",
-                                :penwidth=>(k ∈ trans ? "3.0" : "0.0" ))) for k in 1:nt(p)]
+  mkinpts(p, s, t, i) = begin
+    (["s$s", "t$t"],
+     Attributes(:labelfontsize=>"6",
+                :penwidth=>(i ∈ inps ? "$lw" : "1.0")))
+  end
 
-  graph_attrs = Attributes(:rankdir=>"LR")
-  node_attrs  = Attributes(:shape=>"plain", :style=>"filled, solid", :color=>"white")
-  edge_attrs  = Attributes(:splines=>"splines")
+  mkotpts(p, s, t, o) = begin
+    (["t$t", "s$s"],
+     Attributes(:labelfontsize=>"6",
+                :penwidth=>(o ∈ otps ? "$lw" : "1.0")))
+  end
 
-  stmts = vcat(statenodes, transnodes)
-
-  edges = map(1:nt(p)) do k
-    vcat(edgify(countmap_wrap(map(x->(p[x, :is], x ∈ inps), incident(p, k, :it))), k, false; kw...),
-         edgify(countmap_wrap(map(x->(p[x, :os], x ∈ otps), incident(p, k, :ot))), k, true; kw...))
-  end |> flatten |> collect
-
-  stmts = vcat(stmts, edges)
-  g = Graphviz.Digraph("G", stmts; graph_attrs=graph_attrs, node_attrs=node_attrs, edge_attrs=edge_attrs)
+  Graph(p; make_states=mkstate, make_trans=mktrans, make_inpts=mkinpts, make_otpts=mkotpts,
+        node_attrs  = Attributes(:shape=>"plain", :style=>"filled, solid", :color=>"white"),
+        kw...)
 end
 
 function Graph(op::Union{OpenPetriNet, OpenLabelledPetriNetUntyped, OpenReactionNet, OpenLabelledReactionNetUntyped})

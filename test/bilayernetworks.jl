@@ -131,6 +131,15 @@ f!(comp_du, comp_ϕ, u, p, 0)
 
 @test all(abs.(comp_du .- du[[:S,:I,:R]]) .< 1e-9)
 
+# Test for arbitrary variable names
+eval(AlgebraicPetri.BilayerNetworks.compile(lab_bnsir, :a, :b, :c, :d))
+comp_du = [0.0,0.0,0.0]
+comp_ϕ = [0.0,0.0,0.0]
+
+f!(comp_du, comp_ϕ, u, p, 0)
+
+@test all(abs.(comp_du .- du[[:S,:I,:R]]) .< 1e-9)
+
 ##############
 # Edge cases #
 ##############
