@@ -172,7 +172,7 @@ save_fig(Graph(threeNCoexist_algpetri), "3ncoexist_petri", "svg"); # hide
 # We can JSON to convert this Petri net into an
 # easily shareable format
 
-JSON.print(threeNCoexist_algpetri.tables)
+JSON.print(tables(threeNCoexist_algpetri), 2)
 
 # We can now easily generate a solver for DifferentialEquations.jl
 # because we encoded the intitial parameters and rates throughout
