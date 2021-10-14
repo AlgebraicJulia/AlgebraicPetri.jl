@@ -2,6 +2,7 @@ using AlgebraicPetri
 using OrdinaryDiffEq
 using Plots
 using Catlab.Meta
+using Catlab.CategoricalAlgebra
 using JSON
 
 import OrdinaryDiffEq: ODEProblem
@@ -34,4 +35,4 @@ plot(sol)
 
 ## Getting Sharable JSON
 sir_cset_string = LabelledReactionNet{String, Int}((:S=>990, :I=>10, :R=>0), (:inf, β_text)=>((:S, :I)=>(:I,:I)), (:rec, γ_text)=>(:I=>:R))
-JSON.print(sir_cset_string.tables, 2)
+JSON.print(tables(sir_cset_string), 2)

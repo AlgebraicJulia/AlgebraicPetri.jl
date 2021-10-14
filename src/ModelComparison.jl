@@ -18,8 +18,8 @@ NOTE:
 This function does restrict to homomorphisms which preserve the transition
 signatures (number of input/output wires).
 """
-function petri_homomorphisms(p1::T, p2::T; kw...) where {CD, AD, T <: AbstractACSet{CD,AD}}
-  results = ACSetTransformation{CD,AD}[]
+function petri_homomorphisms(p1::AbstractPetriNet, p2::AbstractPetriNet; kw...)
+  results = ACSetTransformation[]
   sigsTS = Set{Vector{Int64}}()
   homomorphisms(PetriNet(p1), PetriNet(p2); kw...) do transform
     if all([length(inputs(p1, t)) == length(inputs(p2, transform.components[:T](t))) &&

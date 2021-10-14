@@ -1,3 +1,6 @@
+using Tables
+import Petri
+
 sir_petri = PetriNet(3, ((1, 2), (2, 2)), (2, 3))
 sir_lpetri = LabelledPetriNet([:S, :I, :R], :inf=>((:S, :I), (:I, :I)), :rec=>(:I, :R))
 sir_rxn = ReactionNet{Number, Int}([990, 10, 0], (.001, ((1, 2)=>(2,2))), (.25, (2=>3)))
@@ -70,7 +73,7 @@ open_sir_lrxn = Open([:S,:I], sir_lrxn, [:R])
 @test concentrations(sir_lrxn) == LVector(S=990, I=10, R=0)
 @test rates(sir_lrxn) == LVector(inf=.001, rec=.25)
 
-@test length(dom(open_sir_rxn).ob.tables.S) == length(dom(open_sir_lrxn).ob.tables.S)
+@test length(Tables.rows(tables(dom(open_sir_rxn).ob).S)) == length(Tables.rows(tables(dom(open_sir_lrxn).ob).S))
 
 du = [0.0, 0.0, 0.0]
 out = vectorfield(sir_rxn)(du, concentrations(sir_rxn), rates(sir_rxn), 0.01)

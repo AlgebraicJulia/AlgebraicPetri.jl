@@ -46,8 +46,8 @@ See Catlab.jl documentation for description of the @present syntax.
   os::Hom(O,S)
 end
 
-const AbstractPetriNet = AbstractACSetType(TheoryPetriNet)
-const PetriNet = CSetType(TheoryPetriNet,index=[:it,:is,:ot,:os])
+@abstract_acset_type AbstractPetriNet
+@acset_type PetriNet(TheoryPetriNet,index=[:it,:is,:ot,:os]) <: AbstractPetriNet
 const OpenPetriNetOb, OpenPetriNet = OpenCSetTypes(PetriNet,:S)
 
 """ Open(p::AbstractPetriNet)
@@ -284,14 +284,14 @@ end
 See Catlab.jl documentation for description of the @present syntax.
 """
 @present TheoryLabelledPetriNet <: TheoryPetriNet begin
-  Name::Data
+  Name::AttrType
 
   tname::Attr(T, Name)
   sname::Attr(S, Name)
 end
 
-const AbstractLabelledPetriNet = AbstractACSetType(TheoryLabelledPetriNet)
-const LabelledPetriNetUntyped = ACSetType(TheoryLabelledPetriNet, index=[:it,:is,:ot,:os])
+@abstract_acset_type AbstractLabelledPetriNet <: AbstractPetriNet
+@acset_type LabelledPetriNetUntyped(TheoryLabelledPetriNet, index=[:it,:is,:ot,:os]) <: AbstractLabelledPetriNet
 const LabelledPetriNet = LabelledPetriNetUntyped{Symbol}
 const OpenLabelledPetriNetObUntyped, OpenLabelledPetriNetUntyped = OpenACSetTypes(LabelledPetriNetUntyped,:S)
 const OpenLabelledPetriNetOb, OpenLabelledPetriNet = OpenLabelledPetriNetObUntyped{Symbol}, OpenLabelledPetriNetUntyped{Symbol}
@@ -340,19 +340,19 @@ concentrations on states.
 See Catlab.jl documentation for description of the @present syntax.
 """
 @present TheoryReactionNet <: TheoryPetriNet begin
-  Rate::Data
-  Concentration::Data
+  Rate::AttrType
+  Concentration::AttrType
 
   rate::Attr(T, Rate)
   concentration::Attr(S, Concentration)
 end
 
-const AbstractReactionNet = AbstractACSetType(TheoryReactionNet)
-const ReactionNet = ACSetType(TheoryReactionNet, index=[:it,:is,:ot,:os])
+@abstract_acset_type AbstractReactionNet <: AbstractPetriNet
+@acset_type ReactionNet(TheoryReactionNet, index=[:it,:is,:ot,:os]) <: AbstractReactionNet
 const OpenReactionNetOb, OpenReactionNet = OpenACSetTypes(ReactionNet,:S)
 
-Open(p::AbstractReactionNet{R,C}) where {R,C} = OpenReactionNet{R,C}(p, map(x->FinFunction([x], ns(p)), 1:ns(p))...)
-Open(p::AbstractReactionNet{R,C}, legs...) where {R,C} = OpenReactionNet{R,C}(p, map(l->FinFunction(l, ns(p)), legs)...)
+Open(p::ReactionNet{R,C}) where {R,C} = OpenReactionNet{R,C}(p, map(x->FinFunction([x], ns(p)), 1:ns(p))...)
+Open(p::ReactionNet{R,C}, legs...) where {R,C} = OpenReactionNet{R,C}(p, map(l->FinFunction(l, ns(p)), legs)...)
 Open(n, p::AbstractReactionNet, m) = Open(p, n, m)
 
 """ ReactionNet{R,C}(n, ts::Vararg{Union{Pair,Tuple}}) where {R,C}
@@ -395,21 +395,21 @@ rates(p::AbstractReactionNet) = map(t->rate(p, t), 1:nt(p))
 See Catlab.jl documentation for description of the @present syntax.
 """
 @present TheoryLabelledReactionNet <: TheoryReactionNet begin
-  Name::Data
+  Name::AttrType
 
   tname::Attr(T, Name)
   sname::Attr(S, Name)
 end
 
-const AbstractLabelledReactionNet = AbstractACSetType(TheoryLabelledReactionNet)
-const LabelledReactionNetUntyped = ACSetType(TheoryLabelledReactionNet, index=[:it,:is,:ot,:os])
+@abstract_acset_type AbstractLabelledReactionNet <: AbstractPetriNet
+@acset_type LabelledReactionNetUntyped(TheoryLabelledReactionNet, index=[:it,:is,:ot,:os]) <: AbstractLabelledReactionNet
 const LabelledReactionNet{R,C} = LabelledReactionNetUntyped{R,C,Symbol}
 const OpenLabelledReactionNetObUntyped, OpenLabelledReactionNetUntyped = OpenACSetTypes(LabelledReactionNetUntyped,:S)
 const OpenLabelledReactionNetOb{R,C} = OpenLabelledReactionNetObUntyped{R,C,Symbol}
 const OpenLabelledReactionNet{R,C} = OpenLabelledReactionNetUntyped{R,C,Symbol}
 
-Open(p::AbstractLabelledReactionNet{R,C}) where {R,C} = OpenLabelledReactionNet{R,C}(p, map(x->FinFunction([x], ns(p)), 1:ns(p))...)
-Open(p::AbstractLabelledReactionNet{R,C}, legs...) where {R,C} = begin
+Open(p::LabelledReactionNet{R,C}) where {R,C} = OpenLabelledReactionNet{R,C}(p, map(x->FinFunction([x], ns(p)), 1:ns(p))...)
+Open(p::LabelledReactionNet{R,C}, legs...) where {R,C} = begin
   s_idx = Dict(sname(p, s)=>s for s in 1:ns(p))
   OpenLabelledReactionNet{R,C}(p, map(l->FinFunction(map(i->s_idx[i], l), ns(p)), legs)...)
 end

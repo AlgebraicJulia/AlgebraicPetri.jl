@@ -193,7 +193,7 @@ functor(x) = oapply(x, Dict(
   :catLsubG=>cat_sub(L,G)));
 
 function enzyme_uwd(enzymes::Array{Symbol}, substrates::Array{Symbol})
-  rel = RelationDiagram{Symbol}(0)
+  rel = RelationDiagram(0)
 
   chemicals = vcat(substrates, enzymes)
 
