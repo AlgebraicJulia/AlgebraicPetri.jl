@@ -1,5 +1,5 @@
 using Catlab.CategoricalAlgebra
-using Catlab.Graphics.Graphviz
+using Catlab.Graphics.Graphviz: Edge
 import Catlab.Graphics.Graphviz: Graph, Edge, Subgraph
 import Base.Iterators: flatten
 import Base.:(==)
@@ -7,13 +7,6 @@ import Base.hash
 using StatsBase
 
 export Graph
-
-==(a::NodeID, b::NodeID) = isequal(a.name, b.name) && isequal(a.port, b.port) && isequal(a.anchor, b.anchor) && true
-hash(a::NodeID, h::UInt) = hash(a.anchor, hash(a.port, hash(a.name, hash(:NodeID, h))))
-==(a::Edge, b::Edge) = isequal(a.path, b.path) && isequal(a.attrs, b.attrs) && true
-hash(a::Edge, h::UInt) = hash(a.path, hash(a.attrs, hash(:Edge, h)))
-
-countmap_wrap(a) = isempty(a) ? Dict{Int, Int}() : countmap(a)
 
 ###########################
 # Base Graph Construction #
@@ -57,7 +50,7 @@ function Graph(p::AbstractPetriNet; make_states::Function=def_states,
 
   # Add count labels if no labels provided
   if all(!(:label ∈ keys(e.attrs)) for e in edges)
-    edge_vals = countmap_wrap(edges)
+    edge_vals = countmap(edges)
     edges = map(filter((v)->v[2] != 0, collect(edge_vals))) do v
       attrs = v[1].attrs
       attrs[:label] = "$(v[2])"
@@ -106,7 +99,7 @@ end
 ######################
 # Specialized Graphs #
 ######################
-function Graph(m::Multispan)
+function Graph(m::Multispan{<:AbstractPetriNet})
   apex = Subgraph(m.apex; name="clusterApex", pre="ap_")
 
   leg_graphs = map(enumerate(m.legs)) do (i, l)
@@ -134,11 +127,11 @@ function Graph(m::Multispan)
   g = Graphviz.Digraph("G", stmts; graph_attrs=graph_attrs, node_attrs=node_attrs, edge_attrs=edge_attrs)
 end
 
-function Graph(p::ACSetTransformation)
+function Graph(p::ACSetTransformation{<:Any, <:Any, <:AbstractPetriNet, <:AbstractPetriNet})
   Graph(Multispan(p.dom, [p]))
 end
 
-function Graph(so::Subobject; lw = 3.0, kw...)
+function Graph(so::Subobject{<:AbstractPetriNet}; lw = 3.0, kw...)
   p = ob(so)
   maps = hom(so)
   sts = maps.components[:S].func
