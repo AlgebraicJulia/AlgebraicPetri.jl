@@ -1,9 +1,7 @@
 using Catlab.CategoricalAlgebra
-using Catlab.Graphics.Graphviz: Edge
-import Catlab.Graphics.Graphviz: Graph, Edge, Subgraph
+using Catlab.Graphics.Graphviz
+import Catlab.Graphics.Graphviz: Graph, Subgraph
 import Base.Iterators: flatten
-import Base.:(==)
-import Base.hash
 using StatsBase
 
 export Graph
