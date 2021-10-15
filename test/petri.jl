@@ -51,7 +51,7 @@ graph_attrs = Attributes(:rankdir=>"LR")
 node_attrs  = Attributes(:shape=>"plain", :style=>"filled", :color=>"white")
 edge_attrs  = Attributes(:splines=>"splines")
 g = Graphviz.Digraph("G", stmts1; graph_attrs=graph_attrs, node_attrs=node_attrs, edge_attrs=edge_attrs)
-stmts2 = Vector{Statement}([AlgebraicPetri.Subgraph(g; post="_2")])
+stmts2 = Vector{Statement}([AlgebraicPetri.tagged_subgraph(g; post="_2")])
 g2 = Graphviz.Digraph("G", stmts2; graph_attrs=graph_attrs, node_attrs=node_attrs, edge_attrs=edge_attrs)
 @test g2 isa Graph
 @test g2.stmts[1].stmts[1].stmts[1].name == "1_s1_2"

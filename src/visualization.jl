@@ -83,7 +83,7 @@ add_label(g::Subgraph, pre, post) = begin
   Subgraph(name, stmts, g.graph_attrs, g.node_attrs, g.edge_attrs)
 end
 
-function Subgraph(g::Graph; pre="", post="")
+function tagged_subgraph(g::Graph; pre="", post="")
   stmts = map(g.stmts) do st
     add_label(st, pre, post)
   end
@@ -91,7 +91,7 @@ function Subgraph(g::Graph; pre="", post="")
 end
 
 function Subgraph(p::AbstractPetriNet; pre="", post="", kw...)
-  Subgraph(Graph(p; kw...); pre=pre, post=post)
+  tagged_subgraph(Graph(p; kw...); pre=pre, post=post)
 end
 
 ######################
