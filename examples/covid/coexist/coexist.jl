@@ -169,7 +169,7 @@ save_fig(Graph(threeNCoexist_algpetri), "3ncoexist_petri", "svg"); # hide
 
 # ![3-generation COEXIST model petri net](3ncoexist_petri.svg)
 
-# We can JSON to convert this Petri net into an
+# We can use JSON to convert this Petri net into an
 # easily shareable format
 
 JSON.print(tables(threeNCoexist_algpetri), 2)
