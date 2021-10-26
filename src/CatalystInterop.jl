@@ -8,7 +8,6 @@ module CatalystInterop
   using AlgebraicPetri
   using Catlab.CategoricalAlgebra
   using ...Catalyst
-  using ...Catalyst.Symbolics: scalarize
   import ...Catalyst: ReactionSystem
 
   counter(a) = [count(==(i),a) for i in unique(a)]
@@ -21,8 +20,8 @@ module CatalystInterop
   concentration of S[1])
   """
   function ReactionSystem(pn::AbstractPetriNet)
-    @parameters t k[1:nt(pn)]
-    @variables S[collect(1:ns(pn))](t)
+    @parameters t k[1:(nt(pn) + ns(pn))]
+    @variables S[1:ns(pn)](t)
 
     rxs = map(1:nt(pn)) do t
       inpts = pn[incident(pn, t, :it),:is]
@@ -34,6 +33,6 @@ module CatalystInterop
                      in_count, ot_count)
     end
 
-    ReactionSystem(rxs, t, scalarize(S), scalarize(k))
+    ReactionSystem(rxs, t, S, k; name=:system)
   end
 end
