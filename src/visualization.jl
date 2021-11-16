@@ -57,8 +57,8 @@ function Graph(p::AbstractPetriNet; make_states::Function=def_states,
   end
 
   stmts = vcat(stmts, edges)
-  g = Graphviz.Digraph(name, stmts; prog=isnothing(prog) ? \
-                      (all(isnothing.(vcat(positions[:T], positions[:S]))) ? \
+  g = Graphviz.Digraph(name, stmts; prog=isnothing(prog) ?
+                      (all(isnothing.(vcat(positions[:T], positions[:S]))) ?
                         "dot" : "fdp") : prog,
                                     graph_attrs=graph_attrs,
                                     node_attrs=node_attrs,
