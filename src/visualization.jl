@@ -20,6 +20,11 @@ def_trans(p, t; pos="") = ("t$t", Attributes(:label=>"$(tname(p, t))",
 def_inpts(p, s, t, i) = (["s$s", "t$t"],Attributes(:labelfontsize=>"6"))
 def_otpts(p, s, t, o) = (["t$t", "s$s"],Attributes(:labelfontsize=>"6"))
 
+function to_position(val)
+  isnothing(val) && return ""
+  "$(val[1]),$(val[2])!"
+end
+
 function Graph(p::AbstractPetriNet; make_states::Function=def_states,
                make_trans::Function=def_trans, make_inpts::Function=def_inpts,
                make_otpts::Function=def_otpts, name="G", prog=nothing,
@@ -34,8 +39,8 @@ function Graph(p::AbstractPetriNet; make_states::Function=def_states,
   edge_attrs  = :edge_attrs ∈ keys(kw) ? Attributes(kw[:edge_attrs]) :
                                          Attributes(:splines=>"splines")
 
-  statenodes = [Node(make_states(p,s; pos=positions[:S][s])...) for s in 1:ns(p)]
-  transnodes = [Node(make_trans(p,t; pos=positions[:T][t])...) for t in 1:nt(p)]
+  statenodes = [Node(make_states(p,s; pos=to_position(positions[:S][s]))...) for s in 1:ns(p)]
+  transnodes = [Node(make_trans(p,t; pos=to_position(positions[:T][t]))...) for t in 1:nt(p)]
   stmts = vcat(statenodes, transnodes)
 
   i_edges = map(1:ni(p)) do i
@@ -58,7 +63,7 @@ function Graph(p::AbstractPetriNet; make_states::Function=def_states,
 
   stmts = vcat(stmts, edges)
   g = Graphviz.Digraph(name, stmts; prog=isnothing(prog) ?
-                      (all(isnothing.(vcat(positions[:T], positions[:S]))) ?
+                      (all(isempty.(vcat(positions[:T], positions[:S]))) ?
                         "dot" : "fdp") : prog,
                                     graph_attrs=graph_attrs,
                                     node_attrs=node_attrs,
