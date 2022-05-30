@@ -1,4 +1,4 @@
 
-Brusselator = LabelledPetriNet([5aprbu, 4r5au, h2o, pi], 
-    :t0 => ((:A102, :A185) => (:A140, :A60))
+Brusselator = LabelledPetriNet([Symbol("401"), Symbol("240"), Symbol("406"), Symbol("417")], 
+    :t0 => ((Symbol("240"), Symbol("417")) => (Symbol("401"), Symbol("406")))
 ) 
