@@ -34,6 +34,6 @@ module CatalystInterop
                      in_count, ot_count)
     end
 
-    ReactionSystem(rxs, t, scalarize(S), scalarize(k))
+    ReactionSystem(rxs, t, scalarize(S), scalarize(k), name=:PetriNet)
   end
 end

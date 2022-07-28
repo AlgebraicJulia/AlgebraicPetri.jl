@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        julia_version: ['1.6']
+        julia_version: ['1.6', '1.7']
         os: [ubuntu-latest]
 
     steps:
