@@ -1,5 +1,4 @@
 using Tables
-import Petri
 
 sir_petri = PetriNet(3, ((1, 2), (2, 2)), (2, 3))
 sir_lpetri = LabelledPetriNet([:S, :I, :R], :inf=>((:S, :I), (:I, :I)), :rec=>(:I, :R))
@@ -52,15 +51,13 @@ open_sir_rxn = Open([1,2], sir_rxn, [3])
 open_sir_lrxn = Open([:S,:I], sir_lrxn, [:R])
 
 @test sir_tpetri == sir_petri
-@test Petri.Model(sir_petri) == Petri.Model(sir_rxn)
-@test Petri.Model(sir_lpetri) == Petri.Model(sir_lrxn)
 
-@test typeof(Graph(sir_petri)) == Graph
-@test typeof(Graph(sir_lpetri)) == Graph
-@test typeof(Graph(sir_rxn)) == Graph
-@test typeof(Graph(open_sir_rxn)) == Graph
-@test typeof(Graph(sir_lrxn)) == Graph
-@test typeof(Graph(open_sir_lrxn)) == Graph
+@test Graph(sir_petri) isa Graph
+@test Graph(sir_lpetri) isa Graph
+@test Graph(sir_rxn) isa Graph
+@test Graph(open_sir_rxn) isa Graph
+@test Graph(sir_lrxn) isa Graph
+@test Graph(open_sir_lrxn) isa Graph
 
 @test inputs(sir_petri, 1) == [1,2]
 @test outputs(sir_petri, 1) == [2,2]
@@ -68,7 +65,7 @@ open_sir_lrxn = Open([:S,:I], sir_lrxn, [:R])
 @test rate(sir_rxn, 1) == β
 
 @test concentrations(sir_rxn) == [990, 10, 0]
-@test typeof(rates(sir_rxn)) <: Array{Function}
+@test rates(sir_rxn) isa Array{Function}
 
 @test concentrations(sir_lrxn) == LVector(S=990, I=10, R=0)
 @test rates(sir_lrxn) == LVector(inf=.001, rec=.25)
