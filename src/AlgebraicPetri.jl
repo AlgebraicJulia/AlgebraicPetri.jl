@@ -272,7 +272,7 @@ vectorfield(pn::AbstractPetriNet) = begin
       rates[i] = valueat(p_m[i],u,t) * prod(u_m[j] ^ tm.input[i,j] for j in 1:ns(pn))
     end
     for j in 1:ns(pn)
-      du[sname(pn, j)] = sum(rates[i] * dt[i,j] for i in 1:nt(pn))
+      du[sname(pn, j)] = sum(rates[i] * dt[i,j] for i in 1:nt(pn); init = 0.0)
     end
     return du
   end
