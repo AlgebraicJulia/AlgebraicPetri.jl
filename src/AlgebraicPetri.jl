@@ -2,14 +2,14 @@
 """
 module AlgebraicPetri
 
-export TheoryPetriNet, PetriNet, OpenPetriNetOb, AbstractPetriNet, ns, nt, ni, no,
+export SchPetriNet, PetriNet, OpenPetriNetOb, AbstractPetriNet, ns, nt, ni, no,
   os, ot, is, it,
   add_species!, add_transition!, add_transitions!,
   add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs,
   TransitionMatrices, vectorfield,
-  TheoryLabelledPetriNet, LabelledPetriNet, AbstractLabelledPetriNet, sname, tname, snames, tnames,
-  TheoryReactionNet, ReactionNet, AbstractReactionNet, concentration, concentrations, rate, rates,
-  TheoryLabelledReactionNet, LabelledReactionNet, AbstractLabelledReactionNet,
+  SchLabelledPetriNet, LabelledPetriNet, AbstractLabelledPetriNet, sname, tname, snames, tnames,
+  SchReactionNet, ReactionNet, AbstractReactionNet, concentration, concentrations, rate, rates,
+  SchLabelledReactionNet, LabelledReactionNet, AbstractLabelledReactionNet,
   Open, OpenPetriNet, OpenLabelledPetriNet, OpenReactionNet, OpenLabelledReactionNet,
   OpenPetriNetOb, OpenLabelledPetriNetOb, OpenReactionNetOb, OpenLabelledReactionNetOb
 
@@ -34,7 +34,7 @@ state_dict(n) = Dict(s=>i for (i, s) in enumerate(n))
 
 See Catlab.jl documentation for description of the @present syntax.
 """
-@present TheoryPetriNet(FreeSchema) begin
+@present SchPetriNet(FreeSchema) begin
   T::Ob
   S::Ob
   I::Ob
@@ -47,7 +47,7 @@ See Catlab.jl documentation for description of the @present syntax.
 end
 
 @abstract_acset_type AbstractPetriNet
-@acset_type PetriNet(TheoryPetriNet,index=[:it,:is,:ot,:os]) <: AbstractPetriNet
+@acset_type PetriNet(SchPetriNet,index=[:it,:is,:ot,:os]) <: AbstractPetriNet
 const OpenPetriNetOb, OpenPetriNet = OpenCSetTypes(PetriNet,:S)
 
 """ Open(p::AbstractPetriNet)
@@ -283,7 +283,7 @@ end
 
 See Catlab.jl documentation for description of the @present syntax.
 """
-@present TheoryLabelledPetriNet <: TheoryPetriNet begin
+@present SchLabelledPetriNet <: SchPetriNet begin
   Name::AttrType
 
   tname::Attr(T, Name)
@@ -291,7 +291,7 @@ See Catlab.jl documentation for description of the @present syntax.
 end
 
 @abstract_acset_type AbstractLabelledPetriNet <: AbstractPetriNet
-@acset_type LabelledPetriNetUntyped(TheoryLabelledPetriNet, index=[:it,:is,:ot,:os]) <: AbstractLabelledPetriNet
+@acset_type LabelledPetriNetUntyped(SchLabelledPetriNet, index=[:it,:is,:ot,:os]) <: AbstractLabelledPetriNet
 const LabelledPetriNet = LabelledPetriNetUntyped{Symbol}
 const OpenLabelledPetriNetObUntyped, OpenLabelledPetriNetUntyped = OpenACSetTypes(LabelledPetriNetUntyped,:S)
 const OpenLabelledPetriNetOb, OpenLabelledPetriNet = OpenLabelledPetriNetObUntyped{Symbol}, OpenLabelledPetriNetUntyped{Symbol}
@@ -339,7 +339,7 @@ concentrations on states.
 
 See Catlab.jl documentation for description of the @present syntax.
 """
-@present TheoryReactionNet <: TheoryPetriNet begin
+@present SchReactionNet <: SchPetriNet begin
   Rate::AttrType
   Concentration::AttrType
 
@@ -348,7 +348,7 @@ See Catlab.jl documentation for description of the @present syntax.
 end
 
 @abstract_acset_type AbstractReactionNet <: AbstractPetriNet
-@acset_type ReactionNet(TheoryReactionNet, index=[:it,:is,:ot,:os]) <: AbstractReactionNet
+@acset_type ReactionNet(SchReactionNet, index=[:it,:is,:ot,:os]) <: AbstractReactionNet
 const OpenReactionNetOb, OpenReactionNet = OpenACSetTypes(ReactionNet,:S)
 
 Open(p::ReactionNet{R,C}) where {R,C} = OpenReactionNet{R,C}(p, map(x->FinFunction([x], ns(p)), 1:ns(p))...)
@@ -394,7 +394,7 @@ rates(p::AbstractReactionNet) = map(t->rate(p, t), 1:nt(p))
 
 See Catlab.jl documentation for description of the @present syntax.
 """
-@present TheoryLabelledReactionNet <: TheoryReactionNet begin
+@present SchLabelledReactionNet <: SchReactionNet begin
   Name::AttrType
 
   tname::Attr(T, Name)
@@ -402,7 +402,7 @@ See Catlab.jl documentation for description of the @present syntax.
 end
 
 @abstract_acset_type AbstractLabelledReactionNet <: AbstractPetriNet
-@acset_type LabelledReactionNetUntyped(TheoryLabelledReactionNet, index=[:it,:is,:ot,:os]) <: AbstractLabelledReactionNet
+@acset_type LabelledReactionNetUntyped(SchLabelledReactionNet, index=[:it,:is,:ot,:os]) <: AbstractLabelledReactionNet
 const LabelledReactionNet{R,C} = LabelledReactionNetUntyped{R,C,Symbol}
 const OpenLabelledReactionNetObUntyped, OpenLabelledReactionNetUntyped = OpenACSetTypes(LabelledReactionNetUntyped,:S)
 const OpenLabelledReactionNetOb{R,C} = OpenLabelledReactionNetObUntyped{R,C,Symbol}
