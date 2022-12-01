@@ -21,7 +21,7 @@ using Catlab.Theories
 using LabelledArrays
 using LinearAlgebra: mul!
 
-vectorify(n::Vector) = n
+vectorify(n::AbstractVector) = n
 vectorify(n::Tuple) = length(n) == 1 ? [n] : n
 vectorify(n) = [n]
 
@@ -316,7 +316,7 @@ constructed as follows:
 LabelledPetriNet([:S, :I, :R], :inf=>((:S,:I)=>(:I,:I)), :rec=>(:I=>:R))
 ```
 """
-LabelledPetriNet(n, ts::Vararg{Union{Pair,Tuple}}) = begin
+LabelledPetriNet(n::Union{AbstractVector,Tuple}, ts::Vararg{Union{Pair,Tuple}}) = begin
   p = LabelledPetriNet()
   n = vectorify(n)
   state_idx = state_dict(n)
@@ -371,7 +371,7 @@ constructed as follows:
 ReactionNet{Float64, Float64}([10,1,0], 0.5=>((1,2)=>(2,2)), 0.1=>(2=>3))
 ```
 """
-ReactionNet{R,C}(n, ts::Vararg{Union{Pair,Tuple}}) where {R,C} = begin
+ReactionNet{R,C}(n::Union{AbstractVector,Tuple}, ts::Vararg{Union{Pair,Tuple}}) where {R,C} = begin
   p = ReactionNet{R,C}()
   add_species!(p, length(n), concentration=n)
   for (i, (rate,(ins,outs))) in enumerate(ts)
@@ -432,7 +432,7 @@ constructed as follows:
 ReactionNet{Float64, Float64}([:S=>10,:I=>1,:R=>0], (:inf=>0.5)=>((1,2)=>(2,2)), (:rec=>0.1)=>(2=>3))
 ```
 """
-LabelledReactionNet{R,C}(n, ts::Vararg{Union{Pair,Tuple}}) where {R,C} = begin
+LabelledReactionNet{R,C}(n::Union{AbstractVector,Tuple}, ts::Vararg{Union{Pair,Tuple}}) where {R,C} = begin
   p = LabelledReactionNet{R,C}()
   n = vectorify(n)
   states = map(first, collect(n))
