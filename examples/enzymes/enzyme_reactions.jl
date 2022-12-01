@@ -16,7 +16,7 @@ ode(x, t) = ODEProblem(vectorfield(x), concentrations(x), t, rates(x));
 
 # ## Define objects and initial conditions
 
-ob(x) = codom(Open([first(x)], LabelledReactionNet{Number,Int}(x), [first(x)])).ob;
+ob(x) = codom(Open([first(x)], LabelledReactionNet{Number,Int}([x]), [first(x)])).ob;
 K = :K=>33000;
 S = :S=>33000;
 L = :L=>33000;

@@ -28,7 +28,7 @@ end
 # reactions in an epidemiology Model. Either a state
 # spontaneously changes, or one state causes another to change
 
-ob(x::Symbol,n::Int) = codom(Open([x], LabelledReactionNet{Number,Int}(x=>n), [x])).ob;
+ob(x::Symbol,n::Int) = codom(Open([x], LabelledReactionNet{Number,Int}([x=>n]), [x])).ob;
 function spontaneous_petri(transition::Symbol, rate::Number,
                            s::Symbol, s₀::Int,
                            t::Symbol, t₀::Int)
