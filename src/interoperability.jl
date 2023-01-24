@@ -27,4 +27,5 @@ function __init__()
   end
 
   @require Catalyst="479239e8-5488-4da2-87a7-35f2df7eef83" include("CatalystInterop.jl")
+  @require ModelingToolkit="961ee093-0014-501f-94e3-6117800e7a78" include("ModelingToolkitInterop.jl")
 end
