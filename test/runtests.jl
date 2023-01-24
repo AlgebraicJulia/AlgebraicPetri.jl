@@ -36,3 +36,7 @@ end
 @testset "Catalyst Tooling" begin
   include("CatalystInterop.jl")
 end
+
+@testset "ModelingToolkit Tooling" begin
+  include("ModelingToolkitInterop.jl")
+end
