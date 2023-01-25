@@ -22,7 +22,7 @@ module CatalystInterop
   """
   function ReactionSystem(pn::AbstractPetriNet)
     @parameters t k[1:nt(pn)]
-    @variables S[collect(1:ns(pn))](t)
+    @variables (S(t))[collect(1:ns(pn))]
 
     rxs = map(1:nt(pn)) do t
       inpts = pn[incident(pn, t, :it),:is]
