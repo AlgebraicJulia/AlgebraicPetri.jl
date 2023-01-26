@@ -25,18 +25,15 @@ module ModelingToolkitInterop
   # migrate petri model to bilayer network
   migrate!(bnsir, psir)
 
-  make_depvar(p, t) = :($p($t))
-
-  @assert make_depvar(:a, :t) == :(a(t))
-  @assert make_depvar(:y, :x) == :(y(x))
-
-  #= /Users/fairbanksj/github/AlgebraicJulia/ASKEM-demos/MTK/petri.jl:39 =#
   @variables t S(t) I(t) R(t)
   @parameters inf rec
   D = Differential(t)
   ϕ1 = inf * S * I
   ϕ2 = rec * I
   eqs = [D(S) ~ +(-ϕ1), D(I) ~ ϕ1 + ϕ1 + -ϕ1 + -ϕ2, D(R) ~ +ϕ2]
-  example = ODESystem(eqs, t, name=:PetriNet)
-  @test ODESystem(bnsir) == example
+  bilayer_example = ODESystem(eqs, t, name=:BilayerNetwork)
+  petri_example = ODESystem(eqs, t, name=:PetriNet)
+
+  @test ODESystem(psir) == petri_example
+  @test ODESystem(bnsir) == bilayer_example
 end
