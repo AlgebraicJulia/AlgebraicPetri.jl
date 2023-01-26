@@ -40,3 +40,7 @@ end
 @testset "ModelingToolkit Tooling" begin
   include("ModelingToolkitInterop.jl")
 end
+
+@testset "TypedPetris" begin
+  include("typed_petri.jl")
+end
