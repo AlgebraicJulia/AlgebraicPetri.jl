@@ -25,13 +25,13 @@ module ModelingToolkitInterop
       if has_subpart(p, :sname)
         sname(p, i)
       else
-        Symbol("S", map_subscripts(i))
+        Symbol("S", i)
       end
     tname′(i) =
       if has_subpart(p, :tname)
         tname(p, i)
       else
-        Symbol("r", map_subscripts(i))
+        Symbol("r", i)
       end
 
     S = [first(@variables $Si(t)) for Si in sname′.(1:ns(p))]

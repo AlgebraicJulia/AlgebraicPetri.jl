@@ -36,4 +36,5 @@ module ModelingToolkitInterop
 
   @test ODESystem(psir) == petri_example
   @test ODESystem(bnsir) == bilayer_example
+  @test typeof(ODESystem(PetriNet(psir))) == ODESystem # Sanity check that non-labelled Petri Nets resolve correctly
 end
