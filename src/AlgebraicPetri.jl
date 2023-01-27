@@ -11,7 +11,8 @@ export SchPetriNet, PetriNet, OpenPetriNetOb, AbstractPetriNet, ns, nt, ni, no,
   SchReactionNet, ReactionNet, AbstractReactionNet, concentration, concentrations, rate, rates,
   SchLabelledReactionNet, LabelledReactionNet, AbstractLabelledReactionNet,
   Open, OpenPetriNet, OpenLabelledPetriNet, OpenReactionNet, OpenLabelledReactionNet,
-  OpenPetriNetOb, OpenLabelledPetriNetOb, OpenReactionNetOb, OpenLabelledReactionNetOb
+  OpenPetriNetOb, OpenLabelledPetriNetOb, OpenReactionNetOb, OpenLabelledReactionNetOb,
+  mca
 
 using Catlab
 using Catlab.CategoricalAlgebra
@@ -545,4 +546,5 @@ include("visualization.jl")
 include("Epidemiology.jl")
 include("BilayerNetworks.jl")
 include("ModelComparison.jl")
+include("SubACSets.jl")
 end
