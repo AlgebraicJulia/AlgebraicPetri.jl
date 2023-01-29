@@ -4,6 +4,7 @@ using LabelledArrays
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 using AlgebraicPetri.ModelComparison
+using AlgebraicPetri.OpenTransitions
 using Catlab.Theories
 using Catlab.CategoricalAlgebra
 using Catlab.CategoricalAlgebra.FinSets

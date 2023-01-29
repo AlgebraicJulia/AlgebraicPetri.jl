@@ -1,5 +1,5 @@
 # Library Reference
 
 ```@autodocs
-Modules = [AlgebraicPetri, AlgebraicPetri.Epidemiology]
+Modules = [AlgebraicPetri, AlgebraicPetri.Epidemiology, AlgebraicPetri.OpenTransitions]
 ```
