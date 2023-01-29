@@ -7,7 +7,14 @@ using AlgebraicPetri
 using Catlab
 using Catlab.CategoricalAlgebra
 
-export OpenLabelledPetriNetObT, OpenLabelledPetriNetT, OpenT
+export OpenLabelledPetriNetObT, OpenLabelledPetriNetT, OpenT,
+    OpenPetriNetObT, OpenPetriNetT
+
+const OpenPetriNetObT, OpenPetriNetT = OpenCSetTypes(PetriNet,:T)
+
+OpenT(p::AbstractPetriNet) = OpenPetriNetT(p, map(x->FinFunction([x], nt(p)), 1:nt(p))...)
+OpenT(p::AbstractPetriNet, legs...) = OpenPetriNetT(p, map(l->FinFunction(l, nt(p)), legs)...)
+OpenT(n, p::AbstractPetriNet, m) = OpenT(p, n, m)
 
 # const OpenPetriNetOb, OpenPetriNet = OpenCSetTypes(PetriNet,:S)
 
@@ -36,10 +43,13 @@ export OpenLabelledPetriNetObT, OpenLabelledPetriNetT, OpenT
 
 const OpenLabelledPetriNetObUntypedT, OpenLabelledPetriNetUntypedT = OpenACSetTypes(LabelledPetriNetUntyped,:T)
 const OpenLabelledPetriNetObT, OpenLabelledPetriNetT = OpenLabelledPetriNetObUntypedT{Symbol}, OpenLabelledPetriNetUntypedT{Symbol}
+
+OpenT(p::AbstractLabelledPetriNet) = OpenLabelledPetriNetT(p, map(x->FinFunction([x], nt(p)), 1:nt(p))...)
 OpenT(p::AbstractLabelledPetriNet, legs...) = begin
     t_idx = Dict(tname(p, t)=>t for t in 1:nt(p))
-    OpenLabelledPetriNetT(p, map(l->FinFunction(map(i->t_idx[i], l), nt(p)),legs)...)
+    OpenLabelledPetriNetT(p, map(l->FinFunction(map(i->t_idx[i], l), nt(p)), legs)...)
 end
+OpenT(n, p::AbstractLabelledPetriNet, m) = OpenT(p, n, m)
 
 # const OpenLabelledPetriNetObUntyped, OpenLabelledPetriNetUntyped = OpenACSetTypes(LabelledPetriNetUntyped,:S)
 # const OpenLabelledPetriNetOb, OpenLabelledPetriNet = OpenLabelledPetriNetObUntyped{Symbol}, OpenLabelledPetriNetUntyped{Symbol}
