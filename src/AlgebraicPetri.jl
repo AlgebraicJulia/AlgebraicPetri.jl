@@ -7,6 +7,7 @@ export SchPetriNet, PetriNet, OpenPetriNetOb, AbstractPetriNet, ns, nt, ni, no,
   add_species!, add_transition!, add_transitions!,
   add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs,
   TransitionMatrices, vectorfield,
+  LabelledPetriNetUntyped,
   SchLabelledPetriNet, LabelledPetriNet, AbstractLabelledPetriNet, sname, tname, snames, tnames,
   SchReactionNet, ReactionNet, AbstractReactionNet, concentration, concentrations, rate, rates,
   SchLabelledReactionNet, LabelledReactionNet, AbstractLabelledReactionNet,
@@ -565,4 +566,5 @@ include("BilayerNetworks.jl")
 include("ModelComparison.jl")
 include("SubACSets.jl")
 include("TypedPetri.jl")
+include("OpenTransitions.jl")
 end
