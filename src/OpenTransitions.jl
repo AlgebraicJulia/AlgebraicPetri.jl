@@ -12,34 +12,24 @@ export OpenLabelledPetriNetObT, OpenLabelledPetriNetT, OpenT,
 
 const OpenPetriNetObT, OpenPetriNetT = OpenCSetTypes(PetriNet,:T)
 
+""" OpenT(p::AbstractPetriNet)
+
+Converts a PetriNet to an OpenPetriNetT where each transition is exposed as a leg of
+the cospan. The OpenPetriNetT can be composed over an undirected wiring diagram.
+"""
 OpenT(p::AbstractPetriNet) = OpenPetriNetT(p, map(x->FinFunction([x], nt(p)), 1:nt(p))...)
+
+""" OpenT(p::AbstractPetriNet, legs...)
+
+Generates on OpenPetriNetT with legs bundled as described by `legs`
+"""
 OpenT(p::AbstractPetriNet, legs...) = OpenPetriNetT(p, map(l->FinFunction(l, nt(p)), legs)...)
+
+""" OpenT(n, p::AbstractPetriNet, m)
+
+Generates on OpenPetriNetT with two legs, `n` and `m`
+"""
 OpenT(n, p::AbstractPetriNet, m) = OpenT(p, n, m)
-
-# const OpenPetriNetOb, OpenPetriNet = OpenCSetTypes(PetriNet,:S)
-
-# """ Open(p::AbstractPetriNet)
-
-# Converts a PetriNet to an OpenPetriNet where each state is exposed as a leg of
-# the cospan. The OpenPetriNet can be composed over an undirected wiring diagram
-# (see this
-# [blog post](https://www.algebraicjulia.org/blog/post/2020/11/structured-cospans-2/)
-# for a description of this compositional tooling)
-# """
-# Open(p::AbstractPetriNet) = OpenPetriNet(p, map(x->FinFunction([x], ns(p)), 1:ns(p))...)
-
-# """ Open(p::AbstractPetriNet, legs...)
-
-# Generates on OpenPetriNet with legs bundled as described by `legs`
-# """
-# Open(p::AbstractPetriNet, legs...) = OpenPetriNet(p, map(l->FinFunction(l, ns(p)), legs)...)
-
-# """ Open(n, p::AbstractPetriNet, m)
-
-# Generates on OpenPetriNet with two legs, `n` and `m`
-# """
-# Open(n, p::AbstractPetriNet, m) = Open(p, n, m)
-
 
 const OpenLabelledPetriNetObUntypedT, OpenLabelledPetriNetUntypedT = OpenACSetTypes(LabelledPetriNetUntyped,:T)
 const OpenLabelledPetriNetObT, OpenLabelledPetriNetT = OpenLabelledPetriNetObUntypedT{Symbol}, OpenLabelledPetriNetUntypedT{Symbol}
@@ -50,17 +40,5 @@ OpenT(p::AbstractLabelledPetriNet, legs...) = begin
     OpenLabelledPetriNetT(p, map(l->FinFunction(map(i->t_idx[i], l), nt(p)), legs)...)
 end
 OpenT(n, p::AbstractLabelledPetriNet, m) = OpenT(p, n, m)
-
-# const OpenLabelledPetriNetObUntyped, OpenLabelledPetriNetUntyped = OpenACSetTypes(LabelledPetriNetUntyped,:S)
-# const OpenLabelledPetriNetOb, OpenLabelledPetriNet = OpenLabelledPetriNetObUntyped{Symbol}, OpenLabelledPetriNetUntyped{Symbol}
-
-
-# Open(p::AbstractLabelledPetriNet) = OpenLabelledPetriNet(p, map(x->FinFunction([x], ns(p)), 1:ns(p))...)
-# Open(p::AbstractLabelledPetriNet, legs...) = begin
-#   s_idx = Dict(sname(p, s)=>s for s in 1:ns(p))
-#   OpenLabelledPetriNet(p, map(l->FinFunction(map(i->s_idx[i], l), ns(p)),legs)...)
-# end
-# Open(n, p::AbstractLabelledPetriNet, m) = Open(p, n, m)
-
 
 end
