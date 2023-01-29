@@ -48,3 +48,7 @@ end
 @testset "TypedPetris" begin
   include("typed_petri.jl")
 end
+
+@testset "OpenTransitions" begin
+  include("opentransitions.jl")
+end
