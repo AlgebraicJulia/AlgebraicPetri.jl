@@ -1,6 +1,7 @@
 using Test
 
-using Catlab.Programs, AlgebraicPetri, AlgebraicPetri.TypedPetri
+using AlgebraicPetri, AlgebraicPetri.TypedPetri
+using Catlab.CategoricalAlgebra, Catlab.Programs
 
 const infectious_ontology = LabelledPetriNet(
   [:Pop],
@@ -23,6 +24,8 @@ typed_sird = add_params(
 
 @test ns(typed_sird.dom) == 4
 @test nt(typed_sird.dom) == 3
+
+# Quarantine model.
 
 quarantine_uwd = @relation () where (Q::Pop, NQ::Pop) begin
   strata(Q,NQ) # enter quarantine
@@ -48,8 +51,26 @@ typed_sird_aug = add_reflexives(
 )
 
 stratified = typed_product(typed_quarantine_aug, typed_sird_aug)
+@test ns(dom(stratified)) == 8
+@test nt(dom(stratified)) == 6 + 4 + 1
+@test dom(stratified)[1,:sname] isa Tuple{Symbol, Symbol}
+@test dom(stratified)[1,:concentration] isa Tuple{Float64, Float64}
 
-@test ns(stratified.dom) == 8
-@test nt(stratified.dom) == 6 + 4 + 1
-@test typeof(stratified.dom[1,:sname]) == Tuple{Symbol, Symbol}
-@test typeof(stratified.dom[1,:concentration]) == Tuple{Float64, Float64}
+# Age-stratified model.
+
+typed_age = pairwise_id_typed_petri(infectious_ontology, :Pop, :infect,
+                                    [:Young, :Mid, :Old])
+@test ns(dom(typed_age)) == 3
+@test nt(dom(typed_age)) == 9
+
+typed_age_aug = add_reflexives(
+  typed_age,
+  repeat([[:disease]], 3),
+  infectious_ontology
+)
+
+typed_sird = oapply_typed(infectious_ontology, sird_uwd, [:inf, :recover, :die])
+
+stratified = typed_product(typed_age_aug, typed_sird)
+@test ns(dom(stratified)) == 3*4
+@test nt(dom(stratified)) == 3*2 + 9*1

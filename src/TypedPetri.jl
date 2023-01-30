@@ -1,5 +1,6 @@
 module TypedPetri
-export prim_petri, strip_names, prim_cospan, oapply_typed, add_reflexives, add_params, typed_product
+export prim_petri, strip_names, prim_cospan, oapply_typed, typed_product,
+  add_params, add_reflexives, pairwise_id_petri, pairwise_id_typed_petri
 
 using Catlab
 using Catlab.CategoricalAlgebra
@@ -201,6 +202,45 @@ Returns a typed model, i.e. a map in Petri.
 function typed_product(p1, p2)
   pb = pullback(p1, p2; product_attrs=true)
   return first(legs(pb)) ⋅ p1
+end
+
+""" Make typed Petri net with 'identity' transformation between species pairs.
+
+Assumes a single species type and a single transition type.
+"""
+function pairwise_id_typed_petri(type_net, stype, ttype, args...)
+  net = pairwise_id_petri(args...)
+  s = only(incident(type_net, stype, :sname))
+  t = only(incident(type_net, ttype, :tname))
+  ACSetTransformation(net, type_net;
+    S = repeat([s], ns(net)),
+    T = repeat([t], nt(net)),
+    I = repeat(incident(type_net, t, :it), nt(net)),
+    O = repeat(incident(type_net, t, :ot), nt(net)),
+    Name = x->nothing
+  )
+end
+
+""" Make Petri net with 'identity' transformation between all species pairs.
+"""
+function pairwise_id_petri(names::AbstractVector{Symbol})
+  net = LabelledPetriNet()
+  add_pairwise_id_transitions!(net, names)
+  net
+end
+function add_pairwise_id_transitions!(net::AbstractPetriNet,
+                                      names::AbstractVector{Symbol})
+  n = length(names)
+  species = add_species!(net, n, sname=names)
+  for i in 1:n, j in 1:n
+    tname = Symbol(string(names[i], "_", names[j]))
+    t = add_transition!(net, tname=tname)
+    add_input!(net, t, species[i])
+    add_input!(net, t, species[j])
+    add_output!(net, t, species[i])
+    add_output!(net, t, species[j])
+  end
+  species
 end
 
 end
