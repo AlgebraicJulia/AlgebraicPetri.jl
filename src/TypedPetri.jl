@@ -1,11 +1,11 @@
 module TypedPetri
-export prim_petri, strip_names, prim_cospan, oapply_typed, add_reflexives, typed_product
+export prim_petri, strip_names, prim_cospan, oapply_typed, add_reflexives, add_params, typed_product
 
 using Catlab
 using Catlab.CategoricalAlgebra
 using Catlab.WiringDiagrams
 using AlgebraicPetri
-using AlgebraicPetri: LabelledPetriNetUntyped, OpenLabelledPetriNetUntyped
+using AlgebraicPetri: LabelledPetriNetUntyped, OpenLabelledPetriNetUntyped, LabelledReactionNetUntyped
 
 
 """
@@ -131,6 +131,9 @@ function add_reflexives(
       type_ind = findfirst(==(ct), type_system[:tname])
       is, os = [incident(type_system, type_ind, f) for f in [:it, :ot]]
       new_t = add_part!(petri, :T; tname=ct)
+      if petri isa AbstractLabelledReactionNet
+        set_subpart!(petri, new_t, :rate, 1.0)
+      end
       add_parts!(petri, :I, length(is); is=s_i, it=new_t)
       add_parts!(petri, :O, length(os); os=s_i, ot=new_t)
       push!(type_comps[:T], type_ind)
@@ -141,7 +144,47 @@ function add_reflexives(
     petri,
     codom(typed_petri);
     type_comps...,
-    Name=x->nothing
+    Name=x->nothing,
+    (petri isa AbstractLabelledReactionNet ? [:Rate=>x->nothing, :Concentration=>x->nothing] : [])...
+  )
+end
+
+function add_params(
+  typed_petri::ACSetTransformation,
+  initial_concentrations::AbstractDict{Symbol,Float64},
+  rates::AbstractDict{Symbol,Float64}
+)
+  domain = begin
+    pn = LabelledReactionNet{Float64,Float64}()
+    copy_parts!(pn, typed_petri.dom)
+    for (tlabel, rate) in rates
+      set_subpart!(pn, only(incident(typed_petri.dom, tlabel, :tname)), :rate, rate)
+    end
+    for (slabel, ic) in initial_concentrations
+      set_subpart!(pn, only(incident(typed_petri.dom, slabel, :sname)), :concentration, ic)
+    end
+    pn
+  end
+  typing = begin
+    pn = LabelledReactionNetUntyped{Nothing, Nothing, Nothing}()
+    copy_parts!(pn, PetriNet(typed_petri.codom))
+    for t in parts(pn, :T)
+      set_subpart!(pn, t, :tname, nothing)
+      set_subpart!(pn, t, :rate, nothing)
+    end
+    for s in parts(pn, :S)
+      set_subpart!(pn, s, :sname, nothing)
+      set_subpart!(pn, s, :concentration, nothing)
+    end
+    pn
+  end
+  ACSetTransformation(
+    domain,
+    typing;
+    components(typed_petri)...,
+    Name=x->nothing,
+    Rate=x->nothing,
+    Concentration=x->nothing
   )
 end
 

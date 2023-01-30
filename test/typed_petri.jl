@@ -15,7 +15,11 @@ sird_uwd = @relation () where (S::Pop, I::Pop, R::Pop, D::Pop) begin
   disease(I,D) # die
 end
 
-typed_sird = oapply_typed(infectious_ontology, sird_uwd, [:inf, :recover, :die])
+typed_sird = add_params(
+  oapply_typed(infectious_ontology, sird_uwd, [:inf, :recover, :die]),
+  Dict(:S => 1.0, :I => 1.0, :R => 0.0, :D => 0.0),
+  Dict(:inf => 0.5, :recover => 1.0, :die => 0.2)
+)
 
 @test ns(typed_sird.dom) == 4
 @test nt(typed_sird.dom) == 3
@@ -25,7 +29,11 @@ quarantine_uwd = @relation () where (Q::Pop, NQ::Pop) begin
   strata(NQ,Q) # exit quarantine
 end
 
-typed_quarantine = oapply_typed(infectious_ontology, quarantine_uwd, [:exit_Q, :enter_Q])
+typed_quarantine = add_params(
+  oapply_typed(infectious_ontology, quarantine_uwd, [:exit_Q, :enter_Q]),
+  Dict(:Q => 1.0, :NQ => 1.0),
+  Dict(:exit_Q => 0.5, :enter_Q => 0.5)
+)
 
 typed_quarantine_aug = add_reflexives(
   typed_quarantine,
@@ -43,3 +51,5 @@ stratified = typed_product(typed_quarantine_aug, typed_sird_aug)
 
 @test ns(stratified.dom) == 8
 @test nt(stratified.dom) == 6 + 4 + 1
+@test typeof(stratified.dom[1,:sname]) == Tuple{Symbol, Symbol}
+@test typeof(stratified.dom[1,:concentration]) == Tuple{Float64, Float64}
