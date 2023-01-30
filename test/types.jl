@@ -2,11 +2,11 @@ using Tables
 import Petri
 
 sir_petri = PetriNet(3, ((1, 2), (2, 2)), (2, 3))
-sir_lpetri = LabelledPetriNet([:S, :I, :R], :inf=>((:S, :I), (:I, :I)), :rec=>(:I, :R))
-sir_rxn = ReactionNet{Number, Int}([990, 10, 0], (.001, ((1, 2)=>(2,2))), (.25, (2=>3)))
-sir_lrxn = LabelledReactionNet{Number, Int}((:S=>990, :I=>10, :R=>0), (:inf, .001)=>((:S, :I)=>(:I,:I)), (:rec, .25)=>(:I=>:R))
+sir_lpetri = LabelledPetriNet([:S, :I, :R], :inf => ((:S, :I), (:I, :I)), :rec => (:I, :R))
+sir_rxn = ReactionNet{Number,Int}([990, 10, 0], (0.001, ((1, 2) => (2, 2))), (0.25, (2 => 3)))
+sir_lrxn = LabelledReactionNet{Number,Int}((:S => 990, :I => 10, :R => 0), (:inf, 0.001) => ((:S, :I) => (:I, :I)), (:rec, 0.25) => (:I => :R))
 
-sir_tpetri= PetriNet(TransitionMatrices(sir_petri))
+sir_tpetri = PetriNet(TransitionMatrices(sir_petri))
 
 @test snames(sir_petri) == 1:3
 @test tnames(sir_petri) == 1:2
@@ -29,27 +29,27 @@ for pn ∈ [sir_petri, sir_lpetri, sir_rxn, sir_lrxn]
 end
 
 for pn ∈ [sir_rxn, sir_lrxn]
-  @test ReactionNet{Number, Int}(pn) == sir_rxn
+  @test ReactionNet{Number,Int}(pn) == sir_rxn
 end
 for pn ∈ [sir_petri, sir_lpetri, sir_rxn, sir_lrxn]
-  @test ReactionNet{Number, Int}(pn, [990, 10, 0], [.001, .25]) == sir_rxn
+  @test ReactionNet{Number,Int}(pn, [990, 10, 0], [0.001, 0.25]) == sir_rxn
 end
 
 for pn ∈ [sir_lrxn]
-  @test LabelledReactionNet{Number, Int}(pn) == sir_lrxn
+  @test LabelledReactionNet{Number,Int}(pn) == sir_lrxn
 end
 for pn ∈ [sir_petri, sir_rxn]
-  @test LabelledReactionNet{Number, Int}(pn, [:S=>990, :I=>10, :R=>0], [:inf=>.001, :rec=>.25]) == sir_lrxn
+  @test LabelledReactionNet{Number,Int}(pn, [:S => 990, :I => 10, :R => 0], [:inf => 0.001, :rec => 0.25]) == sir_lrxn
 end
 for pn ∈ [sir_petri, sir_lpetri, sir_rxn, sir_lrxn]
-  @test LabelledReactionNet{Number, Int}(pn, [:S, :I, :R], [:inf, :rec], [990, 10, 0], [.001, .25]) == sir_lrxn
+  @test LabelledReactionNet{Number,Int}(pn, [:S, :I, :R], [:inf, :rec], [990, 10, 0], [0.001, 0.25]) == sir_lrxn
 end
 
-β(u,t) = 1 / sum(u)
-γ = .25
-sir_rxn = ReactionNet{Function, Int}([990, 10, 0], (β)=>((1, 2)=>(2,2)), (t->γ)=>(2=>3))
-open_sir_rxn = Open([1,2], sir_rxn, [3])
-open_sir_lrxn = Open([:S,:I], sir_lrxn, [:R])
+β(u, t) = 1 / sum(u)
+γ = 0.25
+sir_rxn = ReactionNet{Function,Int}([990, 10, 0], (β) => ((1, 2) => (2, 2)), (t -> γ) => (2 => 3))
+open_sir_rxn = Open([1, 2], sir_rxn, [3])
+open_sir_lrxn = Open([:S, :I], sir_lrxn, [:R])
 
 @test sir_tpetri == sir_petri
 @test Petri.Model(sir_petri) == Petri.Model(sir_rxn)
@@ -62,8 +62,8 @@ open_sir_lrxn = Open([:S,:I], sir_lrxn, [:R])
 @test typeof(Graph(sir_lrxn)) == Graph
 @test typeof(Graph(open_sir_lrxn)) == Graph
 
-@test inputs(sir_petri, 1) == [1,2]
-@test outputs(sir_petri, 1) == [2,2]
+@test inputs(sir_petri, 1) == [1, 2]
+@test outputs(sir_petri, 1) == [2, 2]
 @test concentration(sir_rxn, 1) == 990
 @test rate(sir_rxn, 1) == β
 
@@ -71,7 +71,7 @@ open_sir_lrxn = Open([:S,:I], sir_lrxn, [:R])
 @test typeof(rates(sir_rxn)) <: Array{Function}
 
 @test concentrations(sir_lrxn) == LVector(S=990, I=10, R=0)
-@test rates(sir_lrxn) == LVector(inf=.001, rec=.25)
+@test rates(sir_lrxn) == LVector(inf=0.001, rec=0.25)
 
 @test length(Tables.rows(tables(dom(open_sir_rxn).ob).S)) == length(Tables.rows(tables(dom(open_sir_lrxn).ob).S))
 
@@ -104,3 +104,16 @@ add_output!(sir_petri, 4, 3)
 @test ni(sir_petri) == 5
 @test no(sir_petri) == 5
 @test sir_petri == PetriNet(4, ((1, 2), (2, 2)), (2, 3), (1, 4), (4, 3))
+
+# test flatten_symbols
+tuple_labelled = AlgebraicPetri.LabelledPetriNetUntyped{Tuple{Symbol,Symbol}}()
+tuple_rxn = AlgebraicPetri.LabelledReactionNetUntyped{Int,Int,Tuple{Symbol,Symbol}}()
+for tuple_petri in [tuple_labelled, tuple_rxn]
+  add_species!(tuple_petri, 3, sname=((:U, :S), (:U, :I), (:U, :R)))
+  add_transitions!(tuple_petri, 2, tname=((:Q, :inf), (:Q, :rec)))
+
+  tuple_petri′ = tuple_petri |> flatten_labels
+
+  @test tuple_petri′[:, :sname] == [:U_S, :U_I, :U_R]
+  @test tuple_petri′[:, :tname] == [:Q_inf, :Q_rec]
+end
