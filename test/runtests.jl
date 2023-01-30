@@ -25,6 +25,10 @@ end
     include("epidemiology.jl")
 end
 
+@testset "TypedPetris" begin
+  include("typed_petri.jl")
+end
+
 @testset "BilayerNetworks" begin
   include("bilayernetworks.jl")
 end
@@ -33,14 +37,10 @@ end
   include("modelcomparison.jl")
 end
 
-@testset "Catalyst Tooling" begin
+@testset "Catalyst Interop" begin
   include("CatalystInterop.jl")
 end
 
-@testset "ModelingToolkit Tooling" begin
+@testset "ModelingToolkit Interop" begin
   include("ModelingToolkitInterop.jl")
-end
-
-@testset "TypedPetris" begin
-  include("typed_petri.jl")
 end
