@@ -546,5 +546,6 @@ include("visualization.jl")
 include("Epidemiology.jl")
 include("BilayerNetworks.jl")
 include("ModelComparison.jl")
+include("SubACSets.jl")
 include("TypedPetri.jl")
 end
