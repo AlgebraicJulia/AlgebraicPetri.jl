@@ -209,7 +209,7 @@ end
 Assumes a single species type and a single transition type.
 """
 function pairwise_id_typed_petri(type_net, stype, ttype, args...;
-                                 codom_net=nothing)
+                                 codom_net=nothing) # TODO: this keyword parameter is a workaround. It should be removed and fixed later.
   net = pairwise_id_petri(args...)
   type_components = Dict(type => (x -> nothing)
                          for type in attrtypes(acset_schema(net)))
