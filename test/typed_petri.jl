@@ -3,6 +3,8 @@ using Test
 using AlgebraicPetri, AlgebraicPetri.TypedPetri
 using Catlab.CategoricalAlgebra, Catlab.Programs
 
+# SIRD model.
+
 const infectious_ontology = LabelledPetriNet(
   [:Pop],
   :infect=>((:Pop, :Pop)=>(:Pop, :Pop)),
@@ -16,16 +18,20 @@ sird_uwd = @relation () where (S::Pop, I::Pop, R::Pop, D::Pop) begin
   disease(I,D) # die
 end
 
+typed_sird_no_params = oapply_typed(infectious_ontology, sird_uwd,
+                                    [:inf, :recover, :die])
+@test ns(dom(typed_sird_no_params)) == 4
+@test nt(dom(typed_sird_no_params)) == 3
+
 typed_sird = add_params(
   oapply_typed(infectious_ontology, sird_uwd, [:inf, :recover, :die]),
   Dict(:S => 1.0, :I => 1.0, :R => 0.0, :D => 0.0),
   Dict(:inf => 0.5, :recover => 1.0, :die => 0.2)
 )
+@test ns(dom(typed_sird)) == 4
+@test nt(dom(typed_sird)) == 3
 
-@test ns(typed_sird.dom) == 4
-@test nt(typed_sird.dom) == 3
-
-# Quarantine model.
+# SIRD-with-quarantine model.
 
 quarantine_uwd = @relation () where (Q::Pop, NQ::Pop) begin
   strata(Q,NQ) # enter quarantine
@@ -59,7 +65,7 @@ stratified = typed_product(typed_quarantine_aug, typed_sird_aug)
 # Age-stratified model.
 
 typed_age = pairwise_id_typed_petri(infectious_ontology, :Pop, :infect,
-                                    [:Young, :Mid, :Old])
+                                    [:Yng, :Mid, :Old])
 @test ns(dom(typed_age)) == 3
 @test nt(dom(typed_age)) == 9
 
@@ -69,8 +75,21 @@ typed_age_aug = add_reflexives(
   infectious_ontology
 )
 
-typed_sird = oapply_typed(infectious_ontology, sird_uwd, [:inf, :recover, :die])
-
-stratified = typed_product(typed_age_aug, typed_sird)
+stratified = typed_product(typed_age_aug, typed_sird_no_params)
 @test ns(dom(stratified)) == 3*4
 @test nt(dom(stratified)) == 3*2 + 9*1
+
+contact_mat = rand(Float64, (3, 3))
+typed_age = pairwise_id_typed_petri(infectious_ontology, :Pop, :infect,
+                                    [:Yng, :Mid, :Old], [0.3, 0.4, 0.3],
+                                    contact_mat, codom_net=codom(typed_sird))
+@test dom(typed_age)[2, :concentration] == 0.4
+@test dom(typed_age)[1, :rate] == contact_mat[1,1]
+
+typed_age_aug = add_reflexives(
+  typed_age,
+  repeat([[:disease]], 3),
+  infectious_ontology
+)
+
+stratified = typed_product(typed_age_aug, typed_sird)

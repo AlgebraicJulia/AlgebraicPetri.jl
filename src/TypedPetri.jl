@@ -208,17 +208,19 @@ end
 
 Assumes a single species type and a single transition type.
 """
-function pairwise_id_typed_petri(type_net, stype, ttype, args...)
+function pairwise_id_typed_petri(type_net, stype, ttype, args...;
+                                 codom_net=nothing)
   net = pairwise_id_petri(args...)
+  type_components = Dict(type => (x -> nothing)
+                         for type in attrtypes(acset_schema(net)))
   s = only(incident(type_net, stype, :sname))
   t = only(incident(type_net, ttype, :tname))
-  ACSetTransformation(net, type_net;
+  ACSetTransformation(net, isnothing(codom_net) ? type_net : codom_net;
     S = repeat([s], ns(net)),
     T = repeat([t], nt(net)),
     I = repeat(incident(type_net, t, :it), nt(net)),
     O = repeat(incident(type_net, t, :ot), nt(net)),
-    Name = x->nothing
-  )
+    type_components...)
 end
 
 """ Make Petri net with 'identity' transformation between all species pairs.
@@ -228,6 +230,20 @@ function pairwise_id_petri(names::AbstractVector{Symbol})
   add_pairwise_id_transitions!(net, names)
   net
 end
+function pairwise_id_petri(names::AbstractVector{Symbol},
+                           concentration_vec::AbstractVector{C},
+                           contact_mat::AbstractMatrix{R}) where {R,C}
+  n = length(names)
+  @assert length(concentration_vec) == n
+  @assert size(contact_mat) == (n, n)
+
+  net = LabelledReactionNet{R,C}()
+  add_pairwise_id_transitions!(net, names)
+  net[:, :concentration] = concentration_vec
+  net[:, :rate] = reshape(contact_mat, :)
+  net
+end
+
 function add_pairwise_id_transitions!(net::AbstractPetriNet,
                                       names::AbstractVector{Symbol})
   n = length(names)
