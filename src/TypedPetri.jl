@@ -76,7 +76,7 @@ function oapply_typed(type_system::LabelledPetriNet, uwd, tnames::Vector{Symbol}
     for t in 1:nt(type_system)
   )
   prim_cospans = Dict(t => prim_cospan_data[t][1] for t in keys(prim_cospan_data))
-  (colim, petri) = oapply(uwd, prim_cospans; return_colimits=true)
+  petri, colim = oapply(uwd, prim_cospans; return_colimit=true)
   unlabelled_map = universal(
     colim,
     Multicospan(
