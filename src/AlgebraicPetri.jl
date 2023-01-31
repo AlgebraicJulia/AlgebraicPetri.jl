@@ -461,34 +461,14 @@ tname(p::Union{AbstractLabelledPetriNet,AbstractLabelledReactionNet}, t) = subpa
 flat_symbol(sym::Symbol)::Symbol = sym
 flat_symbol(sym::Tuple)::Symbol = mapreduce(x -> isa(x, Tuple) ? flat_symbol(x) : x, (x, y) -> Symbol(x, "_", y), sym)
 
-# TODO: (Relevant issue: https://github.com/AlgebraicJulia/Catlab.jl/issues/735)
-# After linked issue is resolved, convert following two definitions to a simpler, single line definition:
-# flatten_labels(pn::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}) = map(pn, Name=flat_symbol)
-
 """ flatten_labels(pn::AbstractLabelledPetriNet)
 
-Takes a LabelledPetriNet and flattens arbitrarily nested labels on the species and the transitions
-to a single symbol who's previously nested parts are separated by `_`.
+Takes a labeled Petri net or reaction net and flattens arbitrarily nested labels
+on the species and the transitions to a single symbol who's previously nested
+parts are separated by `_`.
 """
-flatten_labels(pn::AbstractLabelledPetriNet) = begin
-  LabelledPetriNet(PetriNet(pn),
-    flat_symbol.(pn[:, :sname]),
-    flat_symbol.(pn[:, :tname]))
-end
-
-""" flatten_labels(pn::LabelledReactionNetUntyped{R,C,S}) where {R,C,S}
-
-Takes a LabelledReactionNet and flattens arbitrarily nested labels on the species and the transitions
-to a single symbol who's previously nested parts are separated by `_`. This maintains the original
-rate and concentration values and types in the newly returned LabelledReactionNet.
-"""
-flatten_labels(pn::LabelledReactionNetUntyped{R,C,S}) where {R,C,S} = begin
-  LabelledReactionNet{R,C}(PetriNet(pn),
-    flat_symbol.(pn[:, :sname]),
-    flat_symbol.(pn[:, :tname]),
-    pn[:, :concentration],
-    pn[:, :rate])
-end
+flatten_labels(pn::Union{AbstractLabelledPetriNet,AbstractLabelledReactionNet}) =
+  map(pn, Name=flat_symbol)
 
 # Interoperability between different types
 
