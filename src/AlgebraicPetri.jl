@@ -268,19 +268,21 @@ The resulting function has a signature of the form `f!(du, u, p, t)` and can be
 passed to the DifferentialEquations.jl solver package.
 """
 vectorfield(pn::AbstractPetriNet) = begin
-  tm = TransitionMatrices(pn)
-  dt = tm.output - tm.input
   f(du, u, p, t) = begin
-    rates = zeros(eltype(du), nt(pn))
-    u_m = [u[sname(pn, i)] for i in 1:ns(pn)]
-    p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
-    for i in 1:nt(pn)
-      rates[i] = valueat(p_m[i], u, t) * prod(u_m[j]^tm.input[i, j] for j in 1:ns(pn))
-    end
-    for j in 1:ns(pn)
-      du[sname(pn, j)] = sum(rates[i] * dt[i, j] for i in 1:nt(pn); init=0.0)
-    end
-    return du
+      p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
+      for i in 1:nt(pn)
+          is_ix = subpart(pn, incident(pn, i, :it), :is) # input places
+          rate = valueat(p_m[i], u, t) * prod(u[sname(pn, j)] for j in is_ix)
+
+          os_ix = subpart(pn, incident(pn, i, :ot), :os) # output places
+          for j in os_ix
+              du[sname(pn, j)] += rate
+          end
+          for j in is_ix
+              du[sname(pn, j)] -= rate
+          end 
+      end
+      return du
   end
   return f
 end
