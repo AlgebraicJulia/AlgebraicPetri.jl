@@ -3,7 +3,10 @@
 
 module OpenTransitions
 
-using AlgebraicPetri
+using AlgebraicPetri: 
+    LabelledPetriNetUntyped, PetriNet, AbstractPetriNet, 
+    AbstractLabelledPetriNet, 
+    ns, nt, tname
 using Catlab
 using Catlab.CategoricalAlgebra
 
