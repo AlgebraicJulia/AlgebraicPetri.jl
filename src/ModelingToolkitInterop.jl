@@ -49,6 +49,16 @@ module ModelingToolkitInterop
     ODESystem(eqs, t, S, r, name=name)
   end
 
+  function ModelingToolkit.ODEProblem(
+    p::Union{AbstractReactionNet, AbstractLabelledReactionNet},
+    tspan;
+    name=:PetriNet,
+    kwargs...
+  )
+    sys = ODESystem(p; name)
+    ODEProblem(sys, p[:,:concentration], tspan, p[:,:rate]; kwargs...)
+  end
+
   """ Convert a general Bilayer Network to an ODESystem
   This conversion forgets any labels or rates provided, and converts all
   parameters and variables into symbols. It does preserve the ordering of

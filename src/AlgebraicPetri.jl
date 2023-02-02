@@ -268,18 +268,19 @@ The resulting function has a signature of the form `f!(du, u, p, t)` and can be
 passed to the DifferentialEquations.jl solver package.
 """
 vectorfield(pn::AbstractPetriNet) = begin
-  tm = TransitionMatrices(pn)
-  dt = tm.output - tm.input
-  f(du, u, p, t) = begin
-    rates = zeros(eltype(du), nt(pn))
-    u_m = [u[sname(pn, i)] for i in 1:ns(pn)]
+  f(du, u, p, t) = begin      
     p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
-    for i in 1:nt(pn)
-      rates[i] = valueat(p_m[i], u, t) * prod(u_m[j]^tm.input[i, j] for j in 1:ns(pn))
-    end
-    for j in 1:ns(pn)
-      du[sname(pn, j)] = sum(rates[i] * dt[i, j] for i in 1:nt(pn); init=0.0)
-    end
+      for i in 1:nt(pn)
+        is_ix = subpart(pn, incident(pn, i, :it), :is) # input places
+        rate = valueat(p_m[i], u, t) * prod(u[sname(pn, j)] for j in is_ix)
+        os_ix = subpart(pn, incident(pn, i, :ot), :os) # output places
+        for j in os_ix
+          @inbounds du[sname(pn, j)] += rate
+        end
+        for j in is_ix
+          @inbounds du[sname(pn, j)] -= rate
+        end 
+      end
     return du
   end
   return f
@@ -461,34 +462,14 @@ tname(p::Union{AbstractLabelledPetriNet,AbstractLabelledReactionNet}, t) = subpa
 flat_symbol(sym::Symbol)::Symbol = sym
 flat_symbol(sym::Tuple)::Symbol = mapreduce(x -> isa(x, Tuple) ? flat_symbol(x) : x, (x, y) -> Symbol(x, "_", y), sym)
 
-# TODO: (Relevant issue: https://github.com/AlgebraicJulia/Catlab.jl/issues/735)
-# After linked issue is resolved, convert following two definitions to a simpler, single line definition:
-# flatten_labels(pn::Union{AbstractLabelledPetriNet, AbstractLabelledReactionNet}) = map(pn, Name=flat_symbol)
-
 """ flatten_labels(pn::AbstractLabelledPetriNet)
 
-Takes a LabelledPetriNet and flattens arbitrarily nested labels on the species and the transitions
-to a single symbol who's previously nested parts are separated by `_`.
+Takes a labeled Petri net or reaction net and flattens arbitrarily nested labels
+on the species and the transitions to a single symbol who's previously nested
+parts are separated by `_`.
 """
-flatten_labels(pn::AbstractLabelledPetriNet) = begin
-  LabelledPetriNet(PetriNet(pn),
-    flat_symbol.(pn[:, :sname]),
-    flat_symbol.(pn[:, :tname]))
-end
-
-""" flatten_labels(pn::LabelledReactionNetUntyped{R,C,S}) where {R,C,S}
-
-Takes a LabelledReactionNet and flattens arbitrarily nested labels on the species and the transitions
-to a single symbol who's previously nested parts are separated by `_`. This maintains the original
-rate and concentration values and types in the newly returned LabelledReactionNet.
-"""
-flatten_labels(pn::LabelledReactionNetUntyped{R,C,S}) where {R,C,S} = begin
-  LabelledReactionNet{R,C}(PetriNet(pn),
-    flat_symbol.(pn[:, :sname]),
-    flat_symbol.(pn[:, :tname]),
-    pn[:, :concentration],
-    pn[:, :rate])
-end
+flatten_labels(pn::Union{AbstractLabelledPetriNet,AbstractLabelledReactionNet}) =
+  map(pn, Name=flat_symbol)
 
 # Interoperability between different types
 
@@ -585,4 +566,5 @@ include("BilayerNetworks.jl")
 include("ModelComparison.jl")
 include("SubACSets.jl")
 include("TypedPetri.jl")
+include("OpenTransitions.jl")
 end
