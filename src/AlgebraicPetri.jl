@@ -268,21 +268,20 @@ The resulting function has a signature of the form `f!(du, u, p, t)` and can be
 passed to the DifferentialEquations.jl solver package.
 """
 vectorfield(pn::AbstractPetriNet) = begin
-  f(du, u, p, t) = begin
-      p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
+  f(du, u, p, t) = begin      
+    p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
       for i in 1:nt(pn)
-          is_ix = subpart(pn, incident(pn, i, :it), :is) # input places
-          rate = valueat(p_m[i], u, t) * prod(u[sname(pn, j)] for j in is_ix)
-
-          os_ix = subpart(pn, incident(pn, i, :ot), :os) # output places
-          for j in os_ix
-              @inbounds du[sname(pn, j)] += rate
-          end
-          for j in is_ix
-              @inbounds du[sname(pn, j)] -= rate
-          end 
+        is_ix = subpart(pn, incident(pn, i, :it), :is) # input places
+        rate = valueat(p_m[i], u, t) * prod(u[sname(pn, j)] for j in is_ix)
+        os_ix = subpart(pn, incident(pn, i, :ot), :os) # output places
+        for j in os_ix
+          @inbounds du[sname(pn, j)] += rate
+        end
+        for j in is_ix
+          @inbounds du[sname(pn, j)] -= rate
+        end 
       end
-      return du
+    return du
   end
   return f
 end
