@@ -276,10 +276,10 @@ vectorfield(pn::AbstractPetriNet) = begin
 
           os_ix = subpart(pn, incident(pn, i, :ot), :os) # output places
           for j in os_ix
-              du[sname(pn, j)] += rate
+              @inbounds du[sname(pn, j)] += rate
           end
           for j in is_ix
-              du[sname(pn, j)] -= rate
+              @inbounds du[sname(pn, j)] -= rate
           end 
       end
       return du
