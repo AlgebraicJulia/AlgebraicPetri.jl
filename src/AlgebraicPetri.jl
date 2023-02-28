@@ -6,7 +6,7 @@ export SchPetriNet, PetriNet, OpenPetriNetOb, AbstractPetriNet, ns, nt, ni, no,
   os, ot, is, it,
   add_species!, add_transition!, add_transitions!,
   add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs,
-  TransitionMatrices, vectorfield,
+  TransitionMatrices, vectorfield, vectorfield_expr,
   SchLabelledPetriNet, LabelledPetriNet, AbstractLabelledPetriNet, sname, tname, snames, tnames,
   SchReactionNet, ReactionNet, AbstractReactionNet, concentration, concentrations, rate, rates,
   SchLabelledReactionNet, LabelledReactionNet, AbstractLabelledReactionNet,
@@ -283,6 +283,63 @@ vectorfield(pn::AbstractPetriNet) = begin
       end
     return du
   end
+  return f
+end
+
+
+""" vectorfield_expr(pn::AbstractPetriNet)
+Generates a Julia expression which is then evaluated that 
+calculates the vectorfield of the Petri net being simulated 
+under the law of mass action.
+The resulting function has a signature of the form `f!(du, u, p, t)` and can be
+passed to the DifferentialEquations.jl solver package.
+"""
+vectorfield_expr(pn::AbstractPetriNet) = begin
+  fquote = Expr(:function, Expr(:tuple, :du, :u, :p, :t))
+  fcode = Expr[]
+  p_ix = [tname(pn, i) for i in 1:nt(pn)]
+  push!(fcode, :(
+    p_m = p[$(p_ix)]
+  ))
+  for i in 1:nt(pn)
+    is_ix = subpart(pn, incident(pn, i, :it), :is) # input places
+    is_pn_ix = [sname(pn, j) for j in is_ix]
+    os_ix = subpart(pn, incident(pn, i, :ot), :os) # output places
+    os_pn_ix = [sname(pn, j) for j in os_ix]
+    push!(fcode, :(
+      rate = valueat(p_m[$(i)], u, t) * prod(u[$(is_pn_ix)]) 
+    ))
+    # need quote node for subsetting du
+    if eltype(os_pn_ix) <: Symbol
+      for j in os_pn_ix
+        push!(fcode, :(
+          du[$(Meta.quot(j))] += rate
+        ))
+      end
+      for j in is_pn_ix
+        push!(fcode, :(
+          du[$(Meta.quot(j))] -= rate
+        ))
+      end
+    else
+      # dont need quote nodes
+      for j in os_pn_ix
+        push!(fcode, :(
+          du[$(j)] += rate
+        ))
+      end
+      for j in is_pn_ix
+        push!(fcode, :(
+          du[$(j)] -= rate
+        ))
+      end
+    end
+  end
+  push!(fcode, :(
+    return du
+  ))
+  push!(fquote.args, Expr(:block, fcode...))
+  f = eval(fquote)
   return f
 end
 

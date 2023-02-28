@@ -153,6 +153,11 @@ function test_sir_equivalence(bn, pn)
   vectorfield(pn)(du, u, params, 0)
 
   @test all(abs.(bn_du .- du[[:S,:I,:R]]) .< 1e-9)
+  
+#   du = LVector(S=0.0,I=0.0,R=0.0)
+#   vectorfield_expr(pn)(du, u, params, 0)
+  
+#   @test all(abs.(bn_du .- du[[:S,:I,:R]]) .< 1e-9)
 end
 
 # Ensure that the migration function properly balances the BLN
