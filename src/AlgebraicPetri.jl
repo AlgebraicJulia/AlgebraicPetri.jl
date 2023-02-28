@@ -21,6 +21,7 @@ using Catlab.Present
 using Catlab.Theories
 using LabelledArrays
 using LinearAlgebra: mul!
+using GeneralizedGenerated: mk_function
 
 vectorify(n::AbstractVector) = n
 vectorify(n::Tuple) = length(n) == 1 ? [n] : n
@@ -339,8 +340,7 @@ vectorfield_expr(pn::AbstractPetriNet) = begin
     return du
   ))
   push!(fquote.args, Expr(:block, fcode...))
-  f = eval(fquote)
-  return f
+  return mk_function(AlgebraicPetri, fquote)
 end
 
 """ ACSet definition for a Petri net with labels on transitions and states.

@@ -6,20 +6,21 @@ version = "0.8.4"
 
 [deps]
 Catlab = "134e5e36-593f-5add-ad60-77f754baafbe"
+GeneralizedGenerated = "6b9d7cbe-bcb9-11e9-073f-15a7a543e2eb"
 LabelledArrays = "2ee39098-c373-598a-b85f-a56591580800"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
+Catalyst = "^13.0.0"
 Catlab = "^0.14.14"
 LabelledArrays = "^1"
 Requires = "^1"
 StatsBase = "^0.33"
-Catalyst = "^13.0.0"
 julia = "1.6"
 
 [extras]
+Catalyst = "479239e8-5488-4da2-87a7-35f2df7eef83"
 Petri = "4259d249-1051-49fa-8328-3f8ab9391c33"
 Tables = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
-Catalyst = "479239e8-5488-4da2-87a7-35f2df7eef83"
