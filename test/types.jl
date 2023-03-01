@@ -81,8 +81,20 @@ out = vectorfield(sir_rxn)(du, concentrations(sir_rxn), rates(sir_rxn), 0.01)
 @test out[2] ≈ 7.4
 @test out[3] ≈ 2.5
 
+du = [0.0, 0.0, 0.0]
+out = vectorfield_expr(sir_rxn)(du, concentrations(sir_rxn), rates(sir_rxn), 0.01)
+@test out[1] ≈ -9.9
+@test out[2] ≈ 7.4
+@test out[3] ≈ 2.5
+
 du = LVector(S=0.0, I=0.0, R=0.0)
 out = vectorfield(sir_lrxn)(du, concentrations(sir_lrxn), rates(sir_lrxn), 0.01)
+@test out.S ≈ -9.9
+@test out.I ≈ 7.4
+@test out.R ≈ 2.5
+
+du = LVector(S=0.0, I=0.0, R=0.0)
+out = vectorfield_expr(sir_lrxn)(du, concentrations(sir_lrxn), rates(sir_lrxn), 0.01)
 @test out.S ≈ -9.9
 @test out.I ≈ 7.4
 @test out.R ≈ 2.5
