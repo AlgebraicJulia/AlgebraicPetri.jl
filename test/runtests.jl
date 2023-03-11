@@ -9,6 +9,7 @@ using Catlab.Theories
 using Catlab.CategoricalAlgebra
 using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Programs
+using AlgebraicRewriting
 
 @testset "Core" begin
     include("core.jl")
@@ -52,4 +53,8 @@ end
 
 @testset "OpenTransitions" begin
   include("opentransitions.jl")
+end
+
+@testset "Rewriting" begin
+  include("rewriting.jl")
 end
