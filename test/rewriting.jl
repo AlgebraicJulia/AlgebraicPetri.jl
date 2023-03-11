@@ -4,6 +4,9 @@ module RewritingTest
     using Catlab, Catlab.CategoricalAlgebra
     using Test
 
+    const homomorphism = CategoricalAlgebra.homomorphism
+    const is_isomorphic = CategoricalAlgebra.is_isomorphic
+
     sir = LabelledReactionNet{Float64, Float64}(
         [:S=>100, :I=>1, :R=>0], 
         (:inf,.03)=>((:S,:I)=>(:I,:I)),
