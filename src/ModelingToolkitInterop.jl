@@ -18,7 +18,7 @@ module ModelingToolkitInterop
   transitions and states though (Transition 1 has a rate of k[1], state 1 has a
   concentration of S[1])
   """
-  function ModelingToolkit.ODESystem(p::AbstractPetriNet; name=:PetriNet)
+  function ModelingToolkit.ODESystem(p::AbstractPetriNet; name=:PetriNet, kws...)
     t = first(@variables t)
 
     sname′(i) =
@@ -46,7 +46,7 @@ module ModelingToolkitInterop
 
     eqs = [D(S[s]) ~ transition_rates' * coefficients[:, s] for s in 1:ns(p)]
 
-    ODESystem(eqs, t, S, r, name=name)
+    ODESystem(eqs, t, S, r; name=name, kws...)
   end
 
   function ModelingToolkit.ODEProblem(

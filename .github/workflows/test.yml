@@ -8,14 +8,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        julia_version: ['1.6', '1.7', '1.8']
+        julia_version: ["1.6", "1.7", "1.8"]
         os: [ubuntu-latest]
 
     steps:
       - uses: actions/checkout@v2
       - name: "Set up Julia"
-        uses: julia-actions/setup-julia@latest
+        uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.julia_version }}
       - name: "Run tests"
-        uses: julia-actions/julia-runtest@master
+        uses: julia-actions/julia-runtest@v1
