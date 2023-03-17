@@ -83,15 +83,17 @@ module ModelingToolkitInterop
       end
     end
 
+    plus(x, y) = ModelingToolkit.term(+, x, y; type = Real)
     infs = map(parts(bn, :Qout)) do tv
-      flux = mapreduce(+, incident(bn, tv, :infusion), init=0) do wa
+      flux = mapreduce(plus, incident(bn, tv, :infusion), init=0) do wa
         j = bn[wa, :influx]
         return ϕs[j]
       end
-      flux -= mapreduce(+, incident(bn, tv, :effusion), init=0) do wa
+      flux2 = mapreduce(plus, incident(bn, tv, :effusion), init=0) do wa
         j = bn[wa, :efflux]
         return ϕs[j]
       end
+      flux = ModelingToolkit.term(-, flux, flux2; type = Real)
     end
 
     # We assume bn[:tanvar] ⊆ bn[:variable] here
