@@ -59,13 +59,18 @@ module ModelingToolkitInterop
     ODEProblem(sys, p[:,:concentration], tspan, p[:,:rate]; kwargs...)
   end
 
-  """ Convert a general Bilayer Network to an ODESystem
+  """
+    ODESystem(bn::Union{AbstractLabelledBilayerNetwork,AbstractBilayerNetwork}; name=:BilayerNetwork, simplify = false)
+
+  Convert a general Bilayer Network to an ODESystem
   This conversion forgets any labels or rates provided, and converts all
   parameters and variables into symbols. It does preserve the ordering of
   transitions and states though (Transition 1 has a rate of k[1], state 1 has a
-  concentration of S[1])
+  concentration of S[1]). Note that symbolic simplification is not enable by
+  default to preserve the bilayer structure. This is useful when one wants to
+  convert symbolic expressions back to a bilayer network.
   """
-  function ModelingToolkit.ODESystem(bn::Union{AbstractLabelledBilayerNetwork,AbstractBilayerNetwork}; name=:BilayerNetwork)
+  function ModelingToolkit.ODESystem(bn::Union{AbstractLabelledBilayerNetwork,AbstractBilayerNetwork}; name=:BilayerNetwork, simplify = false)
     t = (@variables t)[1]
     D = Differential(t)
     symbolic_vars = map(bn[:variable]) do v
@@ -83,8 +88,8 @@ module ModelingToolkitInterop
       end
     end
 
-    plus(x, y) = ModelingToolkit.term(+, x, y; type = Real)
-    minus(args...) = ModelingToolkit.term(-, args...; type = Real)
+    plus(x, y) = simplify ? x + y : ModelingToolkit.term(+, x, y; type = Real)
+    minus(args...) = simplify ? -(args...) : ModelingToolkit.term(-, args...; type = Real)
     infs = map(parts(bn, :Qout)) do tv
       flux = mapreduce(plus, incident(bn, tv, :infusion), init=0) do wa
         j = bn[wa, :influx]
