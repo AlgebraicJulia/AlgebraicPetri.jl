@@ -14,7 +14,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 Catalyst = "^13.0.0"
-Catlab = "^0.14.14"
+Catlab = "^0.14.16"
 GeneralizedGenerated = "0.3"
 LabelledArrays = "^1"
 Requires = "^1"
