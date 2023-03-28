@@ -279,16 +279,20 @@ places and input arcs, and all output places and output arcs. The returned
 object will be of the same type as `p`.
 """
 function induced_subnet(p::T, t) where {T <: AbstractPetriNet}
-  @assert t ∈ parts(p, :T)
+  induced_subnet(p, [t])
+end
+
+function induced_subnet(p::T, t::AbstractVector{Int}) where {T <: AbstractPetriNet}
+  @assert all([tt ∈ parts(p,:T) for tt in t])
 
   input_arcs = incident(p, t, :it)
   output_arcs = incident(p, t, :ot)
 
-  input_places = subpart(p, input_arcs, :is)
-  output_places = subpart(p, output_arcs, :os)
+  input_places = [subpart(p, input_i, :is) for input_i in input_arcs]
+  output_places = [subpart(p, output_i, :os) for output_i in output_arcs]
 
   subnet = T()
-  copy_parts!(subnet, p, T=t, I=input_arcs, O=output_arcs, S=union(input_places, output_places))
+  copy_parts!(subnet, p, T=t, I=vcat(input_arcs...), O=vcat(output_arcs...), S=union(input_places..., output_places...))
   return subnet
 end
 
