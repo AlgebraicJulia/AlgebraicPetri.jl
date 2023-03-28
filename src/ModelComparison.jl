@@ -20,7 +20,7 @@ signatures (number of input/output wires).
 """
 function petri_homomorphisms(p1::AbstractPetriNet, p2::AbstractPetriNet; kw...)
   results = ACSetTransformation[]
-  sigsTS = Set{Vector{Int64}}()
+  sigsTS = Set{Vector{Int}}()
   homs = homomorphisms(PetriNet(p1), PetriNet(p2); kw...)
   for transform in homs
     if all([length(inputs(p1, t)) == length(inputs(p2, transform.components[:T](t))) &&
