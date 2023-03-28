@@ -274,7 +274,7 @@ outputs(p::AbstractPetriNet, t) = subpart(p, incident(p, t, :ot), :os)
 
 """ induced_subnet(p::T, t)
 
-Return the induced subnet consisting of the transition `t`, all input
+Return the induced subnet consisting of the transition(s) in `t`, all input
 places and input arcs, and all output places and output arcs. The returned
 object will be of the same type as `p`.
 """
