@@ -97,8 +97,8 @@ constructed as follows:
 PetriNet(3, (1,2)=>(2,2), 2=>3)
 ```
 """
-PetriNet(n::Int, ts::Vararg{Union{Pair,Tuple}}) = begin
-  p = PetriNet()
+function (::Type{T})(n::Int, ts::Vararg{Union{Pair,Tuple}}) where T <: AbstractPetriNet
+  p = T()
   add_species!(p, n)
   add_transitions!(p, length(ts))
   for (i, (ins, outs)) in enumerate(ts)
@@ -114,6 +114,45 @@ function (::Type{T})(pn::AbstractPetriNet) where T <: AbstractPetriNet
   pn′ = T()
   copy_parts!(pn′, pn)
   pn′
+end
+
+""" TransitionMatrices
+
+This data structure stores the transition matrix of an AbstractPetriNet object.
+This is primarily used for constructing the vectorfield representation of the
+Petri net.
+"""
+struct TransitionMatrices
+  input::Matrix{Int}
+  output::Matrix{Int}
+  TransitionMatrices(p::AbstractPetriNet) = begin
+    input, output = zeros(Int, (nt(p), ns(p))), zeros(Int, (nt(p), ns(p)))
+    for i in 1:ni(p)
+      input[subpart(p, i, :it), subpart(p, i, :is)] += 1
+    end
+    for o in 1:no(p)
+      output[subpart(p, o, :ot), subpart(p, o, :os)] += 1
+    end
+    new(input, output)
+  end
+end
+
+""" PetriNet(tm::TransitionMatrices)
+
+Constructs a PetriNet from its TransitionMatrices representation.
+"""
+function (::Type{T})(tm::TransitionMatrices) where T <: AbstractPetriNet
+  (m, n) = size(tm.input)
+  p = T()
+  add_species!(p, n)
+  add_transitions!(p, m)
+  for i in 1:m
+    for j in 1:n
+      add_inputs!(p, tm.input[i, j], i, j)
+      add_outputs!(p, tm.output[i, j], i, j)
+    end
+  end
+  p
 end
 
 """ Number of states in a Petri net
@@ -230,45 +269,6 @@ inputs(p::AbstractPetriNet, t) = subpart(p, incident(p, t, :it), :is)
 """ Output relationships for a transition
 """
 outputs(p::AbstractPetriNet, t) = subpart(p, incident(p, t, :ot), :os)
-
-""" TransitionMatrices
-
-This data structure stores the transition matrix of an AbstractPetriNet object.
-This is primarily used for constructing the vectorfield representation of the
-Petri net.
-"""
-struct TransitionMatrices
-  input::Matrix{Int}
-  output::Matrix{Int}
-  TransitionMatrices(p::AbstractPetriNet) = begin
-    input, output = zeros(Int, (nt(p), ns(p))), zeros(Int, (nt(p), ns(p)))
-    for i in 1:ni(p)
-      input[subpart(p, i, :it), subpart(p, i, :is)] += 1
-    end
-    for o in 1:no(p)
-      output[subpart(p, o, :ot), subpart(p, o, :os)] += 1
-    end
-    new(input, output)
-  end
-end
-
-""" PetriNet(tm::TransitionMatrices)
-
-Constructs a PetriNet from its TransitionMatrices representation.
-"""
-PetriNet(tm::TransitionMatrices) = begin
-  (m, n) = size(tm.input)
-  p = PetriNet()
-  add_species!(p, n)
-  add_transitions!(p, m)
-  for i in 1:m
-    for j in 1:n
-      add_inputs!(p, tm.input[i, j], i, j)
-      add_outputs!(p, tm.output[i, j], i, j)
-    end
-  end
-  p
-end
 
 valueat(x::Number, u, t) = x
 valueat(f::Function, u, t) =
