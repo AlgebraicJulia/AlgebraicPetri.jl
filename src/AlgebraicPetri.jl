@@ -632,6 +632,8 @@ end
 Open(p::PropertyLabelledReactionNet{R,C,T}) where {R,C,T} = OpenPropertyLabelledReactionNet{R,C,T}(p, map(x -> FinFunction([x], ns(p)), 1:ns(p))...)
 
 # Add new parent types
+#
+# TODO: MOVE TO CODE BASED `has_subpart` TO DISPATCH RATHER THAN UNION TYPES
 const AbstractLabelledPetriNet = Union{LabelledPetriNetUntyped,LabelledPetriNet,LabelledReactionNetUntyped,LabelledReactionNet,PropertyLabelledPetriNetUntyped,PropertyLabelledPetriNet,OpenPropertyLabelledReactionNetUntyped,PropertyLabelledReactionNet}
 const AbstractReactionNet = Union{ReactionNet,LabelledReactionNetUntyped,LabelledReactionNet,PropertyReactionNet,OpenPropertyLabelledReactionNetUntyped,PropertyLabelledReactionNet}
 const AbstractLabelledReactionNet = typeintersect(AbstractLabelledPetriNet, AbstractReactionNet)
