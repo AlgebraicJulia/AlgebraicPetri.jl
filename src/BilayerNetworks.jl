@@ -73,18 +73,25 @@ function migrate!(bn::AbstractBilayerNetwork, pn::AbstractPetriNet)
                   :infusion=>:os))
 end
 
-function migrate!(bn::AbstractLabelledBilayerNetwork, pn::AbstractLabelledPetriNet)
-    migrate!(bn, pn,
-             Dict(:Qin=>:S, :Qout=>:S, :Box=>:T, :Win=>:I, :Wn=>:I, :Wa=>:O, :Name=>:Name),
-             Dict(:arg=>:is,
-                  :call=>:it,
-                  :efflux=>:it,
-                  :effusion=>:is,
-                  :influx=>:ot,
-                  :infusion=>:os,
-                  :parameter=>:tname,
-                  :variable=>:sname,
-                  :tanvar=>:sname))
+function migrate!(bn::AbstractLabelledBilayerNetwork, pn::AbstractPetriNet)
+    generators = Dict(:Qin=>:S, :Qout=>:S, :Box=>:T, :Win=>:I, :Wn=>:I, :Wa=>:O)
+    parts = Dict(:arg=>:is,
+                 :call=>:it,
+                 :efflux=>:it,
+                 :effusion=>:is,
+                 :influx=>:ot,
+                 :infusion=>:os)
+    if :Name in attrtypes(acset_schema(pn))
+        generators[:Name] = :Name
+    end
+    if has_subpart(pn, :sname)
+        parts[:variable] = :sname
+        parts[:tanvar] = :sname
+    end
+    if has_subpart(pn, :tname)
+        parts[:parameter] = :tname
+    end
+    migrate!(bn, pn, generators, parts)
 end
 
 
@@ -99,17 +106,24 @@ function migrate!(pn::AbstractPetriNet, bn::AbstractBilayerNetwork)
               :os=>:infusion))
 end
 
-function migrate!(pn::AbstractLabelledPetriNet, bn::AbstractLabelledBilayerNetwork)
+function migrate!(pn::AbstractPetriNet, bn::AbstractLabelledBilayerNetwork)
     bnc = copy(bn)
     balance!(bnc)
-    migrate!(pn,bnc,
-         Dict(:S=>:Qin, :T=>:Box, :I=>:Win, :O=>:Wa, :Name=>:Name),
-         Dict(:is=>:arg,
-              :it=>:call,
-              :ot=>:influx,
-              :os=>:infusion,
-              :tname=>:parameter,
-              :sname=>:variable))
+    generators = Dict(:S=>:Qin, :T=>:Box, :I=>:Win, :O=>:Wa)
+    parts = Dict(:is=>:arg,
+                 :it=>:call,
+                 :ot=>:influx,
+                 :os=>:infusion)
+    if :Name in attrtypes(acset_schema(pn))
+        generators[:Name] = :Name
+    end
+    if has_subpart(pn, :sname)
+        parts[:sname] = :variable
+    end
+    if has_subpart(pn, :tname)
+        parts[:tname] = :parameter
+    end
+    migrate!(pn, bnc, generators, parts)
 end
 
 

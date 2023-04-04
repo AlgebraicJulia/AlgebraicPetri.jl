@@ -71,7 +71,7 @@ function roundtrip(pn::AbstractPetriNet, bn::AbstractBilayerNetwork)
     return roundtrippetri, pn_structure
 end
 
-function roundtrip(pn::AbstractLabelledPetriNet, bn::AbstractLabelledBilayerNetwork)
+function roundtrip(pn::AbstractPetriNet, bn::AbstractLabelledBilayerNetwork)
     roundtrippetri = LabelledPetriNet()
     migrate!(roundtrippetri, bn)
     return roundtrippetri, pn

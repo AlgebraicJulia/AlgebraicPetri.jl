@@ -12,7 +12,7 @@ using AlgebraicPetri
 
 concatmap(f,xs) = mapreduce(f, vcat, xs; init =[])
 
-function strip_names(p::AbstractLabelledPetriNet)
+function strip_names(p::AbstractPetriNet)
   map(p, Name = name -> nothing)
 end
 
