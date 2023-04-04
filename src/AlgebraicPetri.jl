@@ -86,9 +86,9 @@ Generates on OpenPetriNet with two legs, `n` and `m`
 """
 Open(n, p::AbstractPetriNet, m) = Open(p, n, m)
 
-""" PetriNet(n::Int, ts::Vararg{Union{Pair,Tuple}})
+""" (::AbstractPetriNet)(n::Int, ts::Vararg{Union{Pair,Tuple}})
 
-Constructs a PetriNet object with `n` states and transitions described by `ts`.
+Constructs any AbstractPetriNet object with `n` states and transitions described by `ts`.
 Transitions are given as `(input_states)=>(output_states)`.
 
 A PetriNet modelling the SIR model with 3 states and 2 transitions can be
@@ -110,6 +110,14 @@ function (::Type{T})(n::Int, ts::Vararg{Union{Pair,Tuple}}) where T <: AbstractP
   p
 end
 
+""" (::AbstractPetriNet)(pn::AbstractPetriNet)
+
+Cast one type of AbstractPetriNet to another. Any unrepresented parts will be `nothing`.
+```@example
+pn = PetriNet(3, (1,2)=>(2,2), 2=>3)
+labelled_pn = LabelledPetriNet(pn)
+```
+"""
 function (::Type{T})(pn::AbstractPetriNet) where T <: AbstractPetriNet
   pn′ = T()
   copy_parts!(pn′, pn)
@@ -137,9 +145,9 @@ struct TransitionMatrices
   end
 end
 
-""" PetriNet(tm::TransitionMatrices)
+""" (::AbstractPetriNet)(tm::TransitionMatrices)
 
-Constructs a PetriNet from its TransitionMatrices representation.
+Construct any AbstractPetriNet from a given transition matrice representation.
 """
 function (::Type{T})(tm::TransitionMatrices) where T <: AbstractPetriNet
   (m, n) = size(tm.input)
@@ -240,13 +248,13 @@ add_outputs!(p::AbstractPetriNet, n, t, s; kw...) = add_parts!(p, :O, n; ot=t, o
 
 Note that this returns an index if labels are not present in the PetriNet
 """
-sname(p::AbstractPetriNet, s) = (1:ns(p))[s]
+sname(p::AbstractPetriNet, s) = has_subpart(p, :sname) ? subpart(p, s, :sname) : (1:ns(p))[s]
 
 """ Name of transition
 
 Note that this returns an index if labels are not present in the PetriNet
 """
-tname(p::AbstractPetriNet, t) = (1:nt(p))[t]
+tname(p::AbstractPetriNet, t) = has_subpart(p, :tname) ? subpart(p, t, :tname) : (1:nt(p))[t]
 
 """ Names of species in  a Petri net
 
@@ -360,6 +368,48 @@ vectorfield_expr(pn::AbstractPetriNet) = begin
   return mk_function(AlgebraicPetri, fquote)
 end
 
+flat_symbol(sym::Symbol)::Symbol = sym
+flat_symbol(sym::Tuple)::Symbol = mapreduce(x -> isa(x, Tuple) ? flat_symbol(x) : x, (x, y) -> Symbol(x, "_", y), sym)
+
+""" flatten_labels(pn::AbstractPetriNet)
+
+Takes a labelled Petri net or reaction net and flattens arbitrarily nested labels
+on the species and the transitions to a single symbol who's previously nested
+parts are separated by `_`.
+"""
+flatten_labels(pn::AbstractPetriNet) =
+  map(pn, Name=flat_symbol)
+
+""" Concentration of a ReactionNet
+"""
+concentration(p::AbstractPetriNet, s) = subpart(p, s, :concentration)
+
+""" Rate of a RectionNet
+"""
+rate(p::AbstractPetriNet, t) = subpart(p, t, :rate)
+
+""" All concentrations of a ReactionNet
+"""
+concentrations(p::AbstractPetriNet) = begin
+  if has_subpart(p, :sname)
+    snames = [sname(p, s) for s in 1:ns(p)]
+    return LVector(; [(snames[s] => concentration(p, s)) for s in 1:ns(p)]...)
+  else
+    return map(s -> concentration(p, s), 1:ns(p))
+  end
+end
+
+""" All rates of a ReactionNet
+"""
+rates(p::AbstractPetriNet) = begin
+  if has_subpart(p, :tname)
+    tnames = [tname(p, s) for s in 1:nt(p)]
+    LVector(; [(tnames[t] => rate(p, t)) for t in 1:nt(p)]...)
+  else
+    return map(t -> rate(p, t), 1:nt(p))
+  end
+end
+
 """ ACSet definition for a Petri net with labels on transitions and states.
 
 See Catlab.jl documentation for description of the @present syntax.
@@ -371,7 +421,8 @@ See Catlab.jl documentation for description of the @present syntax.
   sname::Attr(S, Name)
 end
 
-@acset_type LabelledPetriNetUntyped(SchLabelledPetriNet, index=[:it, :is, :ot, :os]) <: AbstractPetriNet
+@abstract_acset_type AbstractLabelledPetriNet <: AbstractPetriNet
+@acset_type LabelledPetriNetUntyped(SchLabelledPetriNet, index=[:it, :is, :ot, :os]) <: AbstractLabelledPetriNet
 const LabelledPetriNet = LabelledPetriNetUntyped{Symbol}
 const OpenLabelledPetriNetObUntyped, OpenLabelledPetriNetUntyped = OpenACSetTypes(LabelledPetriNetUntyped, :S)
 const OpenLabelledPetriNetOb, OpenLabelledPetriNet = OpenLabelledPetriNetObUntyped{Symbol}, OpenLabelledPetriNetUntyped{Symbol}
@@ -426,7 +477,8 @@ See Catlab.jl documentation for description of the @present syntax.
   concentration::Attr(S, Concentration)
 end
 
-@acset_type ReactionNet(SchReactionNet, index=[:it, :is, :ot, :os]) <: AbstractPetriNet
+@abstract_acset_type AbstractReactionNet <: AbstractPetriNet
+@acset_type ReactionNet(SchReactionNet, index=[:it, :is, :ot, :os]) <: AbstractReactionNet
 const OpenReactionNetOb, OpenReactionNet = OpenACSetTypes(ReactionNet, :S)
 
 Open(p::ReactionNet{R,C}, legs...) where {R,C} = OpenReactionNet{R,C}(p, map(l -> FinFunction(l, ns(p)), legs)...)
@@ -472,7 +524,8 @@ See Catlab.jl documentation for description of the @present syntax.
   sname::Attr(S, Name)
 end
 
-@acset_type LabelledReactionNetUntyped(SchLabelledReactionNet, index=[:it, :is, :ot, :os]) <: AbstractPetriNet
+@abstract_acset_type AbstractLabelledReactionNet <: AbstractPetriNet
+@acset_type LabelledReactionNetUntyped(SchLabelledReactionNet, index=[:it, :is, :ot, :os]) <: AbstractLabelledReactionNet
 const LabelledReactionNet{R,C} = LabelledReactionNetUntyped{R,C,Symbol}
 const OpenLabelledReactionNetObUntyped, OpenLabelledReactionNetUntyped = OpenACSetTypes(LabelledReactionNetUntyped, :S)
 const OpenLabelledReactionNetOb{R,C} = OpenLabelledReactionNetObUntyped{R,C,Symbol}
@@ -630,53 +683,6 @@ Open(p::PropertyLabelledReactionNet{R,C,T}, legs...) where {R,C,T} = begin
   OpenPropertyLabelledReactionNet{R,C,T}(p, map(l -> FinFunction(map(i -> s_idx[i], l), ns(p)), legs)...)
 end
 Open(p::PropertyLabelledReactionNet{R,C,T}) where {R,C,T} = OpenPropertyLabelledReactionNet{R,C,T}(p, map(x -> FinFunction([x], ns(p)), 1:ns(p))...)
-
-# Add new parent types
-#
-# TODO: MOVE TO CODE BASED `has_subpart` TO DISPATCH RATHER THAN UNION TYPES
-const AbstractLabelledPetriNet = Union{LabelledPetriNetUntyped,LabelledPetriNet,LabelledReactionNetUntyped,LabelledReactionNet,PropertyLabelledPetriNetUntyped,PropertyLabelledPetriNet,OpenPropertyLabelledReactionNetUntyped,PropertyLabelledReactionNet}
-const AbstractReactionNet = Union{ReactionNet,LabelledReactionNetUntyped,LabelledReactionNet,PropertyReactionNet,OpenPropertyLabelledReactionNetUntyped,PropertyLabelledReactionNet}
-const AbstractLabelledReactionNet = typeintersect(AbstractLabelledPetriNet, AbstractReactionNet)
-
-sname(p::AbstractLabelledPetriNet, s) = subpart(p, s, :sname)
-tname(p::AbstractLabelledPetriNet, t) = subpart(p, t, :tname)
-
-flat_symbol(sym::Symbol)::Symbol = sym
-flat_symbol(sym::Tuple)::Symbol = mapreduce(x -> isa(x, Tuple) ? flat_symbol(x) : x, (x, y) -> Symbol(x, "_", y), sym)
-
-""" flatten_labels(pn::AbstractLabelledPetriNet)
-
-Takes a labeled Petri net or reaction net and flattens arbitrarily nested labels
-on the species and the transitions to a single symbol who's previously nested
-parts are separated by `_`.
-"""
-flatten_labels(pn::AbstractLabelledPetriNet) =
-  map(pn, Name=flat_symbol)
-
-""" Concentration of a ReactionNet
-"""
-concentration(p::AbstractReactionNet, s) = subpart(p, s, :concentration)
-
-""" Rate of a RectionNet
-"""
-rate(p::AbstractReactionNet, t) = subpart(p, t, :rate)
-
-concentrations(p::AbstractReactionNet) = map(s -> concentration(p, s), 1:ns(p))
-rates(p::AbstractReactionNet) = map(t -> rate(p, t), 1:nt(p))
-
-""" All concentrations of a ReactionNet
-"""
-concentrations(p::AbstractLabelledReactionNet) = begin
-  snames = [sname(p, s) for s in 1:ns(p)]
-  LVector(; [(snames[s] => concentration(p, s)) for s in 1:ns(p)]...)
-end
-
-""" All rates of a ReactionNet
-"""
-rates(p::AbstractLabelledReactionNet) = begin
-  tnames = [tname(p, s) for s in 1:nt(p)]
-  LVector(; [(tnames[t] => rate(p, t)) for t in 1:nt(p)]...)
-end
 
 include("interoperability.jl")
 include("visualization.jl")
