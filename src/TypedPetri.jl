@@ -132,7 +132,7 @@ function add_reflexives(
       type_ind = findfirst(==(ct), type_system[:tname])
       is, os = [incident(type_system, type_ind, f) for f in [:it, :ot]]
       new_t = add_part!(petri, :T; tname=ct)
-      if petri isa AbstractLabelledReactionNet
+      if has_subpart(petri, :rate)
         set_subpart!(petri, new_t, :rate, 1.0)
       end
       add_parts!(petri, :I, length(is); is=s_i, it=new_t)
@@ -146,7 +146,8 @@ function add_reflexives(
     codom(typed_petri);
     type_comps...,
     Name=x->nothing,
-    (petri isa AbstractLabelledReactionNet ? [:Rate=>x->nothing, :Concentration=>x->nothing] : [])...
+    (has_subpart(petri, :rate) ? [:Rate=>x->nothing] : [])...,
+    (has_subpart(petri, :concentration) ? [:Concentration=>x->nothing] : [])...
   )
 end
 

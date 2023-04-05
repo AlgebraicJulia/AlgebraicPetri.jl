@@ -49,12 +49,7 @@ module ModelingToolkitInterop
     ODESystem(eqs, t, S, r; name=name, kws...)
   end
 
-  function ModelingToolkit.ODEProblem(
-    p::Union{AbstractReactionNet, AbstractLabelledReactionNet},
-    tspan;
-    name=:PetriNet,
-    kwargs...
-  )
+  function ModelingToolkit.ODEProblem(p::AbstractPetriNet, tspan; name=:PetriNet, kwargs...)
     sys = ODESystem(p; name)
     ODEProblem(sys, p[:,:concentration], tspan, p[:,:rate]; kwargs...)
   end
@@ -70,7 +65,7 @@ module ModelingToolkitInterop
   default to preserve the bilayer structure. This is useful when one wants to
   convert symbolic expressions back to a bilayer network.
   """
-  function ModelingToolkit.ODESystem(bn::Union{AbstractLabelledBilayerNetwork,AbstractBilayerNetwork}; name=:BilayerNetwork, simplify = false)
+  function ModelingToolkit.ODESystem(bn::AbstractBilayerNetwork; name=:BilayerNetwork, simplify = false)
     t = (@variables t)[1]
     D = Differential(t)
     symbolic_vars = map(bn[:variable]) do v
