@@ -611,8 +611,14 @@ end
 
 # PROPERTY PETRI NETS
 
+""" Abstract Type for any PetriNet ACSet with  properties.
+"""
 @abstract_acset_type AbstractPropertyPetriNet <: AbstractPetriNet
 
+""" ACSet definition for a PetriNet with properties on transitions and states.
+
+See Catlab.jl documentation for description of the @present syntax.
+"""
 @present SchPropertyPetriNet <: SchPetriNet begin
   Prop::AttrType
 
@@ -624,11 +630,26 @@ const OpenPropertyPetriNetOb, OpenPropertyPetriNet = OpenACSetTypes(PropertyPetr
 Open(p::PropertyPetriNet{T}) where T = OpenPropertyPetriNet{T}(p, map(x -> FinFunction([x], ns(p)), 1:ns(p))...)
 Open(p::PropertyPetriNet{T}, legs...) where T = OpenPropertyPetriNet{T}(p, map(l -> FinFunction(l, ns(p)), legs)...)
 
-sprop(g::AbstractPropertyPetriNet, s) = subpart(g, s, :sprop)
-tprop(g::AbstractPropertyPetriNet, t) = subpart(g, t, :tprop)
-sprops(p::AbstractPropertyPetriNet) = map(s -> sprop(p, s), 1:ns(p))
-tprops(p::AbstractPropertyPetriNet) = map(t -> tprop(p, t), 1:nt(p))
+""" Property of species
+"""
+sprop(g::AbstractPetriNet, s) = subpart(g, s, :sprop)
 
+""" Property of transition
+"""
+tprop(g::AbstractPetriNet, t) = subpart(g, t, :tprop)
+
+""" Properties of all species
+"""
+sprops(p::AbstractPetriNet) = map(s -> sprop(p, s), 1:ns(p))
+
+""" Properties of all transitions
+"""
+tprops(p::AbstractPetriNet) = map(t -> tprop(p, t), 1:nt(p))
+
+""" (::AbstractPropertyPetriNet)(pn::AbstractPetriNet, sprops, tprops)
+
+Add properties to the states and transitions of a given Petri Net.
+"""
 function (::Type{T})(pn::AbstractPetriNet, sprops, tprops) where T <: AbstractPropertyPetriNet
   pn′ = T(pn)
   map(k -> set_subpart!(pn′, k, :sprop, sprops[k]), keys(sprops))
@@ -636,6 +657,13 @@ function (::Type{T})(pn::AbstractPetriNet, sprops, tprops) where T <: AbstractPr
   pn′
 end
 
+(::Type{T})(pn::AbstractPetriNet, sprops::AbstractDict, tprops::AbstractDict) where T <: AbstractPropertyPetriNet =
+  T(pn, [sprops[sname(pn, s)] for s in 1:ns(pn)], [tprops[tname(pn, t)] for t in 1:nt(pn)])
+
+""" ACSet definition for a LabelledPetriNet with properties on transitions and states.
+
+See Catlab.jl documentation for description of the @present syntax.
+"""
 @present SchPropertyLabelledPetriNet <: SchLabelledPetriNet begin
   Prop::AttrType
 
@@ -654,6 +682,10 @@ Open(p::PropertyLabelledPetriNet{T}, legs...) where T = begin
   OpenPropertyLabelledPetriNet{T}(p, map(l -> FinFunction(map(i -> s_idx[i], l), ns(p)), legs)...)
 end
 
+""" ACSet definition for a ReactionNet with properties on transitions and states.
+
+See Catlab.jl documentation for description of the @present syntax.
+"""
 @present SchPropertyReactionNet <: SchReactionNet begin
   Prop::AttrType
 
@@ -666,6 +698,10 @@ const OpenPropertyReactionNetOb, OpenPropertyReactionNet = OpenACSetTypes(Proper
 Open(p::PropertyReactionNet{R,C,T}, legs...) where {R,C,T} = OpenPropertyReactionNet{R,C,T}(p, map(l -> FinFunction(l, ns(p)), legs)...)
 Open(p::PropertyReactionNet{R,C,T}) where {R,C,T} = OpenPropertyReactionNet{R,C,T}(p, map(x -> FinFunction([x], ns(p)), 1:ns(p))...)
 
+""" ACSet definition for a LabelledReactionNet with properties on transitions and states.
+
+See Catlab.jl documentation for description of the @present syntax.
+"""
 @present SchPropertyLabelledReactionNet <: SchLabelledReactionNet begin
   Prop::AttrType
 
