@@ -129,3 +129,45 @@ for tuple_petri in [tuple_labelled, tuple_rxn]
   @test tuple_petri′[:, :sname] == [:U_S, :U_I, :U_R]
   @test tuple_petri′[:, :tname] == [:Q_inf, :Q_rec]
 end
+
+# Property Petri Nets
+sir_petri = PetriNet(3, ((1, 2), (2, 2)), (2, 3))
+sir_lpetri = LabelledPetriNet([:S, :I, :R], :inf => ((:S, :I), (:I, :I)), :rec => (:I, :R))
+sir_rxn = ReactionNet{Function,Int}([990, 10, 0], (β) => ((1, 2) => (2, 2)), (t -> γ) => (2 => 3))
+sir_lrxn = LabelledReactionNet{Number,Int}((:S => 990, :I => 10, :R => 0), (:inf, 0.001) => ((:S, :I) => (:I, :I)), (:rec, 0.25) => (:I => :R))
+
+sir_sprops = [
+  Dict(:title => "Susceptible", :unit => "People"),
+  Dict(:title => "Infected", :unit => "People"),
+  Dict(:title => "Recovered", :unit => "People"),
+]
+sir_sprops_dict = Dict(:S => sir_sprops[1], :I => sir_sprops[2], :R => sir_sprops[3])
+
+sir_tprops = [
+  Dict(:title => "Infection", :description => "An infected person interacts with a suscpetible person and the susceptible person becomes infected."),
+  Dict(:title => "Recovery", :description => "An infected person recovers from their illness."),
+]
+sir_tprops_dict = Dict(:inf => sir_tprops[1], :rec => sir_tprops[2])
+
+sir_proppetri = PropertyPetriNet{Dict}(sir_petri, sir_sprops, sir_tprops)
+@test PetriNet(sir_proppetri) == sir_petri
+
+@test sir_sprops == sprops(sir_proppetri)
+@test sir_tprops == tprops(sir_proppetri)
+
+sir_proplpetri = PropertyLabelledPetriNet{Dict}(sir_lpetri, sir_sprops_dict, sir_tprops_dict)
+@test LabelledPetriNet(sir_proplpetri) == sir_lpetri
+
+sir_proprxn = PropertyReactionNet{Function,Int,Dict}(sir_rxn, sir_sprops, sir_tprops)
+@test ReactionNet{Function,Int}(sir_proprxn) == sir_rxn
+
+sir_proplrxn = PropertyLabelledReactionNet{Number,Int,Dict}(sir_lrxn, sir_sprops_dict, sir_tprops_dict)
+@test LabelledReactionNet{Number,Int}(sir_proplrxn) == sir_lrxn
+
+for p in [sir_proppetri, sir_proprxn]
+  @test Open(p, [1], [2], [3]) == Open(p)
+end
+
+for p in [sir_proplpetri, sir_proplrxn]
+  @test Open(p, [:S], [:I], [:R]) == Open(p)
+end
