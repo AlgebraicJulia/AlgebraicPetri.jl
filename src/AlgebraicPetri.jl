@@ -657,8 +657,18 @@ function (::Type{T})(pn::AbstractPetriNet, sprops, tprops) where T <: AbstractPr
   pn′
 end
 
-(::Type{T})(pn::AbstractPetriNet, sprops::AbstractDict, tprops::AbstractDict) where T <: AbstractPropertyPetriNet =
-  T(pn, [sprops[sname(pn, s)] for s in 1:ns(pn)], [tprops[tname(pn, t)] for t in 1:nt(pn)])
+function (::Type{T})(pn::AbstractPetriNet, sprops::AbstractDict, tprops::AbstractDict) where T <: AbstractPropertyPetriNet
+  pn′ = T(pn)
+  species = Dict(sname(pn, s)=>s for s in 1:ns(pn))
+  for (name, prop) in sprops
+    set_subpart!(pn′, species[name], :sprop, prop)
+  end
+  transitions = Dict(tname(pn, t)=>t for t in 1:nt(pn))
+  for (name, prop) in tprops
+    set_subpart!(pn′, transitions[name], :tprop, prop)
+  end
+  pn′
+end
 
 """ ACSet definition for a LabelledPetriNet with properties on transitions and states.
 
