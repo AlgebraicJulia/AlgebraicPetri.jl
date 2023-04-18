@@ -2,7 +2,7 @@ name = "AlgebraicPetri"
 uuid = "4f99eebe-17bf-4e98-b6a1-2c4f205a959b"
 license = "MIT"
 authors = ["Micah Halter <micah@mehalter.com>"]
-version = "0.8.7"
+version = "0.8.8"
 
 [deps]
 Catlab = "134e5e36-593f-5add-ad60-77f754baafbe"
