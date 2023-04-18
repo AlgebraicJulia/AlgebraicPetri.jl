@@ -126,6 +126,7 @@ for tuple_petri in [tuple_labelled, tuple_rxn]
 
   tuple_petri′ = tuple_petri |> flatten_labels
 
+  @test tuple_petri′ == flatten_labels(tuple_petri′)
   @test tuple_petri′[:, :sname] == [:U_S, :U_I, :U_R]
   @test tuple_petri′[:, :tname] == [:Q_inf, :Q_rec]
 end
