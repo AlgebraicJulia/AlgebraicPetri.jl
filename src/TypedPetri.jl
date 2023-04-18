@@ -204,6 +204,10 @@ function typed_product(p1, p2)
   pb = pullback(p1, p2; product_attrs=true)
   return first(legs(pb)) ⋅ p1
 end
+function typed_product(ps::AbstractVector)
+  pb = pullback(ps; product_attrs=true)
+  return first(legs(pb)) ⋅ first(ps)
+end
 
 """ Make typed Petri net with 'identity' transformation between species pairs.
 
