@@ -368,8 +368,8 @@ vectorfield_expr(pn::AbstractPetriNet) = begin
   return mk_function(AlgebraicPetri, fquote)
 end
 
-flat_symbol(sym::Symbol)::Symbol = sym
-flat_symbol(sym::Tuple)::Symbol = mapreduce(x -> isa(x, Tuple) ? flat_symbol(x) : x, (x, y) -> Symbol(x, "_", y), sym)
+flat_symbol(sym::Symbol, sep)::Symbol = sym
+flat_symbol(sym::Tuple, sep)::Symbol = mapreduce(x -> isa(x, Tuple) ? flat_symbol(x, sep) : x, (x, y) -> Symbol(x, sep, y), sym)
 
 """ flatten_labels(pn::AbstractPetriNet)
 
@@ -377,8 +377,10 @@ Takes a labelled Petri net or reaction net and flattens arbitrarily nested label
 on the species and the transitions to a single symbol who's previously nested
 parts are separated by `_`.
 """
-flatten_labels(pn::AbstractPetriNet) =
-  map(pn, Name=flat_symbol)
+flatten_labels(pn::AbstractPetriNet; attributes=[:Name], sep='_') = begin
+  f = x->flat_symbol(x, sep)
+  map(pn; Dict(attr=>f for attr in attributes)...)
+end
 
 """ Concentration of a ReactionNet
 """
