@@ -57,6 +57,7 @@ typed_sird_aug = add_reflexives(
 )
 
 stratified = typed_product(typed_quarantine_aug, typed_sird_aug)
+@test flatten_labels(stratified).dom == flatten_labels(typed_product([typed_quarantine_aug, typed_sird_aug])).dom
 @test ns(dom(stratified)) == 8
 @test nt(dom(stratified)) == 6 + 4 + 1
 @test dom(stratified)[1,:sname] isa Tuple{Symbol, Symbol}
