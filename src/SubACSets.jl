@@ -80,14 +80,14 @@ end
 
 function mca_help(X::ACSet, Y::ACSet)
   C = acset_schema(X) #X: C → Set
-  getsmaller(c) = map(dom, one_removed_subobs(X, c))
+  getsmaller(Z,c) = map(dom, one_removed_subobs(Z, c))
   # enumerate all sub-acsets X' ↪ X of the acset X: C → Set obtained by removing one point from Xc for some c ∈ C
-  oneRemovedFromX = concatmap(getsmaller, filter(c -> !isempty(parts(X,c)), objects(C)))
+  oneRemovedFromX = concatmap(γ -> getsmaller(X,γ), filter(c -> !isempty(parts(X,c)), objects(C)))
   # keep only those X' ↪ X such that there exists mono X' ↪ Y
   Y_subs          = filter(χ -> exists_mono(χ, Y), oneRemovedFromX)
   # either terminate or recurse
   if isempty(Y_subs)
-    concatmap(χ -> mca_help(χ, Y), Y_subs)
+    concatmap(χ -> mca_help(χ, Y), oneRemovedFromX)
   else
     ω = maximum(map(size,Y_subs))
     filter(y -> size(y) == ω, Y_subs)
