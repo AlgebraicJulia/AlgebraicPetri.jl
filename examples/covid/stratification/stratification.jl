@@ -140,7 +140,7 @@ typed_product(sird_model, travel_model(2)) |> dom |> Graph
 # ### Simple Trip model between $N$ regions
 
 # For this model we can use a julia function to programmatically build up our model where people have the property of living somewhere
-# and we are modeling them traveling between locations while maintaining the status of where they live.  Here we can actually just
+# and we are modelling them travelling between locations while maintaining the status of where they live.  Here we can actually just
 # define the model of having a "Living" status and stratify it with the previously defined travel model to get a model of someone taking a simple trip.
 
 function living_model(n)
@@ -245,7 +245,7 @@ disease_models = [("SIRD", sird_model), ("SIDARTHE", m1_model), ("SEIAHRD", m2_m
 policy_models = [nothing, ("Vaccination", vax_model), ("Masking", mask_model), ("Masking + Vaccination", mask_vax_model)]
 travel_models = [nothing, ("Travel", travel_model(num_rgns)), ("Simple Trip", typed_product(travel_model(num_rgns), living_model(num_rgns)))]
 
-table = ["| Model | Inervention | Geography ($(num_rgns) regions) | # of States | # of Transitons |","|:--|$(repeat(":-:|", 4))"]
+table = ["| Model | Intervention | Geography ($(num_rgns) regions) | # of States | # of Transitons |","|:--|$(repeat(":-:|", 4))"]
 
 for pieces in Iterators.product(disease_models, policy_models, travel_models)
   petri = typed_product(last.(collect(filter(x -> !isnothing(x), pieces)))) |> dom
@@ -258,6 +258,6 @@ Markdown.parse(join(table, "\n")) |> DisplayAs.HTML
 #
 # As we increase the number of regions in our geographic stratification models, the
 # number of states and transitions increase polynomially which causes the execution time
-# for calculating the final stratified model to also increases polnomially.
+# for calculating the final stratified model to also increase polynomially.
 #
 # ![Runtime vs. Number of Georgraphic Regions](../../../../assets/runtime_vs_num_rgns.svg)
