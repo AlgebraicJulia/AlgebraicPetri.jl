@@ -125,7 +125,7 @@ function Graph(m::Multispan{<:AbstractPetriNet})
   g = Graphviz.Digraph("G", stmts; graph_attrs=graph_attrs, node_attrs=node_attrs, edge_attrs=edge_attrs)
 end
 
-function Graph(p::ACSetTransformation{<:Any, <:Any, <:AbstractPetriNet, <:AbstractPetriNet})
+function Graph(p::StructACSetTransformation{<:Any, <:Any, <:AbstractPetriNet, <:AbstractPetriNet})
   Graph(Multispan(p.dom, [p]))
 end
 
