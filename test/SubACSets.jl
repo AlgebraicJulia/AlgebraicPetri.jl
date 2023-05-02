@@ -16,13 +16,13 @@ m2 = LabelledPetriNet(
 test = mca(m1,m2)
 
 m3 = LabelledPetriNet(
-  [:X,:Y,:W,:Z],
-  :f=>(:X=>(:W, :Y, :Z))
+  [:X3,:Y3,:W3,:Z3],
+  :f3=>(:X3=>(:W3, :Y3, :Z3))
 )
 
 m4 = LabelledPetriNet(
-  [:X,:W,:Y,:Z],
-  :f=>((:W, :X, :Y)=>:Z)
+  [:X4,:W4,:Y4,:Z4],
+  :f4=>((:W4, :X4, :Y4)=>:Z4)
 )
 
 m5 = LabelledPetriNet(
@@ -106,9 +106,7 @@ function mca_help2(mca_list, X_subs, Y)
       else
         new_X_subs = oneRemovedFromX
         for new_sub in new_X_subs
-            if length(filter(x -> is_isomorphic(new_sub,x),X_subs))>0
-                push!(X_subs,new_sub)
-            end
+            push!(X_subs,new_sub)
         end
       end
       return mca_help2(mca_list, X_subs, Y)
@@ -196,23 +194,25 @@ function rm_cascade_subobj(X::ACSet, rm_subs)
   S    = acset_schema(X)
   subs = Dict([k=>Set(parts(X,k)) for k in objects(S)])
   rm_subs = Dict([k=>Set(v) for (k,v) in pairs(rm_subs)])
-  println(keys(subs))
+  # println(keys(subs))
   while !isempty(rm_subs)
-    println(keys(rm_subs))
+    # println(keys(rm_subs))
     curr_c = first(rm_subs)[1]
     if isempty(rm_subs[curr_c])
         delete!(rm_subs,curr_c)
     else
-        println(rm_subs[curr_c])
+        # println(rm_subs[curr_c])
         curr_part = pop!(rm_subs[curr_c])
-        if curr_part ∈ subs[curr_c]
+        if curr_part in subs[curr_c]
             delete!(subs[curr_c],curr_part)
+            #
             # if isempty(subs[curr_c])
             #     delete!(subs,curr_c)
             # end
+            # 
             for (f,c,d) in homs(S)
-                if d==curr_c && c ∈ keys(subs)
-                    println("Made it")
+                if d==curr_c && c in keys(subs)
+                    # println("Made it")
                     for test_part in subs[c]
                         if X[test_part,f] == curr_part
                             if c in keys(rm_subs)
@@ -230,8 +230,9 @@ function rm_cascade_subobj(X::ACSet, rm_subs)
         end
     end
   end
-
-  return Dict([k => collect(v) for (k,v) in pairs(subs)])
+  # return subs # dom(hom(Subobject(X,NamedTuple(subs))))
+  # return Dict([k => collect(v) for (k,v) in pairs(subs)])
+  return dom(hom(Subobject(X,NamedTuple(Dict([k => collect(v) for (k,v) in pairs(subs)])))))
 end
 
 
@@ -239,3 +240,47 @@ end
 test = rm_cascade_subobj(X,Dict(:O=>[2]))
 test = rm_cascade_subobj(X,NamedTuple([:O=>[2]]))
 test = rm_cascade_subobj(X,NamedTuple([:S=>[2]]))
+test = rm_cascade_subobj(X,NamedTuple([:T=>[1]]))
+
+
+#***
+# A version of mca_help2 that uses rm_cascade_subobj instead of one_removed_subobs
+#***
+function mca_help3(mca_list, X_subs, Y)
+    println(length(mca_list)," ",length(X_subs))
+    if !isempty(X_subs) && (isempty(mca_list) || AlgebraicPetri.SubACSets.size(mca_list[1]) <= AlgebraicPetri.SubACSets.size(first(X_subs)))
+      curr_X_sub = pop!(X_subs)
+      C = acset_schema(curr_X_sub) #X: C → Set
+      # enumerate all sub-acsets X' ↪ X of the acset X: C → Set obtained by removing one point from Xc for some c ∈ C
+      if exists_mono(curr_X_sub,Y) 
+        push!(mca_list,curr_X_sub)
+      else
+        indiv_parts = []
+        for c in objects(C)
+            for p in parts(curr_X_sub,c)
+                push!(indiv_parts, NamedTuple([c => [p]]))
+            end
+        end
+        new_X_subs = concatmap(γ -> rm_cascade_subobj(curr_X_sub,γ), indiv_parts)
+        for new_sub in new_X_subs
+            # if length(filter(x -> is_isomorphic(new_sub,x),X_subs))>0
+                push!(X_subs,new_sub)
+            # end
+        end
+      end
+      return mca_help3(mca_list, X_subs, Y)
+    else # isempty(X_subs) || AlgebraicPetri.SubACSets.size(mca_list[1]) > AlgebraicPetri.SubACSets.size(first(X_subs))
+      return mca_list
+    end
+end
+
+h4 = BinaryHeap(Base.By(AlgebraicPetri.SubACSets.size,Base.Order.Reverse),[m3])
+dollar = mca_help3([],h4,m4)
+
+#***
+# mca_help3 appears to work
+# But it is currently returning replicates (not really in correspondance to number of possible morphisms either)
+# Could consider checking for replicates prior to adding to subacset data structure
+# Likewise, could consider grouping as isomorphism classes and keep track of size to reduce comparisons
+# Could also consider finding and returning the morphisms as well, in which case the isomorphism classes may be helpful
+#***
