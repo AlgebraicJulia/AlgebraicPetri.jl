@@ -164,3 +164,78 @@ prts_O = parts(m3,:O)
                    [o == :O ? [2,3] : parts(X, o) for o ∈ objects(C)]
                  ))))))
 
+
+
+#***
+# Kris's original casade -- trim's the subobject of dangling edges
+#***
+"""Recursively delete anything, e.g. deleting a vertex deletes its edge"""
+function cascade_subobj(X::ACSet, sub)
+  sub = Dict([k=>Set(v) for (k,v) in pairs(sub)])
+  S = acset_schema(X)
+  change = true
+  while change
+    change = false
+    for (f,c,d) in homs(S)
+      for c_part in sub[c]
+        if X[c_part,f] ∉ sub[d]
+          change = true
+          delete!(sub[c], c_part)
+        end
+      end
+    end
+  end
+  return Dict([k => collect(v) for (k,v) in pairs(sub)])
+end
+
+#***
+# Recursively removes subacsets and any dangling edges
+#***
+"""Recursively delete anything, e.g. deleting a vertex deletes its edge"""
+function rm_cascade_subobj(X::ACSet, rm_subs)
+  S    = acset_schema(X)
+  subs = Dict([k=>Set(parts(X,k)) for k in objects(S)])
+  rm_subs = Dict([k=>Set(v) for (k,v) in pairs(rm_subs)])
+  println(keys(subs))
+  while !isempty(rm_subs)
+    println(keys(rm_subs))
+    curr_c = first(rm_subs)[1]
+    if isempty(rm_subs[curr_c])
+        delete!(rm_subs,curr_c)
+    else
+        println(rm_subs[curr_c])
+        curr_part = pop!(rm_subs[curr_c])
+        if curr_part ∈ subs[curr_c]
+            delete!(subs[curr_c],curr_part)
+            # if isempty(subs[curr_c])
+            #     delete!(subs,curr_c)
+            # end
+            for (f,c,d) in homs(S)
+                if d==curr_c && c ∈ keys(subs)
+                    println("Made it")
+                    for test_part in subs[c]
+                        if X[test_part,f] == curr_part
+                            if c in keys(rm_subs)
+                                push!(rm_subs[c], test_part)
+                            else
+                                rm_subs[c] = Set([test_part])
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        if isempty(rm_subs[curr_c])
+            delete!(rm_subs,curr_c)
+        end
+    end
+  end
+
+  return Dict([k => collect(v) for (k,v) in pairs(subs)])
+end
+
+
+# test = rm_cascade_subobj(X,Subobject(X,O=[2]))
+test = rm_cascade_subobj(X,Dict(:O=>[2]))
+test = rm_cascade_subobj(X,NamedTuple([:O=>[2]]))
+test = rm_cascade_subobj(X,NamedTuple([:S=>[2]]))
