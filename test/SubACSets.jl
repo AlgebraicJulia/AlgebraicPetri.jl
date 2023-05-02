@@ -279,7 +279,7 @@ dollar = mca_help3([],h4,m4)
 
 #***
 # mca_help3 appears to work
-# But it is currently returning replicates (not really in correspondance to number of possible morphisms either)
+# But it is currently returning replicates (number in correspondence with possible orders of part removals, not number of possible mca morphisms with Y)
 # Could consider checking for replicates prior to adding to subacset data structure
 # Likewise, could consider grouping as isomorphism classes and keep track of size to reduce comparisons
 # Could also consider finding and returning the morphisms as well, in which case the isomorphism classes may be helpful
