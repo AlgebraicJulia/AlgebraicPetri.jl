@@ -253,7 +253,9 @@ function mca_help3(mca_list, X_subs, Y)
       C = acset_schema(curr_X_sub) #X: C → Set
       # enumerate all sub-acsets X' ↪ X of the acset X: C → Set obtained by removing one point from Xc for some c ∈ C
       if exists_mono(curr_X_sub,Y) 
-        push!(mca_list,curr_X_sub)
+        if length(filter(x -> curr_X_sub==x, mca_list))==0
+            push!(mca_list,curr_X_sub)
+        end
       else
         indiv_parts = []
         for c in objects(C)
@@ -263,9 +265,7 @@ function mca_help3(mca_list, X_subs, Y)
         end
         new_X_subs = concatmap(γ -> rm_cascade_subobj(curr_X_sub,γ), indiv_parts)
         for new_sub in new_X_subs
-            # if length(filter(x -> is_isomorphic(new_sub,x),X_subs))>0
-                push!(X_subs,new_sub)
-            # end
+            push!(X_subs,new_sub)
         end
       end
       return mca_help3(mca_list, X_subs, Y)
@@ -275,7 +275,21 @@ function mca_help3(mca_list, X_subs, Y)
 end
 
 h4 = BinaryHeap(Base.By(AlgebraicPetri.SubACSets.size,Base.Order.Reverse),[m3])
-dollar = mca_help3([],h4,m4)
+dollar2 = mca_help3([],h4,m4)
+
+
+
+# strip_names(p::AbstractPetriNet) = p
+# strip_names(p::AbstractLabelledPetriNet) = PetriNet(p)
+# strip_names(p::AbstractLabelledReactionNet) = ReactionNet(p)
+strip_names(p::AbstractPetriNet) = :Name in attrtypes(acset_schema(p)) ? map(p, Name = name -> nothing) : p
+
+
+m10 = PetriNet(m3)
+m11 = PetriNet(m4)
+h5 = BinaryHeap(Base.By(AlgebraicPetri.SubACSets.size,Base.Order.Reverse),[m10])
+icecream = mca_help3([],h5,m11)
+
 
 #***
 # mca_help3 appears to work
