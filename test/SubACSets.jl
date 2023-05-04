@@ -284,6 +284,27 @@ dollar2 = mca_help3([],h4,m4)
 # strip_names(p::AbstractLabelledReactionNet) = ReactionNet(p)
 strip_names(p::AbstractPetriNet) = :Name in attrtypes(acset_schema(p)) ? map(p, Name = name -> nothing) : p
 
+function strip_attributes(p::ACSet; attributes::Vector{Symbol}=Symbol[])
+    attributes = isempty(attributes) ? attrtypes(acset_schema(p)) : attributes
+    isempty(attributes) ? p : map(p; Dict(attr=>(x->nothing) for attr in attributes)...)
+end
+  
+function strip_attributes(p::ACSetTransformation; kw...)
+    init = NamedTuple([k=>collect(v) for (k,v) in pairs(components(p))])
+    homomorphism(strip_attributes(dom(p); kw...), strip_attributes(codom(p); kw...), initial=init)
+end
+  
+
+"""Get all monomorphisms from an acset X to an acset Y
+"""
+monos(X::ACSet, Y::ACSet) =
+  homomorphism(X, strip_attributes(Y); monic = true, type_components=(Name=x->nothing,),)
+
+"""Ask: "does there exists a mono X ↪ Y ?"
+"""
+exists_mono(X::ACSet,Y::ACSet)::Bool =
+  is_homomorphic(X, strip_attributes(Y); monic = true, type_components=(Name=x->nothing,),)
+
 
 m10 = PetriNet(m3)
 m11 = PetriNet(m4)
@@ -293,8 +314,21 @@ icecream = mca_help3([],h5,m11)
 
 #***
 # mca_help3 appears to work
-# But it is currently returning replicates (number in correspondence with possible orders of part removals, not number of possible mca morphisms with Y)
+# FIXED --> But it is currently returning replicates (number in correspondence with possible orders of part removals, not number of possible mca morphisms with Y)
 # Could consider checking for replicates prior to adding to subacset data structure
 # Likewise, could consider grouping as isomorphism classes and keep track of size to reduce comparisons
 # Could also consider finding and returning the morphisms as well, in which case the isomorphism classes may be helpful
 #***
+
+
+function mca_maps(mca_list,X)
+    [homomorphism(mca,X;monic=true) for mca in mca_list]
+end
+
+function mca_spans(X,Y)
+    mca_list = mca(X,Y)
+    legs_left = mca_maps(mca_list,X)
+    mca_list_r = mca_help_rev(mca_list,Y)
+    legs_right = mca_maps(mca_list_r,Y)
+    
+end
