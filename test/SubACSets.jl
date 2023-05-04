@@ -325,10 +325,38 @@ function mca_maps(mca_list,X)
     [homomorphism(mca,X;monic=true) for mca in mca_list]
 end
 
+function mca_help_rev(mca_list, X_subs, Y)
+    if !isempty(X_subs) && AlgebraicPetri.SubACSets.size(Y) <= AlgebraicPetri.SubACSets.size(first(X_subs))
+      curr_X_sub = pop!(X_subs)
+      if is_isomorphic(curr_X_sub,Y) 
+        if length(filter(x -> curr_X_sub==x, mca_list))==0
+            push!(mca_list,curr_X_sub)
+        end
+      else
+        C = acset_schema(curr_X_sub) #X: C → Set
+        indiv_parts = []
+        for c in objects(C)
+            for p in parts(curr_X_sub,c)
+                push!(indiv_parts, NamedTuple([c => [p]]))
+            end
+        end
+        new_X_subs = concatmap(γ -> rm_cascade_subobj(curr_X_sub,γ), indiv_parts)
+        for new_sub in new_X_subs
+            push!(X_subs,new_sub)
+        end
+      end
+      return mca_help3(mca_list, X_subs, Y)
+    else # isempty(X_subs) || AlgebraicPetri.SubACSets.size(Y) > AlgebraicPetri.SubACSets.size(first(X_subs))
+      return mca_list
+    end
+end
+
+h6 = BinaryHeap(Base.By(AlgebraicPetri.SubACSets.size,Base.Order.Reverse),[m11])
+thimble = mca_help_rev([],h6,icecream[1])
+
 function mca_spans(X,Y)
     mca_list = mca(X,Y)
     legs_left = mca_maps(mca_list,X)
-    mca_list_r = mca_help_rev(mca_list,Y)
+    mca_list_r = [mca_help_rev([],mca,Y) for mca in mca_list]
     legs_right = mca_maps(mca_list_r,Y)
-    
 end
