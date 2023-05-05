@@ -58,3 +58,7 @@ end
 @testset "Rewriting" begin
   include("rewriting.jl")
 end
+
+@testset "SubACSets" begin
+  include("SubACSets.jl")
+end
