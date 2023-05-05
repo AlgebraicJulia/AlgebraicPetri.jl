@@ -345,7 +345,7 @@ function mca_help_rev(mca_list, X_subs, Y)
             push!(X_subs,new_sub)
         end
       end
-      return mca_help3(mca_list, X_subs, Y)
+      return mca_help_rev(mca_list, X_subs, Y)
     else # isempty(X_subs) || AlgebraicPetri.SubACSets.size(Y) > AlgebraicPetri.SubACSets.size(first(X_subs))
       return mca_list
     end
@@ -354,9 +354,34 @@ end
 h6 = BinaryHeap(Base.By(AlgebraicPetri.SubACSets.size,Base.Order.Reverse),[m11])
 thimble = mca_help_rev([],h6,icecream[1])
 
+
+function iso_reps(acset_list)
+    iso_list = []
+    for curr_acset in acset_list
+        has_iso = false
+        ii = 1
+        while !has_iso && ii <= length(iso_list)
+            if is_isomorphic(curr_acset,iso_list[ii])
+                has_iso = true
+            end
+            ii += 1    
+        end
+        if !has_iso
+            push!(iso_list,curr_acset)
+        end
+    end
+    return iso_list
+end
+
 function mca_spans(X,Y)
     mca_list = mca(X,Y)
     legs_left = mca_maps(mca_list,X)
-    mca_list_r = [mca_help_rev([],mca,Y) for mca in mca_list]
+
+    mca_list_r = []
+    hY = BinaryHeap(Base.By(AlgebraicPetri.SubACSets.size,Base.Order.Reverse),[Y])
+    for mca in iso_reps(mca_list)
+        push!(mca_list_r,mca_help_rev([],hY,mca)...)
+    end
     legs_right = mca_maps(mca_list_r,Y)
+    
 end
