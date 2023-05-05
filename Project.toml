@@ -14,12 +14,13 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
-Catalyst = "^13.0.0"
-Catlab = "^0.14.16"
+Catalyst = "13"
+Catlab = "0.14.16"
+DataStructures = "0.18"
 GeneralizedGenerated = "0.3"
-LabelledArrays = "^1"
-Requires = "^1"
-StatsBase = "^0.33"
+LabelledArrays = "1"
+Requires = "1"
+StatsBase = "0.33,0.34"
 julia = "1.6"
 
 [extras]
