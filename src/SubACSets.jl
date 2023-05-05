@@ -27,7 +27,12 @@ function normalize_order(X::ACSet, Y::ACSet)
   size(X) ≤ size(Y) ? (X,Y) : (Y,X)
 end
 
-"""Recursively delete anything, e.g. deleting a vertex deletes its edges"""
+"""
+    rm_cascade_subobj(X::ACSet, rm_subs)
+
+Deletes parts from an ACSet in cascading fashion, e.g. deleting a vertex deletes its edges
+rm_subs is a NamedTuple or Dict of parts to be removed.
+"""
 function rm_cascade_subobj(X::ACSet, rm_subs)
   S    = acset_schema(X)
   subs = Dict([k=>Set(parts(X,k)) for k in objects(S)])
@@ -106,9 +111,10 @@ exists_mono(X::ACSet,Y::ACSet)::Bool =
   is_homomorphic(X, strip_attributes(Y); monic = true, type_components=(Name=x->nothing,),)
 
 
-"""Brute-force implementation of Maximum Common Acset (MCA).
-Input: two Acsets a₁ and a₂
-Task : find all a with with |a| maximum possible such that there is a monic span of Acset a₁ ← a → a₂.
+"""
+    mca(XX::ACSet, YY::ACSet)
+
+Computes the maximimum common subacsets between XX and YY, i.e., find all a with with |a| maximum possible such that there is a monic span of Acset a₁ ← a → a₂.
 """
 function mca(XX::ACSet, YY::ACSet)
   (X,Y) = normalize_order(XX,YY)
@@ -116,6 +122,16 @@ function mca(XX::ACSet, YY::ACSet)
   return mca_help([],hX,Y)
 end
 
+"""
+    mca_help(mca_list, X_subs, Y)
+
+Helper function to compute the maximimum common subacsets between X and Y. 
+Assumes Y is larger than X.
+Recursively forms the subacsets of X and checks for monos into Y.
+
+Input: X_subs is a max heap containing the subacsets of X as they are formed, i.e., initially X_subs is the heap with X itself.
+Output: mca_list is a vector containing the mca's as they are found, i.e., initially mca_list is an empty vector.
+"""
 function mca_help(mca_list, X_subs, Y)
   if !isempty(X_subs) && (isempty(mca_list) || size(mca_list[1]) <= size(first(X_subs)))
     curr_X_sub = pop!(X_subs)
