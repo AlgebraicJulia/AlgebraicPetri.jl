@@ -75,14 +75,14 @@ function mca(XX::ACSet, YY::ACSet)
 end
 
 function mca(X::Vector{T}) where T <: ACSet
-  acset_order = sortperm([size(x) for x in X])
+  acset_order = sortperm(size.(X))
   X_subs = BinaryHeap(Base.By(size, Base.Order.Reverse), [X[acset_order[1]]])
   mca_list = Set{ACSet}()
 
   while !isempty(X_subs) && (isempty(mca_list) || size(first(mca_list)) <= size(first(X_subs)))
     curr_X_sub = pop!(X_subs)
     C = acset_schema(curr_X_sub) #X: C → Set
-    if exists_mono(curr_X_sub, X[acset_order[2]])
+    if all([exists_mono(curr_X_sub, x) for x in X[acset_order[2:end]]])
       push!(mca_list, curr_X_sub)
     else
       indiv_parts = []
