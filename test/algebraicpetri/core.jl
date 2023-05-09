@@ -1,3 +1,9 @@
+module TestCore
+
+using Test
+using AlgebraicPetri
+using Catlab.CategoricalAlgebra
+
 p1 = codom(Open([1], PetriNet(1), [1]))
 p2 = codom(Open([1,2], PetriNet(2), [1,2]))
 pc1 = id(p1)
@@ -12,3 +18,5 @@ pc2 = id(p2)
 @test codom(mcopy(p1)) == p1 ⊗ p1
 @test dom(delete(p1)) == p1
 @test codom(delete(p1)) == munit(OpenPetriNetOb)
+
+end

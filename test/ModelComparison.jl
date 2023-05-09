@@ -1,3 +1,9 @@
+module TestModelComparison
+
+using Test
+using AlgebraicPetri, AlgebraicPetri.ModelComparison
+using Catlab.CategoricalAlgebra
+
 SIRD = LabelledReactionNet{Float64, Float64}([:S=>0.0, :I=>0.0, :R=>0.0, :D=>0.0],
                                              (:inf=>0.0)=>((:S,:I)=>(:I,:I)),
                                              (:rec=>0.0)=>(:I=>:R),
@@ -10,7 +16,7 @@ models = [SIR, SIRD]
 
 
 AlgebraicPetri.ModelComparison.compare(A::Subobject, B::Subobject) = compare(dom(hom(A)), dom(hom(B)))
-@testset "Subobjects" begin
+
 for pn in [models,
            ReactionNet{Float64, Float64}.([SIR, SIRD]),
            LabelledPetriNet.(models),
@@ -47,4 +53,5 @@ for pn in [models,
   @test A ∧ ¬(¬(A)) == ¬(¬(A))
   @test implies((A∧B), A) == A∨B
 end
+
 end

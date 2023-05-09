@@ -1,64 +1,33 @@
 using Test
 
-using LabelledArrays
-using AlgebraicPetri
-using AlgebraicPetri.Epidemiology
-using AlgebraicPetri.ModelComparison
-using AlgebraicPetri.OpenTransitions
-using Catlab.Theories
-using Catlab.CategoricalAlgebra
-using Catlab.CategoricalAlgebra.FinSets
-using Catlab.Programs
-using AlgebraicRewriting
-
-@testset "Core" begin
-    include("core.jl")
-end
-
-@testset "Types" begin
-    include("types.jl")
-end
-
-@testset "Petri" begin
-    include("petri.jl")
-end
-
-@testset "Epidemiology" begin
-    include("epidemiology.jl")
-end
-
-@testset "TypedPetris" begin
-  include("typed_petri.jl")
+@testset "AlgebraicPetri" begin
+    include("algebraicpetri/AlgebraicPetri.jl")
 end
 
 @testset "BilayerNetworks" begin
-  include("bilayernetworks.jl")
+  include("BilayerNetworks.jl")
+end
+
+@testset "Epidemiology" begin
+    include("Epidemiology.jl")
 end
 
 @testset "ModelComparison" begin
-  include("modelcomparison.jl")
-end
-
-@testset "Catalyst Interop" begin
-  include("CatalystInterop.jl")
-end
-
-@testset "ModelingToolkit Interop" begin
-  include("ModelingToolkitInterop.jl")
-end
-
-@testset "TypedPetris" begin
-  include("typed_petri.jl")
+  include("ModelComparison.jl")
 end
 
 @testset "OpenTransitions" begin
-  include("opentransitions.jl")
-end
-
-@testset "Rewriting" begin
-  include("rewriting.jl")
+  include("OpenTransitions.jl")
 end
 
 @testset "SubACSets" begin
   include("SubACSets.jl")
+end
+
+@testset "TypedPetris" begin
+  include("TypedPetri.jl")
+end
+
+@testset "Package Extensions" begin
+  include("ext/extensions.jl")
 end

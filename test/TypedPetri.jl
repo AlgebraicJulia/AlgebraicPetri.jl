@@ -1,3 +1,5 @@
+module TestTypedPetri
+
 using Test
 
 using AlgebraicPetri, AlgebraicPetri.TypedPetri
@@ -94,3 +96,5 @@ typed_age_aug = add_reflexives(
 )
 
 stratified = typed_product(typed_age_aug, typed_sird)
+
+end

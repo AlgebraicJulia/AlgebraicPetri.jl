@@ -1,3 +1,5 @@
+module TestBilayerNetworks
+
 using Test
 
 using AlgebraicPetri
@@ -231,3 +233,5 @@ end
 bn_error = "Mass action does not allow species $(bnsir_migrate_break[2, :variable]) to be "*
            "removed without contributing to the rate."
 @test_throws ErrorException(bn_error) migrate!(edge_sir, bnsir_migrate_break)
+
+end

@@ -1,3 +1,5 @@
+module TestSubACSets
+
 using Test
 
 using AlgebraicPetri, AlgebraicPetri.SubACSets
@@ -30,3 +32,5 @@ sub_acsets = mca(m1, m2)
 ])
 
 @test Set(PetriNet.(sub_acsets)) == mca(PetriNet(m1), PetriNet(m2))
+
+end
