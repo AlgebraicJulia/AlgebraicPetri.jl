@@ -70,15 +70,19 @@ exists_mono(X::ACSet, Y::ACSet)::Bool =
 Computes the maximimum common subacsets between XX and YY, i.e., find all a with with |a| maximum possible such that there is a monic span of Acset a₁ ← a → a₂.
 """
 function mca(XX::ACSet, YY::ACSet)
-  (X, Y) = size(XX) ≤ size(YY) ? (XX, YY) : (YY, XX) # normalize order
+  # (X, Y) = size(XX) ≤ size(YY) ? (XX, YY) : (YY, XX) # normalize order
+  mca([XX, YY])
+end
 
-  X_subs = BinaryHeap(Base.By(size, Base.Order.Reverse), [X])
+function mca(X::Vector{T}) where T <: ACSet
+  acset_order = sortperm([size(x) for x in X])
+  X_subs = BinaryHeap(Base.By(size, Base.Order.Reverse), [X[acset_order[1]]])
   mca_list = Set{ACSet}()
 
   while !isempty(X_subs) && (isempty(mca_list) || size(first(mca_list)) <= size(first(X_subs)))
     curr_X_sub = pop!(X_subs)
     C = acset_schema(curr_X_sub) #X: C → Set
-    if exists_mono(curr_X_sub, Y)
+    if exists_mono(curr_X_sub, X[acset_order[2]])
       push!(mca_list, curr_X_sub)
     else
       indiv_parts = []
