@@ -25,7 +25,6 @@ using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Present
 using Catlab.Theories
 using LabelledArrays
-using LinearAlgebra: mul!
 using GeneralizedGenerated: mk_function
 
 vectorify(n::AbstractVector) = n
@@ -297,8 +296,8 @@ passed to the DifferentialEquations.jl solver package.
 vectorfield(pn::AbstractPetriNet) = begin
   tm = TransitionMatrices(pn)
   dt = tm.output - tm.input
-  f(du, u, p, t) = begin
-    rates = zeros(eltype(du), nt(pn))
+  (du, u, p, t) -> begin
+    rates = zeros(valtype(du), nt(pn))
     u_m = [u[sname(pn, i)] for i in 1:ns(pn)]
     p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
     for i in 1:nt(pn)
@@ -307,9 +306,8 @@ vectorfield(pn::AbstractPetriNet) = begin
     for j in 1:ns(pn)
       du[sname(pn, j)] = sum(rates[i] * dt[i, j] for i in 1:nt(pn); init=0.0)
     end
-    return du
+    du
   end
-  return f
 end
   
 """ vectorfield_expr(pn::AbstractPetriNet)
@@ -323,19 +321,53 @@ passed to the DifferentialEquations.jl solver package.
 vectorfield_expr(pn::AbstractPetriNet) = begin
   fquote = Expr(:function, Expr(:tuple, :du, :u, :p, :t))
   fcode = Expr[]
+  num_t = nt(pn)
+
+  # generate vector of rate constants for each transition
   p_ix = [tname(pn, i) for i in 1:nt(pn)]
   push!(fcode, :(
-    p_m = p[$(p_ix)]
+    p_m = Vector{Union{Float64,Function}}(undef,$(num_t))
   ))
-  for i in 1:nt(pn)
+  for i in 1:num_t
+    if eltype(p_ix) <: Symbol
+      push!(fcode, :(
+        p_m[$(i)] = p[$(Meta.quot(p_ix[i]))]
+      ))
+    else
+      push!(fcode, :(
+        p_m[$(i)] = p[$(p_ix[i])]
+      ))
+    end
+  end
+
+  # for each transition, calculate its firing intensity
+  for i in 1:num_t
     is_ix = subpart(pn, incident(pn, i, :it), :is) # input places
     is_pn_ix = [sname(pn, j) for j in is_ix]
     os_ix = subpart(pn, incident(pn, i, :ot), :os) # output places
     os_pn_ix = [sname(pn, j) for j in os_ix]
+
+    # generate vector of markings just for t's inputs and calc rate
+    n_input = length(is_pn_ix)
     push!(fcode, :(
-      rate = valueat(p_m[$(i)], u, t) * prod(u[$(is_pn_ix)]) 
+      inputs = zeros($(n_input))
     ))
-    # need quote node for subsetting du
+    for j in 1:n_input
+      if eltype(is_pn_ix) <: Symbol
+        push!(fcode, :(
+          inputs[$(j)] = u[$(Meta.quot(is_pn_ix[j]))]
+        ))
+      else
+        push!(fcode, :(
+          inputs[$(j)] = u[$(is_pn_ix[j])]
+        ))
+      end
+    end
+    push!(fcode, :(
+      rate = valueat(p_m[$(i)], u, t) * prod(inputs)
+    ))
+
+    # transition decreases inputs and increases output marking
     if eltype(os_pn_ix) <: Symbol
       for j in os_pn_ix
         push!(fcode, :(
@@ -388,7 +420,7 @@ flatten_labels(act::ACSetTransformation{S,Comp,<:AbstractPetriNet,<:AbstractPetr
 """
 concentration(p::AbstractPetriNet, s) = subpart(p, s, :concentration)
 
-""" Rate of a RectionNet
+""" Rate of a ReactionNet
 """
 rate(p::AbstractPetriNet, t) = subpart(p, t, :rate)
 
@@ -396,10 +428,9 @@ rate(p::AbstractPetriNet, t) = subpart(p, t, :rate)
 """
 concentrations(p::AbstractPetriNet) = begin
   if has_subpart(p, :sname)
-    snames = [sname(p, s) for s in 1:ns(p)]
-    return LVector(; [(snames[s] => concentration(p, s)) for s in 1:ns(p)]...)
+    LVector(; [(sname(p, s) => concentration(p, s)) for s in 1:ns(p)]...)
   else
-    return map(s -> concentration(p, s), 1:ns(p))
+    map(s -> concentration(p, s), 1:ns(p))
   end
 end
 
@@ -407,10 +438,9 @@ end
 """
 rates(p::AbstractPetriNet) = begin
   if has_subpart(p, :tname)
-    tnames = [tname(p, s) for s in 1:nt(p)]
-    LVector(; [(tnames[t] => rate(p, t)) for t in 1:nt(p)]...)
+    LVector(; [(tname(p, t) => rate(p, t)) for t in 1:nt(p)]...)
   else
-    return map(t -> rate(p, t), 1:nt(p))
+    map(t -> rate(p, t), 1:nt(p))
   end
 end
 
