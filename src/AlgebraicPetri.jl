@@ -24,8 +24,6 @@ using Catlab.CategoricalAlgebra
 using Catlab.CategoricalAlgebra.FinSets
 using Catlab.Present
 using Catlab.Theories
-using LabelledArrays
-using LinearAlgebra: mul!
 using GeneralizedGenerated: mk_function
 
 vectorify(n::AbstractVector) = n
@@ -297,8 +295,8 @@ passed to the DifferentialEquations.jl solver package.
 vectorfield(pn::AbstractPetriNet) = begin
   tm = TransitionMatrices(pn)
   dt = tm.output - tm.input
-  f(du, u, p, t) = begin
-    rates = zeros(eltype(du), nt(pn))
+  (du, u, p, t) -> begin
+    rates = zeros(nt(pn))
     u_m = [u[sname(pn, i)] for i in 1:ns(pn)]
     p_m = [p[tname(pn, i)] for i in 1:nt(pn)]
     for i in 1:nt(pn)
@@ -307,9 +305,8 @@ vectorfield(pn::AbstractPetriNet) = begin
     for j in 1:ns(pn)
       du[sname(pn, j)] = sum(rates[i] * dt[i, j] for i in 1:nt(pn); init=0.0)
     end
-    return du
+    du
   end
-  return f
 end
   
 """ vectorfield_expr(pn::AbstractPetriNet)
@@ -397,9 +394,9 @@ rate(p::AbstractPetriNet, t) = subpart(p, t, :rate)
 concentrations(p::AbstractPetriNet) = begin
   if has_subpart(p, :sname)
     snames = [sname(p, s) for s in 1:ns(p)]
-    return LVector(; [(snames[s] => concentration(p, s)) for s in 1:ns(p)]...)
+    Dict(snames[s] => concentration(p, s) for s in 1:ns(p))
   else
-    return map(s -> concentration(p, s), 1:ns(p))
+    map(s -> concentration(p, s), 1:ns(p))
   end
 end
 
@@ -408,9 +405,9 @@ end
 rates(p::AbstractPetriNet) = begin
   if has_subpart(p, :tname)
     tnames = [tname(p, s) for s in 1:nt(p)]
-    LVector(; [(tnames[t] => rate(p, t)) for t in 1:nt(p)]...)
+    Dict(tnames[t] => rate(p, t) for t in 1:nt(p))
   else
-    return map(t -> rate(p, t), 1:nt(p))
+    map(t -> rate(p, t), 1:nt(p))
   end
 end
 
