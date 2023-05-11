@@ -734,7 +734,6 @@ Open(p::PropertyLabelledReactionNet{R,C,T}, legs...) where {R,C,T} = begin
 end
 Open(p::PropertyLabelledReactionNet{R,C,T}) where {R,C,T} = OpenPropertyLabelledReactionNet{R,C,T}(p, map(x -> FinFunction([x], ns(p)), 1:ns(p))...)
 
-include("interoperability.jl")
 include("visualization.jl")
 include("Epidemiology.jl")
 include("BilayerNetworks.jl")
@@ -742,4 +741,8 @@ include("ModelComparison.jl")
 include("SubACSets.jl")
 include("TypedPetri.jl")
 include("OpenTransitions.jl")
+
+# TODO: Remove after dropping support for <Julia 1.9
+if !isdefined(Base, :get_extension) include("interoperability.jl") end
+
 end
