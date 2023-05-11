@@ -330,7 +330,8 @@ vectorfield_expr(pn::AbstractPetriNet) = begin
     os_ix = subpart(pn, incident(pn, i, :ot), :os) # output places
     os_pn_ix = [sname(pn, j) for j in os_ix]
     push!(fcode, :(
-      rate = valueat(p_m[$(i)], u, t) * prod(u[$(is_pn_ix)]) 
+      # rate = valueat(p_m[$(i)], u, t) * prod(u[$(is_pn_ix)])
+      rate = valueat(p_m[$(i)], u, t) * prod(u[j] for j in $(is_pn_ix)) 
     ))
     # need quote node for subsetting du
     if eltype(os_pn_ix) <: Symbol
@@ -362,7 +363,8 @@ vectorfield_expr(pn::AbstractPetriNet) = begin
     return du
   ))
   push!(fquote.args, Expr(:block, fcode...))
-  return mk_function(AlgebraicPetri, fquote)
+  # return mk_function(AlgebraicPetri, fquote)
+  return fquote
 end
 
 flat_symbol(sym::Symbol, sep)::Symbol = sym
