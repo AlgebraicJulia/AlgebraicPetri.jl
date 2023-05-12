@@ -72,7 +72,7 @@ function isos(acset_list::Vector{T}) where T <: ACSet
     has_iso = false
     jj = 1
     while !has_iso && jj <= length(isos)
-      if is_isomorphic(curr_acset,isos[jj])
+      if is_isomorphic(strip_attributes(curr_acset),strip_attributes(isos[jj]))
         has_iso = true
         push!(iso_idxs[jj], ii)
       end
@@ -97,23 +97,17 @@ function mca(XX::ACSet, YY::ACSet)
   mca([XX, YY])
 end
 
-import AlgebraicPetri.SubACSets: mca, mca_help, size, exists_mono, rm_cascade_subobj, isos
-
 function mca_help(X::T, Y::Union{T,Vector{T}}; f_reverse = false) where T <: ACSet
   X_subs = BinaryHeap(Base.By(size, Base.Order.Reverse), [X])
   mca_list = Set{T}()
-  println("passed a")
   if typeof(Y)==Vector{T} f_reverse = false end
   f_reverse ? while_cond  = size(Y) <= size(first(X_subs)) :
                 while_cond = (isempty(mca_list) || size(first(mca_list)) <= size(first(X_subs)))
-  println("passed b")
   while !isempty(X_subs) && while_cond
     curr_X_sub = pop!(X_subs)
     C = acset_schema(curr_X_sub) #X: C → Set
-    println("passed c")
-    f_reverse ? match_cond = is_isomorphic(curr_X_sub,Y) : 
+    f_reverse ? match_cond = is_isomorphic(strip_attributes(curr_X_sub),strip_attributes(Y)) : 
                   match_cond = all([exists_mono(curr_X_sub, x) for x in Y])
-    println("passed d")
     if match_cond
       push!(mca_list, curr_X_sub)
     else
@@ -131,21 +125,14 @@ function mca_help(X::T, Y::Union{T,Vector{T}}; f_reverse = false) where T <: ACS
     f_reverse ? while_cond  = size(Y) <= size(first(X_subs)) :
                   while_cond = (isempty(mca_list) || size(first(mca_list)) <= size(first(X_subs)))
   end
-  return mca_list, X_subs
+  return collect(mca_list), X_subs
 end
 
 function mca(X::Vector{T}) where T <: ACSet
   acset_order = sortperm(size.(X))
   mca_match1, _ = mca_help(X[acset_order[1]],X[acset_order[2:end]])
-  println("passed 1")
-  mca_list, match1_idxs = isos(collect(mca_match1))
-  println("passed 2")
-  mca_morphs = [[Vector{ACSetTransformation}() for _ in length(X)] for _ in 1:length(mca_list)]
-  println("passed 3")
-  println(mca_match1)
-  println(mca_list)
-  println(match1_idxs)
-  println(acset_order)
+  mca_list, match1_idxs = isos(mca_match1)
+  mca_morphs = [[Vector{ACSetTransformation}() for _ in 1:length(X)] for _ in 1:length(mca_list)]
   for (ii, curr_mca) in enumerate(mca_list)
     mca_morphs[ii][acset_order[1]] = [homomorphism(match,X[acset_order[1]];monic=true) for match in mca_match1[match1_idxs[ii]]]
     for (jj, curr_X) in enumerate(X[acset_order[2:end]])   
