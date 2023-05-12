@@ -320,20 +320,53 @@ passed to the DifferentialEquations.jl solver package.
 vectorfield_expr(pn::AbstractPetriNet) = begin
   fquote = Expr(:function, Expr(:tuple, :du, :u, :p, :t))
   fcode = Expr[]
+  num_t = nt(pn)
+
+  # generate vector of rate constants for each transition
   p_ix = [tname(pn, i) for i in 1:nt(pn)]
   push!(fcode, :(
-    p_m = p[$(p_ix)]
+    p_m = zeros($(num_t))
   ))
-  for i in 1:nt(pn)
+  for i in 1:num_t
+    if eltype(p_ix) <: Symbol
+      push!(fcode, :(
+        p_m[$(i)] = p[$(Meta.quot(p_ix[i]))]
+      ))
+    else
+      push!(fcode, :(
+        p_m[$(i)] = p[$(p_ix[i])]
+      ))
+    end
+  end
+
+  # for each transition, calculate its firing intensity
+  for i in 1:num_t
     is_ix = subpart(pn, incident(pn, i, :it), :is) # input places
     is_pn_ix = [sname(pn, j) for j in is_ix]
     os_ix = subpart(pn, incident(pn, i, :ot), :os) # output places
     os_pn_ix = [sname(pn, j) for j in os_ix]
+
+    # generate vector of markings just for t's inputs and calc rate
+    n_input = length(is_pn_ix)
     push!(fcode, :(
-      # rate = valueat(p_m[$(i)], u, t) * prod(u[$(is_pn_ix)])
-      rate = valueat(p_m[$(i)], u, t) * prod(u[j] for j in $(is_pn_ix)) 
+      inputs = zeros($(n_input))
     ))
-    # need quote node for subsetting du
+    for j in 1:n_input
+      if eltype(is_pn_ix) <: Symbol
+        push!(fcode, :(
+          inputs[$(j)] = u[$(Meta.quot(is_pn_ix[j]))]
+        ))
+      else
+        push!(fcode, :(
+          inputs[$(j)] = u[$(is_pn_ix[j])]
+        ))
+      end
+    end
+    push!(fcode, :(
+      rate = valueat(p_m[$(i)], u, t) * prod(inputs)
+    ))
+
+    # transition decreases inputs and increases output marking
     if eltype(os_pn_ix) <: Symbol
       for j in os_pn_ix
         push!(fcode, :(
@@ -363,8 +396,7 @@ vectorfield_expr(pn::AbstractPetriNet) = begin
     return du
   ))
   push!(fquote.args, Expr(:block, fcode...))
-  # return mk_function(AlgebraicPetri, fquote)
-  return fquote
+  return mk_function(AlgebraicPetri, fquote)
 end
 
 flat_symbol(sym::Symbol, sep)::Symbol = sym

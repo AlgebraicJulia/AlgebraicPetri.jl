@@ -15,12 +15,12 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 Catalyst = "479239e8-5488-4da2-87a7-35f2df7eef83"
 ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
 Petri = "4259d249-1051-49fa-8328-3f8ab9391c33"
-Requires = "ae029012-a4dd-5104-9daa-d747884805df"        # makes sure Requires isn't a dependency for Julia v1.9+
+Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 
 [extensions]
-AlgebraicPetriPetriExt = "Petri"
 AlgebraicPetriCatalystExt = "Catalyst"
 AlgebraicPetriModelingToolkitExt = "ModelingToolkit"
+AlgebraicPetriPetriExt = "Petri"
 
 [compat]
 Catalyst = "13"
