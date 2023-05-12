@@ -325,7 +325,8 @@ vectorfield_expr(pn::AbstractPetriNet) = begin
   # generate vector of rate constants for each transition
   p_ix = [tname(pn, i) for i in 1:nt(pn)]
   push!(fcode, :(
-    p_m = zeros($(num_t))
+    # p_m = zeros($(num_t))
+    p_m = Vector{Union{Float64,Function}}(undef,$(num_t))
   ))
   for i in 1:num_t
     if eltype(p_ix) <: Symbol
