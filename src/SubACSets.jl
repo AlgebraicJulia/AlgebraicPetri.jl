@@ -133,11 +133,14 @@ function mca(X::Vector{T}) where T <: ACSet
   mca_match1, _ = mca_help(X[acset_order[1]],X[acset_order[2:end]])
   mca_list, match1_idxs = isos(mca_match1)
   mca_morphs = [[Vector{ACSetTransformation}() for _ in 1:length(X)] for _ in 1:length(mca_list)]
+  C = acset_schema(X[acset_order[1]])
   for (ii, curr_mca) in enumerate(mca_list)
-    mca_morphs[ii][acset_order[1]] = [homomorphism(match,X[acset_order[1]];monic=true) for match in mca_match1[match1_idxs[ii]]]
+    mca_morphs[ii][acset_order[1]] = [ACSetTransformation(strip_attributes(curr_mca),X[acset_order[1]]; 
+                                        Dict([k => parts(match, k) for k ∈ objects(C)])...) for match in mca_match1[match1_idxs[ii]]]
     for (jj, curr_X) in enumerate(X[acset_order[2:end]])   
       curr_X_matches, _ = mca_help(curr_X,curr_mca;f_reverse=true)
-      mca_morphs[ii][acset_order[jj+1]] = [homomorphism(match,curr_X;monic=true) for match in curr_X_matches]
+      mca_morphs[ii][acset_order[jj+1]] = [ACSetTransformation(strip_attributes(curr_mca),curr_X; 
+                                            Dict([k => parts(match, k) for k ∈ objects(C)])...) for match in curr_X_matches]
     end
   end
 
