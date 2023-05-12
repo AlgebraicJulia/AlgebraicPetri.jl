@@ -35,7 +35,7 @@ sub_acsets, _ = mca(m1, m2)
   )
 ])=#
 
-@test Set(PetriNet.(sub_acsets)) == mca(PetriNet(m1), PetriNet(m2))
+@test PetriNet.(sub_acsets) == mca(PetriNet(m1), PetriNet(m2))[1]
 
 m3 = LabelledPetriNet(
   [:W, :X, :Y, :Z],
