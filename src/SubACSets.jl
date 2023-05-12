@@ -64,6 +64,29 @@ end
 exists_mono(X::ACSet, Y::ACSet)::Bool =
   is_homomorphic(X, strip_attributes(Y); monic=true, type_components=(Name=x -> nothing,))
 
+
+function isos(acset_list::Vector{T}) where T <: ACSet
+  isos = []
+  iso_idxs = []
+  for (ii, curr_acset) in enumerate(acset_list)
+    has_iso = false
+    jj = 1
+    while !has_iso && jj <= length(isos)
+      if is_isomorphic(curr_acset,isos[jj])
+        has_iso = true
+        push!(iso_idxs[jj], ii)
+      end
+      jj += 1
+    end
+    if !has_iso
+      push!(isos,curr_acset)
+      push!(iso_idxs,[ii])
+    end
+  end
+  return isos, iso_idxs
+end
+
+
 """
     mca(XX::ACSet, YY::ACSet)
 
@@ -74,15 +97,24 @@ function mca(XX::ACSet, YY::ACSet)
   mca([XX, YY])
 end
 
-function mca(X::Vector{T}) where T <: ACSet
-  acset_order = sortperm(size.(X))
-  X_subs = BinaryHeap(Base.By(size, Base.Order.Reverse), [X[acset_order[1]]])
-  mca_list = Set{ACSet}()
+import AlgebraicPetri.SubACSets: mca, mca_help, size, exists_mono, rm_cascade_subobj, isos
 
-  while !isempty(X_subs) && (isempty(mca_list) || size(first(mca_list)) <= size(first(X_subs)))
+function mca_help(X::T, Y::Union{T,Vector{T}}; f_reverse = false) where T <: ACSet
+  X_subs = BinaryHeap(Base.By(size, Base.Order.Reverse), [X])
+  mca_list = Set{T}()
+  println("passed a")
+  if typeof(Y)==Vector{T} f_reverse = false end
+  f_reverse ? while_cond  = size(Y) <= size(first(X_subs)) :
+                while_cond = (isempty(mca_list) || size(first(mca_list)) <= size(first(X_subs)))
+  println("passed b")
+  while !isempty(X_subs) && while_cond
     curr_X_sub = pop!(X_subs)
     C = acset_schema(curr_X_sub) #X: C → Set
-    if all([exists_mono(curr_X_sub, x) for x in X[acset_order[2:end]]])
+    println("passed c")
+    f_reverse ? match_cond = is_isomorphic(curr_X_sub,Y) : 
+                  match_cond = all([exists_mono(curr_X_sub, x) for x in Y])
+    println("passed d")
+    if match_cond
       push!(mca_list, curr_X_sub)
     else
       indiv_parts = []
@@ -96,8 +128,33 @@ function mca(X::Vector{T}) where T <: ACSet
         push!(X_subs, new_sub)
       end
     end
+    f_reverse ? while_cond  = size(Y) <= size(first(X_subs)) :
+                  while_cond = (isempty(mca_list) || size(first(mca_list)) <= size(first(X_subs)))
   end
-  mca_list
+  return mca_list, X_subs
+end
+
+function mca(X::Vector{T}) where T <: ACSet
+  acset_order = sortperm(size.(X))
+  mca_match1, _ = mca_help(X[acset_order[1]],X[acset_order[2:end]])
+  println("passed 1")
+  mca_list, match1_idxs = isos(collect(mca_match1))
+  println("passed 2")
+  mca_morphs = [[Vector{ACSetTransformation}() for _ in length(X)] for _ in 1:length(mca_list)]
+  println("passed 3")
+  println(mca_match1)
+  println(mca_list)
+  println(match1_idxs)
+  println(acset_order)
+  for (ii, curr_mca) in enumerate(mca_list)
+    mca_morphs[ii][acset_order[1]] = [homomorphism(match,X[acset_order[1]];monic=true) for match in mca_match1[match1_idxs[ii]]]
+    for (jj, curr_X) in enumerate(X[acset_order[2:end]])   
+      curr_X_matches, _ = mca_help(curr_X,curr_mca;f_reverse=true)
+      mca_morphs[ii][acset_order[jj+1]] = [homomorphism(match,curr_X;monic=true) for match in curr_X_matches]
+    end
+  end
+
+  return mca_list, mca_morphs
 end
 
 end
