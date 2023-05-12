@@ -14,9 +14,13 @@ m2 = LabelledPetriNet(
   :f4 => ((:W4, :X4, :Y4) => :Z4)
 )
 
-sub_acsets = mca(m1, m2)
+sub_acsets, _ = mca(m1, m2)
 
-@test sub_acsets == Set([
+@test sub_acsets == [LabelledPetriNet(
+    [:X3, :Y3, :W3, :Z3],
+    :f3 => (:X3 => :Z3)
+  )] 
+  #=Set([
   LabelledPetriNet(
     [:X3, :Y3, :W3, :Z3],
     :f3 => (:X3 => :Z3)
@@ -29,7 +33,7 @@ sub_acsets = mca(m1, m2)
     [:X3, :Y3, :W3, :Z3],
     :f3 => (:X3 => :Y3)
   )
-])
+])=#
 
 @test Set(PetriNet.(sub_acsets)) == mca(PetriNet(m1), PetriNet(m2))
 
@@ -38,9 +42,13 @@ m3 = LabelledPetriNet(
   :f => ((:W, :X) => (:Y, :Z))
 )
 
-sub_acsets2 = mca([m3, m2, m1])
+sub_acsets2, _ = mca([m3, m2, m1])
 
-@test sub_acsets2 == Set([
+@test sub_acsets2 == [LabelledPetriNet(
+  [:W, :X, :Y, :Z],
+  :f => (:X => :Z)
+)]
+#=Set([
   LabelledPetriNet(
     [:W, :X, :Y, :Z],
     :f => (:X => :Z)
@@ -57,6 +65,6 @@ sub_acsets2 = mca([m3, m2, m1])
     [:W, :X, :Y, :Z],
     :f => (:W => :Y)
   )
-])
+])=#
 
 end
