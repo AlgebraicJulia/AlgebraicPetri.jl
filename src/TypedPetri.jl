@@ -19,16 +19,14 @@ function prim_petri(type_system, transition)
   t = add_transition!(prim)
   s_map = Int[]
   for i in inputs(type_system, transition)
-    s = is(type_system, i)
-    s′ = add_species!(prim)
-    push!(s_map, s)
-    add_input!(prim, 1, s′)
+    i′ = add_species!(prim)
+    push!(s_map, i)
+    add_input!(prim, 1, i′)
   end
-  for i in outputs(type_system, transition)
-    s = os(type_system, i)
-    s′ = add_species!(prim)
-    push!(s_map, s)
-    add_output!(prim, 1, s′)
+  for o in outputs(type_system, transition)
+    o′ = add_species!(prim)
+    push!(s_map, o)
+    add_output!(prim, 1, o′)
   end
   ACSetTransformation(
     prim,
