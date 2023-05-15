@@ -1,3 +1,11 @@
+module TestEpidemiology
+
+using Test
+using AlgebraicPetri
+using AlgebraicPetri.Epidemiology
+using Catlab.Programs
+using Catlab.CategoricalAlgebra
+
 sir_petri = LabelledPetriNet([:S,:I,:R], :inf=>((:S,:I)=>(:I,:I)), :rec=>(:I=>:R))
 
 sir = infection ⋅ recovery
@@ -10,3 +18,5 @@ sir_relation = @relation (s,i,r) begin
 end
 
 @test apex(oapply_epi(sir_relation)) == sir_petri
+
+end

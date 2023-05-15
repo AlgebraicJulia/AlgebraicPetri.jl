@@ -1,5 +1,10 @@
+module TestTypes
+
+using Test
+using AlgebraicPetri
+using Catlab.CategoricalAlgebra
+using LabelledArrays
 using Tables
-import Petri
 
 sir_petri = PetriNet(3, ((1, 2), (2, 2)), (2, 3))
 sir_lpetri = LabelledPetriNet([:S, :I, :R], :inf => ((:S, :I), (:I, :I)), :rec => (:I, :R))
@@ -52,8 +57,6 @@ open_sir_rxn = Open([1, 2], sir_rxn, [3])
 open_sir_lrxn = Open([:S, :I], sir_lrxn, [:R])
 
 @test sir_tpetri == sir_petri
-@test Petri.Model(sir_petri) == Petri.Model(sir_rxn)
-@test Petri.Model(sir_lpetri) == Petri.Model(sir_lrxn)
 
 @test typeof(Graph(sir_petri)) == Graph
 @test typeof(Graph(sir_lpetri)) == Graph
@@ -171,4 +174,6 @@ end
 
 for p in [sir_proplpetri, sir_proplrxn]
   @test Open(p, [:S], [:I], [:R]) == Open(p)
+end
+
 end
