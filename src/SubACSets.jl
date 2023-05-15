@@ -76,20 +76,19 @@ end
 
 function mca_help(X::T, Y::Union{T,Vector{T}}; f_reverse = false) where T <: ACSet
   X_subs = BinaryHeap(Base.By(size, Base.Order.Reverse), [X])
-  # mca_list = Set{T}()
-  mca_list = []
+  mca_list = Set{T}()
   if typeof(Y)==Vector{T} f_reverse = false end
-  f_reverse ? while_cond  = size(Y) <= size(first(X_subs)) :
-                while_cond = (isempty(mca_list) || size(first(mca_list)) <= size(first(X_subs)))
+  while_cond = f_reverse ? size(Y) <= size(first(X_subs)) :
+                (isempty(mca_list) || size(first(mca_list)) <= size(first(X_subs)))
   while !isempty(X_subs) && while_cond
     curr_X_sub = pop!(X_subs)
     C = acset_schema(curr_X_sub) #X: C → Set
-    f_reverse ? match_cond = is_isomorphic(strip_attributes(curr_X_sub),strip_attributes(Y)) : 
-                  match_cond = all([exists_mono(curr_X_sub, x) for x in Y])
+    match_cond = f_reverse ? is_isomorphic(strip_attributes(curr_X_sub),strip_attributes(Y)) : 
+                  all([exists_mono(curr_X_sub, x) for x in Y])
     if match_cond
-      if all([!is_isomorphic(curr_X_sub,tmp) for tmp in mca_list])
+      # if all([!is_isomorphic(curr_X_sub,tmp) for tmp in mca_list])
         push!(mca_list, curr_X_sub)
-      end
+      # end
     else
       indiv_parts = []
       for c ∈ objects(C)
@@ -102,8 +101,8 @@ function mca_help(X::T, Y::Union{T,Vector{T}}; f_reverse = false) where T <: ACS
         push!(X_subs, new_sub)
       end
     end
-    f_reverse ? while_cond  = size(Y) <= size(first(X_subs)) :
-                  while_cond = (isempty(mca_list) || size(first(mca_list)) <= size(first(X_subs)))
+    while_cond = f_reverse ? size(Y) <= size(first(X_subs)) :
+                  (isempty(mca_list) || size(first(mca_list)) <= size(first(X_subs)))
   end
   return collect(mca_list), X_subs
 end
