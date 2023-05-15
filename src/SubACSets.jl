@@ -76,7 +76,8 @@ end
 
 function mca_help(X::T, Y::Union{T,Vector{T}}; f_reverse = false) where T <: ACSet
   X_subs = BinaryHeap(Base.By(size, Base.Order.Reverse), [X])
-  mca_list = Set{T}()
+  # mca_list = Set{T}()
+  mca_list = []
   if typeof(Y)==Vector{T} f_reverse = false end
   f_reverse ? while_cond  = size(Y) <= size(first(X_subs)) :
                 while_cond = (isempty(mca_list) || size(first(mca_list)) <= size(first(X_subs)))
@@ -86,7 +87,9 @@ function mca_help(X::T, Y::Union{T,Vector{T}}; f_reverse = false) where T <: ACS
     f_reverse ? match_cond = is_isomorphic(strip_attributes(curr_X_sub),strip_attributes(Y)) : 
                   match_cond = all([exists_mono(curr_X_sub, x) for x in Y])
     if match_cond
-      push!(mca_list, curr_X_sub)
+      if all([!is_isomorphic(curr_X_sub,tmp) for tmp in mca_list])
+        push!(mca_list, curr_X_sub)
+      end
     else
       indiv_parts = []
       for c ∈ objects(C)
@@ -108,19 +111,20 @@ end
 function mca(X::Vector{T}) where T <: ACSet
   acset_order = sortperm(size.(X))
   mca_match1, _ = mca_help(X[acset_order[1]],X[acset_order[2:end]])
-  mca = mca_match1[1]
-  @assert all([is_isomorphic(strip_attributes(mca),strip_attributes(match)) for match in mca_match1])
+  X_mca = mca_match1[1]
+
+  @assert all([is_isomorphic(strip_attributes(X_mca),strip_attributes(match)) for match in mca_match1])
   mca_morphs = [Vector{ACSetTransformation}() for _ in 1:length(X)]
   C = acset_schema(X[acset_order[1]])
-  mca_morphs[acset_order[1]] = [ACSetTransformation(strip_attributes(mca),X[acset_order[1]]; 
+  mca_morphs[acset_order[1]] = [ACSetTransformation(strip_attributes(X_mca),X[acset_order[1]]; 
                                   Dict([k => parts(match, k) for k ∈ objects(C)])...) for match in mca_match1]
   for (jj, curr_X) in enumerate(X[acset_order[2:end]])
-    curr_X_matches, _ = mca_help(curr_X,mca;f_reverse=true)
-    mca_morphs[acset_order[jj+1]] = [ACSetTransformation(strip_attributes(mca),curr_X; 
+    curr_X_matches, _ = mca_help(curr_X,X_mca;f_reverse=true)
+    mca_morphs[acset_order[jj+1]] = [ACSetTransformation(strip_attributes(X_mca),curr_X; 
                                       Dict([k => parts(match, k) for k ∈ objects(C)])...) for match in curr_X_matches]
   end
   
-  return strip_attributes(mca), mca_morphs
+  return strip_attributes(X_mca), mca_morphs
 end
 
 function mca_spans(morphs::Vector{Vector{ACSetTransformation}})
