@@ -5,48 +5,6 @@ using Catlab.CategoricalAlgebra
 using DataStructures
 
 """
-    rm_cascade_subobj(X::ACSet, rm_subs)
-
-Deletes parts from an ACSet in cascading fashion, e.g. deleting a vertex deletes its edges
-rm_subs is a NamedTuple or Dict of parts to be removed.
-"""
-function rm_cascade_subobj(X::ACSet, rm_subs)
-  # HACK: Remove this once Catlab makes cascading delete default
-  # https://github.com/AlgebraicJulia/Catlab.jl/pull/605 (old PR)
-  S = acset_schema(X)
-  subs = Dict([k => Set(parts(X, k)) for k ∈ objects(S)])
-  rm_subs = Dict([k => Set(v) for (k, v) ∈ pairs(rm_subs)])
-  while !isempty(rm_subs)
-    curr_c = first(rm_subs)[1]
-    if isempty(rm_subs[curr_c])
-      delete!(rm_subs, curr_c)
-    else
-      curr_part = pop!(rm_subs[curr_c])
-      if curr_part ∈ subs[curr_c]
-        delete!(subs[curr_c], curr_part)
-        for (f, c, d) ∈ homs(S)
-          if d == curr_c && c ∈ keys(subs)
-            for test_part ∈ subs[c]
-              if X[test_part, f] == curr_part
-                if c ∈ keys(rm_subs)
-                  push!(rm_subs[c], test_part)
-                else
-                  rm_subs[c] = Set([test_part])
-                end
-              end
-            end
-          end
-        end
-      end
-      if isempty(rm_subs[curr_c])
-        delete!(rm_subs, curr_c)
-      end
-    end
-  end
-  dom(hom(Subobject(X, NamedTuple(k => collect(v) for (k, v) ∈ subs))))
-end
-
-"""
 Defintion: let 𝐺: C → 𝐒et be a C-set, we define the _size_ of 𝐺 to be ∑_{c ∈ C}
 |𝐺c|.  For example, under this definition, the size of:
   * a graph G is |GE| + |GV| (num edges + num vertices)
@@ -90,15 +48,12 @@ function mca_help(X::T, Y::Union{T,Vector{T}}; f_reverse = false) where T <: ACS
         push!(mca_list, curr_X_sub)
       # end
     else
-      indiv_parts = []
       for c ∈ objects(C)
         for p ∈ parts(curr_X_sub, c)
-          push!(indiv_parts, NamedTuple([c => [p]]))
+          new_X_sub = deepcopy(curr_X_sub)
+          cascading_rem_part!(new_X_sub, c, p)
+          push!(X_subs, new_X_sub)
         end
-      end
-      new_X_subs = mapreduce(γ -> rm_cascade_subobj(curr_X_sub, γ), vcat, indiv_parts; init=[])
-      for new_sub ∈ new_X_subs
-        push!(X_subs, new_sub)
       end
     end
     while_cond = f_reverse ? size(Y) <= size(first(X_subs)) :
