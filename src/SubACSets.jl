@@ -18,10 +18,6 @@ function strip_attributes(p::ACSet)
   isempty(attributes) ? p : map(p; Dict(attr => (x -> nothing) for attr ∈ attributes)...)
 end
 
-# Ask: "does there exists a mono X ↪ Y ?"
-exists_mono(X::ACSet, Y::ACSet)::Bool =
-  is_homomorphic(X, strip_attributes(Y); monic=true, type_components=(Name=x -> nothing,))
-
 """
     mca(XX::ACSet, YY::ACSet)
 
@@ -42,7 +38,10 @@ function mca_help(X::T, Y::Union{T,Vector{T}}; f_reverse = false) where T <: ACS
     curr_X_sub = pop!(X_subs)
     C = acset_schema(curr_X_sub) #X: C → Set
     match_cond = f_reverse ? is_isomorphic(strip_attributes(curr_X_sub),strip_attributes(Y)) : 
-                  all([exists_mono(curr_X_sub, x) for x in Y])
+                  all([
+                    is_homomorphic(strip_attributes(curr_X_sub), strip_attributes(x); monic=true)
+                    for x in Y
+                  ])
     if match_cond
       # if all([!is_isomorphic(curr_X_sub,tmp) for tmp in mca_list])
         push!(mca_list, curr_X_sub)
