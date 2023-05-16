@@ -20,10 +20,6 @@ end
   include("OpenTransitions.jl")
 end
 
-@testset "SubACSets" begin
-  include("SubACSets.jl")
-end
-
 @testset "TypedPetris" begin
   include("TypedPetri.jl")
 end

@@ -2,17 +2,16 @@
 """
 module AlgebraicPetri
 
-export SchPetriNet, PetriNet, OpenPetriNetOb, AbstractPetriNet, ns, nt, ni, no,
-  os, ot, is, it,
+export SchPetriNet, PetriNet, OpenPetriNetOb, AbstractPetriNet,
+  ns, nt, ni, no, os, ot, is, it,
   add_species!, add_transition!, add_transitions!,
   add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs,
-  TransitionMatrices, vectorfield, vectorfield_expr,
+  TransitionMatrices, vectorfield, vectorfield_expr, flatten_labels,
   SchLabelledPetriNet, LabelledPetriNet, AbstractLabelledPetriNet, sname, tname, snames, tnames,
   SchReactionNet, ReactionNet, AbstractReactionNet, concentration, concentrations, rate, rates,
   SchLabelledReactionNet, LabelledReactionNet, AbstractLabelledReactionNet,
   Open, OpenPetriNet, OpenLabelledPetriNet, OpenReactionNet, OpenLabelledReactionNet,
   OpenPetriNetOb, OpenLabelledPetriNetOb, OpenReactionNetOb, OpenLabelledReactionNetOb,
-  mca, flatten_labels,
   AbstractPropertyPetriNet, sprop, tprop, sprops, tprops,
   SchPropertyPetriNet, SchPropertyLabelledPetriNet, SchPropertyReactionNet, SchPropertyLabelledReactionNet,
   PropertyPetriNet, PropertyLabelledPetriNet, PropertyReactionNet, PropertyLabelledReactionNet,
@@ -768,7 +767,6 @@ include("visualization.jl")
 include("Epidemiology.jl")
 include("BilayerNetworks.jl")
 include("ModelComparison.jl")
-include("SubACSets.jl")
 include("TypedPetri.jl")
 include("OpenTransitions.jl")
 
