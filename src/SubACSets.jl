@@ -11,7 +11,7 @@ Defintion: let 𝐺: C → 𝐒et be a C-set, we define the _size_ of 𝐺 to be
   * a Petri net P is |PT| + |PS| + |PI| + |PO| (num transitions + num species +
     num input arcs + num output arcs).
 """
-size(X::ACSet) = foldl(+, [length(parts(X, oₛ)) for oₛ ∈ objects(acset_schema(X))])
+size(X::ACSet) = mapreduce(oₛ -> nparts(X, oₛ), +, objects(acset_schema(X)); init=0)
 
 function strip_attributes(p::ACSet)
   attributes = attrtypes(acset_schema(p))
