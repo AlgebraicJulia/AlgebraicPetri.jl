@@ -3,8 +3,7 @@ module AlgebraicPetriPetriExt
 using AlgebraicPetri
 using Catlab.CategoricalAlgebra
 
-# TODO: Remove after dropping support for <Julia 1.9
-isdefined(Base, :get_extension) ? (import Petri) : (import ..Petri)
+import Petri
 
 Petri.Model(p::AbstractPetriNet) = begin
   ts = TransitionMatrices(p)
