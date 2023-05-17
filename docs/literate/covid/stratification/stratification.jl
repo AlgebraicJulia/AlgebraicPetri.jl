@@ -19,7 +19,7 @@ const infectious_ontology = LabelledPetriNet(
   :strata => (:Pop => :Pop)
 )
 
-Graph(infectious_ontology)
+to_graphviz(infectious_ontology)
 
 # Define a simple SIRD model with reflexive transitions typed as `:strata` to indicate which states can be stratified
 # Here we add reflexive transitions to the susceptible, infected, and recovered populations but we leave out the dead
@@ -34,7 +34,7 @@ end
 sird_model = oapply_typed(infectious_ontology, sird_uwd, [:infection, :recovery, :death])
 sird_model = add_reflexives(sird_model, [[:strata], [:strata], [:strata], []], infectious_ontology)
 
-Graph(dom(sird_model))
+to_graphviz(dom(sird_model))
 
 # ## Define intervention models
 
@@ -49,11 +49,11 @@ end
 mask_model = oapply_typed(infectious_ontology, masking_uwd, [:unmask, :mask, :infect_um, :infect_uu])
 mask_model = add_reflexives(mask_model, [[:strata], [:strata]], infectious_ontology)
 
-Graph(dom(mask_model))
+to_graphviz(dom(mask_model))
 
 # Stratify our SIRD model on this masking model to get a model of SIRD with masking:
 
-typed_product(sird_model, mask_model) |> dom |> Graph
+typed_product(sird_model, mask_model) |> dom |> to_graphviz
 
 # ### Vaccine model
 
@@ -67,11 +67,11 @@ end
 vax_model = oapply_typed(infectious_ontology, vax_uwd, [:vax, :infect_vv, :infect_uv, :infect_vu, :infect_uu])
 vax_model = add_reflexives(vax_model, [[:disease], [:disease]], infectious_ontology)
 
-Graph(dom(vax_model))
+to_graphviz(dom(vax_model))
 
 # Stratify our SIRD model on this vaccine model to get a model of SIRD with a vaccination rate:
 
-typed_product(sird_model, vax_model) |> dom |> Graph
+typed_product(sird_model, vax_model) |> dom |> to_graphviz
 
 # ### Mask-Vax Model
 
@@ -98,11 +98,11 @@ mask_vax_model = oapply_typed(
 )
 mask_vax_model = add_reflexives(mask_vax_model, [[:disease], [:disease], [:disease], [:disease]], infectious_ontology)
 
-Graph(dom(mask_vax_model))
+to_graphviz(dom(mask_vax_model))
 
 # Stratify our SIRD model on this mask + vaccine model to get a model of SIRD with a vaccination rate and masking policies:
 
-typed_product(sird_model, mask_vax_model) |> dom |> Graph
+typed_product(sird_model, mask_vax_model) |> dom |> to_graphviz
 
 # ## Define geographic models
 
@@ -131,11 +131,11 @@ function travel_model(n)
   add_reflexives(act, repeat([[:infect, :disease]], n), infectious_ontology)
 end
 
-Graph(dom(travel_model(2)))
+to_graphviz(dom(travel_model(2)))
 
 # Stratify our SIRD model on this travel model with two regions:
 
-typed_product(sird_model, travel_model(2)) |> dom |> Graph
+typed_product(sird_model, travel_model(2)) |> dom |> to_graphviz
 
 # ### Simple Trip model between $N$ regions
 
@@ -148,16 +148,16 @@ function living_model(n)
   add_reflexives(typed_living, repeat([[:disease, :strata]], n), infectious_ontology)
 end
 
-Graph(dom(living_model(2)))
+to_graphviz(dom(living_model(2)))
 
 # The resulting simple trip model:
 
 simple_trip_model = typed_product(travel_model(2), living_model(2))
-Graph(dom(simple_trip_model))
+to_graphviz(dom(simple_trip_model))
 
 # Stratify our SIRD model on this simple trip model between two regions:
 
-typed_product(sird_model, simple_trip_model) |> dom |> Graph
+typed_product(sird_model, simple_trip_model) |> dom |> to_graphviz
 
 # ## Stratification of COVID models
 
@@ -191,7 +191,7 @@ m1_model = (@relation () where {(S::Pop, I::Pop, D::Pop, A::Pop, R::Pop, T::Pop,
   disease(T, H)
 end) |> oapply_mira_model
 
-Graph(dom(m1_model))
+to_graphviz(dom(m1_model))
 
 # ### SEIAHRD Model
 #
@@ -212,7 +212,7 @@ m2_model = (@relation () where {(S::Pop, E::Pop, I::Pop, A::Pop, H::Pop, R::Pop,
   disease(H, R)
 end) |> oapply_mira_model
 
-Graph(dom(m2_model))
+to_graphviz(dom(m2_model))
 
 # ### SEIuIrQRD Model
 #
@@ -232,7 +232,7 @@ m3_model = (@relation () where {(S::Pop, E::Pop, Iu::Pop, Ir::Pop, Q::Pop, R::Po
   disease(Ir, D)
 end) |> oapply_mira_model
 
-Graph(dom(m3_model))
+to_graphviz(dom(m3_model))
 
 # ### Enumerating stratified models
 #
@@ -260,4 +260,4 @@ Markdown.parse(join(table, "\n")) |> DisplayAs.HTML
 # number of states and transitions increase polynomially which causes the execution time
 # for calculating the final stratified model to also increase polynomially.
 #
-# ![Runtime vs. Number of Georgraphic Regions](../../../../assets/runtime_vs_num_rgns.svg)
+# ![Runtime vs. Number of Georgraphic Regions](../../../assets/runtime_vs_num_rgns.svg)

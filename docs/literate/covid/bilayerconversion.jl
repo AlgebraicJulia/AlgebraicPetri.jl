@@ -43,7 +43,7 @@ display_uwd(sir)
 # Extract the Petri network form of the model.
 psir = apex(oapply_epi(sir))
 psir
-Graph(psir)
+to_graphviz(psir)
 #-
 
 # Convert the Petri network into a bilayer network and draw it.
@@ -106,7 +106,7 @@ bnrt,pnstr = roundtrip(pseir, bnseir)
 
 display_uwd(sir)
 
-Graph(psir)
+to_graphviz(psir)
 #-
 
 to_graphviz(bnsir)
@@ -115,7 +115,7 @@ to_graphviz(bnsir)
 to_graphviz(bnseir)
 #-
 
-Graph(bnrt)
+to_graphviz(bnrt)
 #-
 
 qm = @relation (s,q) begin
@@ -140,7 +140,7 @@ semantics = Dict(
     :quarrec   => spontaneous_petri(:Q, :R, :qr)
 )
 pn_quar = oapply(qm, semantics)  |> apex
-Graph(pn_quar)
+to_graphviz(pn_quar)
 #-
 
 bnquar = LabelledBilayerNetwork()
@@ -159,7 +159,7 @@ display_uwd(qm)
 #-
 
 pn_quar = oapply(qm, semantics)  |> apex
-Graph(pn_quar)
+to_graphviz(pn_quar)
 #-
 
 bnquar = LabelledBilayerNetwork()
@@ -168,7 +168,7 @@ to_graphviz(bnquar)
 #-
 
 quarrt = LabelledPetriNet()
-migrate!(quarrt, bnquar) |> Graph
+migrate!(quarrt, bnquar) |> to_graphviz
 
 bnquar
 #-
