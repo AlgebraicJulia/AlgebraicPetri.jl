@@ -2,7 +2,7 @@ module TestTypes
 
 using Test
 using AlgebraicPetri
-using Catlab.CategoricalAlgebra
+using Catlab.CategoricalAlgebra, Catlab.Graphics
 using LabelledArrays
 using Tables
 
@@ -58,12 +58,12 @@ open_sir_lrxn = Open([:S, :I], sir_lrxn, [:R])
 
 @test sir_tpetri == sir_petri
 
-@test typeof(Graph(sir_petri)) == Graph
-@test typeof(Graph(sir_lpetri)) == Graph
-@test typeof(Graph(sir_rxn)) == Graph
-@test typeof(Graph(open_sir_rxn)) == Graph
-@test typeof(Graph(sir_lrxn)) == Graph
-@test typeof(Graph(open_sir_lrxn)) == Graph
+@test to_graphviz(sir_petri) isa Graphics.Graphviz.Graph
+@test to_graphviz(sir_lpetri) isa Graphics.Graphviz.Graph
+@test to_graphviz(sir_rxn) isa Graphics.Graphviz.Graph
+@test to_graphviz(open_sir_rxn) isa Graphics.Graphviz.Graph
+@test to_graphviz(sir_lrxn) isa Graphics.Graphviz.Graph
+@test to_graphviz(open_sir_lrxn) isa Graphics.Graphviz.Graph
 
 @test inputs(sir_petri, 1) == [1, 2]
 @test outputs(sir_petri, 1) == [2, 2]

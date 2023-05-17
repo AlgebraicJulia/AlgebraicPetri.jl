@@ -2,6 +2,7 @@
 include("epidemiology.jl")
 
 using OrdinaryDiffEq
+using Catlab.Graphics
 using Catlab.Graphics.Graphviz: run_graphviz
 
 # +
@@ -41,7 +42,7 @@ end
 # -
 
 save_wd(sir, "sir.svg")
-save_graph(Graph(p_sir), "sir_graph.svg")
+save_graph(to_graphviz(p_sir), "sir_graph.svg")
 
 # define initial states and transition rates
 u0 = [10.0, 1, 0]
@@ -53,7 +54,7 @@ sol = OrdinaryDiffEq.solve(prob,Tsit5())
 splot(sol, "sir_soln.svg")
 
 save_wd(seir, "seir.svg")
-save_graph(Graph(p_seir), "seir_graph.svg")
+save_graph(to_graphviz(p_seir), "seir_graph.svg")
 
 # define initial states and transition rates
 u0 = [10.0, 1, 0, 0]
@@ -65,7 +66,7 @@ sol = OrdinaryDiffEq.solve(prob,Tsit5())
 splot(sol, "seir_soln.svg")
 
 save_wd(seird, "seird.svg")
-save_graph(Graph(p_seird), "seird_graph.svg")
+save_graph(to_graphviz(p_seird), "seird_graph.svg")
 
 # define initial states and transition rates
 u0 = [10.0, 1, 0, 0, 0]
@@ -78,16 +79,16 @@ splot(sol, "seird_soln.svg")
 
 include("covid.jl")
 
-[save_graph(Graph(Petri.Model(decoration(p))), pname) for (p,pname) in [(spontaneous_petri, "spont.svg"),
+[save_graph(to_graphviz(Petri.Model(decoration(p))), pname) for (p,pname) in [(spontaneous_petri, "spont.svg"),
                                                (transmission_petri, "transmission.svg"),
                                                (exposure_petri, "exposure.svg"),
                                                (travel_petri, "travel.svg")]]
 
 save_wd(seird_city, "seird_city.svg")
-save_graph(Graph(Petri.Model(decoration(F(seird_city)))), "seird_graph.svg")
+save_graph(to_graphviz(Petri.Model(decoration(F(seird_city)))), "seird_graph.svg")
 
 save_wd(seird_3, "seird_3.svg")
-save_graph(Graph(p_seird_3), "seird_3_graph.svg")
+save_graph(to_graphviz(p_seird_3), "seird_3_graph.svg")
 
 pltdims = [4,9, 14]
 # Define time frame, 3 months

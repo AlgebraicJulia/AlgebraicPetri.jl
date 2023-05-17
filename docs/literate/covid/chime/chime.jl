@@ -20,7 +20,7 @@ display_uwd(sir)
 
 #-
 p_sir = apex(oapply_epi(sir));
-Graph(p_sir)
+to_graphviz(p_sir)
 
 u0 = LVector(S=990, I=10, R=0);
 t_span = (17.0,120.0)

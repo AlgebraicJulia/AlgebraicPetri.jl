@@ -3,6 +3,7 @@ using OrdinaryDiffEq
 using Plots
 using Catlab.Meta
 using Catlab.CategoricalAlgebra
+using Catlab.Graphics
 using JSON
 
 import OrdinaryDiffEq: ODEProblem
@@ -27,7 +28,7 @@ end
 
 sir_cset= LabelledReactionNet{Function, Float64}((:S=>990, :I=>10, :R=>0), (:inf, β)=>((:S, :I)=>(:I,:I)), (:rec, t->γ)=>(:I=>:R))
 
-Graph(sir_cset)
+to_graphviz(sir_cset)
 
 prob = ODEProblem(sir_cset, (17.0, 120.0))
 sol = OrdinaryDiffEq.solve(prob,Tsit5())

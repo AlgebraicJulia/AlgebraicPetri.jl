@@ -18,13 +18,13 @@ display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, e
 # #### Step 1: Define the building block Petri nets needed to construct the model
 
 birth_petri = Open(PetriNet(1, 1=>(1,1)));
-Graph(birth_petri)
+to_graphviz(birth_petri)
 #-
 predation_petri = Open(PetriNet(2, (1,2)=>(2,2)));
-Graph(predation_petri)
+to_graphviz(predation_petri)
 #-
 death_petri = Open(PetriNet(1, 1=>()));
-Graph(death_petri)
+to_graphviz(death_petri)
 
 
 # #### Step 2: Generate models using a relational syntax
@@ -38,7 +38,7 @@ display_uwd(lotka_volterra)
 #-
 lv_dict = Dict(:birth=>birth_petri, :predation=>predation_petri, :death=>death_petri);
 lotka_petri = apex(oapply(lotka_volterra, lv_dict))
-Graph(lotka_petri)
+to_graphviz(lotka_petri)
 
 # Generate appropriate vector fields, define parameters, and visualize solution
 
@@ -61,7 +61,7 @@ end
 display_uwd(dual_lv)
 #-
 dual_lv_petri = apex(oapply(dual_lv, lv_dict))
-Graph(dual_lv_petri)
+to_graphviz(dual_lv_petri)
 
 # Generate a new solver, provide parameters, and analyze results
 

@@ -2,7 +2,7 @@ module TestModelComparison
 
 using Test
 using AlgebraicPetri, AlgebraicPetri.ModelComparison
-using Catlab.CategoricalAlgebra
+using Catlab.CategoricalAlgebra, Catlab.Graphics
 
 SIRD = LabelledReactionNet{Float64, Float64}([:S=>0.0, :I=>0.0, :R=>0.0, :D=>0.0],
                                              (:inf=>0.0)=>((:S,:I)=>(:I,:I)),
@@ -26,12 +26,12 @@ for pn in [models,
   @test apex(c_res) == pn[1]
   @test length(legs(c_res)) == 2
 
-  @test Graph(legs(c_res)[1]) isa Graph
-  @test Graph(c_res) isa Graph
+  @test to_graphviz(legs(c_res)[1]) isa Graphics.Graphviz.Graph
+  @test to_graphviz(c_res) isa Graphics.Graphviz.Graph
 
   so = Subobject.(legs(c_res))
   for s in so
-    @test Graph(s) isa Graph
+    @test to_graphviz(s) isa Graphics.Graphviz.Graph
     @test codom(hom(s)) == pn[2]
   end
 

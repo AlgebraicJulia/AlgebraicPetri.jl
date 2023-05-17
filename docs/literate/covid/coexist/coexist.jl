@@ -164,8 +164,8 @@ end;
 display_uwd(threeNCoexist)
 #-
 threeNCoexist_algpetri = apex(F_tcx(threeNCoexist))
-Graph(threeNCoexist_algpetri);
-save_fig(Graph(threeNCoexist_algpetri), "3ncoexist_petri", "svg"); # hide
+to_graphviz(threeNCoexist_algpetri);
+save_fig(to_graphviz(threeNCoexist_algpetri), "3ncoexist_petri", "svg"); # hide
 
 # ![3-generation COEXIST model petri net](3ncoexist_petri.svg)
 

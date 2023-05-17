@@ -27,7 +27,7 @@ end
 display_uwd(sir)
 #-
 p_sir = apex(oapply_epi(sir))
-Graph(p_sir)
+to_graphviz(p_sir)
 
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
@@ -53,7 +53,7 @@ end
 display_uwd(seir)
 #-
 p_seir = apex(oapply_epi(seir))
-Graph(p_seir)
+to_graphviz(p_seir)
 
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem
@@ -78,7 +78,7 @@ end
 display_uwd(seird)
 #-
 p_seird = apex(oapply_epi(seird))
-Graph(p_seird)
+to_graphviz(p_seird)
 
 # define initial states and transition rates, then
 # create, solve, and visualize ODE problem

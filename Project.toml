@@ -9,7 +9,6 @@ Catlab = "134e5e36-593f-5add-ad60-77f754baafbe"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 GeneralizedGenerated = "6b9d7cbe-bcb9-11e9-073f-15a7a543e2eb"
 LabelledArrays = "2ee39098-c373-598a-b85f-a56591580800"
-StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [weakdeps]
 Catalyst = "479239e8-5488-4da2-87a7-35f2df7eef83"
@@ -29,5 +28,4 @@ GeneralizedGenerated = "0.3"
 LabelledArrays = "1"
 ModelingToolkit = "8"
 Petri = "1"
-StatsBase = "0.33,0.34"
 julia = "1.9"
