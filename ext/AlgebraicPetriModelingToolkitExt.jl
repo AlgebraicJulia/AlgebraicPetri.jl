@@ -3,14 +3,8 @@ module AlgebraicPetriModelingToolkitExt
 using AlgebraicPetri
 using AlgebraicPetri.BilayerNetworks
 using Catlab.CategoricalAlgebra: has_subpart, incident, parts
-# TODO: Remove after dropping support for <Julia 1.9
-if isdefined(Base, :get_extension)
-  using ModelingToolkit
-  import ModelingToolkit: ODESystem
-else
-  using ..ModelingToolkit
-  import ..ModelingToolkit: ODESystem
-end
+using ModelingToolkit
+import ModelingToolkit: ODESystem
 
 
 """ Convert a general PetriNet to an ODESystem

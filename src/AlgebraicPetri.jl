@@ -772,7 +772,4 @@ include("SubACSets.jl")
 include("TypedPetri.jl")
 include("OpenTransitions.jl")
 
-# TODO: Remove after dropping support for <Julia 1.9
-if !isdefined(Base, :get_extension) include("interoperability.jl") end
-
 end

@@ -2,16 +2,9 @@ module AlgebraicPetriCatalystExt
 
 using AlgebraicPetri
 using Catlab.CategoricalAlgebra
-# TODO: Remove after dropping support for <Julia 1.9
-if isdefined(Base, :get_extension)
-  using Catalyst
-  using Catalyst.Symbolics: scalarize
-  import Catalyst: ReactionSystem
-else
-  using ..Catalyst
-  using ..Catalyst.Symbolics: scalarize
-  import ..Catalyst: ReactionSystem
-end
+using Catalyst
+using Catalyst.Symbolics: scalarize
+import Catalyst: ReactionSystem
 
 counter(a) = [count(==(i),a) for i in unique(a)]
 
