@@ -31,7 +31,6 @@ display_uwd(sir)
 
 psir = apex(oapply_epi(sir))
 psir
-Graph(psir)
 
 # Convert the Petri network into a bilayer network and draw it.
 # This model uses a computation graph to express the computation of the vector field of the Petri net.
@@ -41,8 +40,8 @@ lab_bnsir = LabelledBilayerNetwork()
 migrate!(bnsir, psir)
 migrate!(lab_bnsir, psir)
 bnsir
-@test typeof(to_graphviz(bnsir)) == Graph
-@test typeof(to_graphviz(lab_bnsir)) == Graph
+@test to_graphviz(bnsir) isa Graphics.Graphviz.Graph
+@test to_graphviz(lab_bnsir) isa Graphics.Graphviz.Graph
 
 bnsir_test = @acset BilayerNetwork begin
     Qin = 3

@@ -44,6 +44,6 @@ petri_example = ODESystem(eqs, t, name=:PetriNet)
 @test ODESystem(psir) == petri_example
 @test ODESystem(bnsir) == bilayer_example
 @test ODESystem(bnsir, simplify = true) == simp_bilayer_example
-@test typeof(ODESystem(PetriNet(psir))) == ODESystem # Sanity check that non-labelled Petri Nets resolve correctly
+@test ODESystem(PetriNet(psir)) isa ODESystem # Sanity check that non-labelled Petri Nets resolve correctly
 
 end
