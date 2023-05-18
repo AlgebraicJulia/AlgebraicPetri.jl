@@ -585,7 +585,7 @@ initial population of 10 susceptible, 1 infected, 0 recovered and an infection
 rate of 0.5 and recovery rate of 0.1 can be
 constructed as follows:
 ```@example
-ReactionNet{Float64, Float64}([:S=>10,:I=>1,:R=>0], (:inf=>0.5)=>((1,2)=>(2,2)), (:rec=>0.1)=>(2=>3))
+LabelledReactionNet{Float64, Float64}([:S=>10,:I=>1,:R=>0], (:inf=>0.5)=>((:S,:I)=>(:I,:I)), (:rec=>0.1)=>(:I=>:R))
 ```
 """
 LabelledReactionNet{R,C}(n::Union{AbstractVector,Tuple}, ts::Vararg{Union{Pair,Tuple}}) where {R,C} = begin
