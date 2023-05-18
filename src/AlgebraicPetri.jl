@@ -13,7 +13,7 @@ export SchPetriNet, PetriNet, OpenPetriNetOb, AbstractPetriNet, ns, nt, ni, no,
   Open, OpenPetriNet, OpenLabelledPetriNet, OpenReactionNet, OpenLabelledReactionNet,
   OpenPetriNetOb, OpenLabelledPetriNetOb, OpenReactionNetOb, OpenLabelledReactionNetOb,
   mca, flatten_labels,
-  AbstractPropertyPetriNet, sprop, tprop, sprops, tprops,
+  AbstractPropertyPetriNet, AbstractPropertyReactionNet, sprop, tprop, sprops, tprops,
   SchPropertyPetriNet, SchPropertyLabelledPetriNet, SchPropertyReactionNet, SchPropertyLabelledReactionNet,
   PropertyPetriNet, PropertyLabelledPetriNet, PropertyReactionNet, PropertyLabelledReactionNet,
   OpenPropertyPetriNet, OpenPropertyLabelledPetriNet, OpenPropertyReactionNet, OpenPropertyLabelledReactionNet,
@@ -558,7 +558,7 @@ See Catlab.jl documentation for description of the @present syntax.
   sname::Attr(S, Name)
 end
 
-@abstract_acset_type AbstractLabelledReactionNet <: AbstractPetriNet
+@abstract_acset_type AbstractLabelledReactionNet <: AbstractReactionNet
 @acset_type LabelledReactionNetUntyped(SchLabelledReactionNet, index=[:it, :is, :ot, :os]) <: AbstractLabelledReactionNet
 const LabelledReactionNet{R,C} = LabelledReactionNetUntyped{R,C,Symbol}
 const OpenLabelledReactionNetObUntyped, OpenLabelledReactionNetUntyped = OpenACSetTypes(LabelledReactionNetUntyped, :S)
@@ -736,7 +736,8 @@ See Catlab.jl documentation for description of the @present syntax.
   sprop::Attr(S, Prop)
   tprop::Attr(T, Prop)
 end
-@acset_type PropertyReactionNet(SchPropertyReactionNet, index=[:it, :is, :ot, :os]) <: AbstractPropertyPetriNet
+@abstract_acset_type AbstractPropertyReactionNet <: AbstractPropertyPetriNet
+@acset_type PropertyReactionNet(SchPropertyReactionNet, index=[:it, :is, :ot, :os]) <: AbstractPropertyReactionNet
 
 const OpenPropertyReactionNetOb, OpenPropertyReactionNet = OpenACSetTypes(PropertyReactionNet, :S)
 Open(p::PropertyReactionNet{R,C,T}, legs...) where {R,C,T} = OpenPropertyReactionNet{R,C,T}(p, map(l -> FinFunction(l, ns(p)), legs)...)
@@ -752,7 +753,7 @@ See Catlab.jl documentation for description of the @present syntax.
   sprop::Attr(S, Prop)
   tprop::Attr(T, Prop)
 end
-@acset_type PropertyLabelledReactionNetUntyped(SchPropertyLabelledReactionNet, index=[:it, :is, :ot, :os]) <: AbstractPropertyPetriNet
+@acset_type PropertyLabelledReactionNetUntyped(SchPropertyLabelledReactionNet, index=[:it, :is, :ot, :os]) <: AbstractPropertyReactionNet
 const PropertyLabelledReactionNet{R,C,T} = PropertyLabelledReactionNetUntyped{R,C,Symbol,T}
 
 const OpenPropertyLabelledReactionNetObUntyped, OpenPropertyLabelledReactionNetUntyped = OpenACSetTypes(PropertyLabelledReactionNetUntyped, :S)
