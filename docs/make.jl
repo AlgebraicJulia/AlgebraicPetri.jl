@@ -49,7 +49,8 @@ makedocs(
       "generated/covid/coexist/coexist.md",
       "generated/enzymes/enzyme_reactions.md",
       "generated/covid/bilayerconversion.md",
-      "generated/covid/stratification/stratification.md",
+      "generated/covid/stratification.md",
+      "generated/covid/max_common_subobject.md",
     ],
     "Library Reference" => "api.md",
   ]
