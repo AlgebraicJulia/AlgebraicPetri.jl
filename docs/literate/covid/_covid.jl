@@ -1,6 +1,6 @@
 # # [Multi-City COVID-19 Model](@id covid_example)
 #
-#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/covid/covid.ipynb)
+#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/covid/covid.ipynb)
 
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology

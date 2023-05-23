@@ -1,6 +1,6 @@
 # # [Basic Epidemiology Models](@id epidemiology_example)
 #
-#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/covid/epidemiology.ipynb)
+#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/covid/epidemiology.ipynb)
 
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology

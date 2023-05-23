@@ -1,6 +1,6 @@
 # # [Lotka-Volterra Model](@id predation_example)
 #
-#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/predation/lotka-volterra.ipynb)
+#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/predation/lotka-volterra.ipynb)
 
 using AlgebraicPetri
 

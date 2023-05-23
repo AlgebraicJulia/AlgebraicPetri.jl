@@ -1,6 +1,6 @@
 # # [Cathepsin Enzyme Reactions](@id enzyme_example)
 #
-#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/enzymes/enzyme_reactions.ipynb)
+#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/enzymes/enzyme_reactions.ipynb)
 
 using AlgebraicPetri
 using Catlab.Programs

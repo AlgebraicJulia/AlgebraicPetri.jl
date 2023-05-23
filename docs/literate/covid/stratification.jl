@@ -1,6 +1,6 @@
 # # [Stratification of COVID Models](@id stratification_example)
 #
-#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/covid/stratification/stratification.ipynb)
+#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/covid/stratification.ipynb)
 
 using AlgebraicPetri, AlgebraicPetri.TypedPetri
 using Catlab.Programs, Catlab.Graphics
