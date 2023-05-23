@@ -28,13 +28,11 @@ function prim_petri(type_system, transition)
     push!(s_map, o)
     add_output!(prim, 1, o′)
   end
-  ACSetTransformation(
+  LooseACSetTransformation(
+    (S=s_map, T=[transition], O=incident(type_system, transition, :ot), I=incident(type_system, transition, :it)),
+    (),
     prim,
-    type_system,
-    S=s_map,
-    T=[transition],
-    O=incident(type_system, transition, :ot),
-    I=incident(type_system, transition, :it),
+    type_system
   )
 end
 
@@ -48,13 +46,11 @@ function prim_cospan(type_system, transition)
   feet = [FinSet(1) for s in 1:ns(p)]
   structured_feet = [PetriNet(1) for s in 1:ns(p)]
   legs = [
-    ACSetTransformation(
+    LooseACSetTransformation(
+      (S = [s], T = Int[], I = Int[], O = Int[]),
+      (),
       structured_feet[s],
-      p,
-      S = [s],
-      T = Int[],
-      I = Int[],
-      O = Int[],
+      p
     )
     for s in 1:ns(p)
   ]
@@ -84,11 +80,11 @@ function oapply_typed(type_system::LabelledPetriNet, uwd, tnames::Vector{Symbol}
     )
   )
   labelled_petri = LabelledPetriNet(unlabelled_map.dom, uwd[:variable], tnames)
-  ACSetTransformation(
+  LooseACSetTransformation(
+    unlabelled_map.components,
+    (Name=x->nothing,),
     labelled_petri,
-    type_system;
-    unlabelled_map.components...,
-    Name=name->nothing
+    type_system
   )
 end
 
@@ -124,7 +120,7 @@ function add_reflexives(
   type_system::AbstractPetriNet
 )
   petri = deepcopy(dom(typed_petri))
-  type_comps = Dict([k=>collect(v) for (k,v) in pairs(deepcopy(components(typed_petri)))])
+  type_comps = Dict(k=>collect(v) for (k,v) in pairs(deepcopy(components(typed_petri))))
   for (s_i,cts) in enumerate(reflexive_transitions)
     for ct in cts
       type_ind = findfirst(==(ct), type_system[:tname])
@@ -139,13 +135,11 @@ function add_reflexives(
       append!(type_comps[:I], is); append!(type_comps[:O], os);
     end
   end
-  ACSetTransformation(
+  LooseACSetTransformation(
+    type_comps,
+    (Name=x->nothing, (has_subpart(petri, :rate) ? [:Rate=>x->nothing] : [])..., (has_subpart(petri, :concentration) ? [:Concentration=>x->nothing] : [])...),
     petri,
-    codom(typed_petri);
-    type_comps...,
-    Name=x->nothing,
-    (has_subpart(petri, :rate) ? [:Rate=>x->nothing] : [])...,
-    (has_subpart(petri, :concentration) ? [:Concentration=>x->nothing] : [])...
+    codom(typed_petri)
   )
 end
 
@@ -178,13 +172,15 @@ function add_params(
     end
     pn
   end
-  ACSetTransformation(
+  LooseACSetTransformation(
+    NamedTuple(map(objects(acset_schema(domain))) do ob
+      ob => components(typed_petri)[ob]
+    end),
+    NamedTuple(map(attrtypes(acset_schema(domain))) do attrtype
+      attrtype => x->nothing
+    end),
     domain,
-    typing;
-    components(typed_petri)...,
-    Name=x->nothing,
-    Rate=x->nothing,
-    Concentration=x->nothing
+    typing,
   )
 end
 
@@ -214,16 +210,17 @@ Assumes a single species type and a single transition type.
 function pairwise_id_typed_petri(type_net, stype, ttype, args...;
                                  codom_net=nothing) # TODO: this keyword parameter is a workaround. It should be removed and fixed later.
   net = pairwise_id_petri(args...)
-  type_components = Dict(type => (x -> nothing)
-                         for type in attrtypes(acset_schema(net)))
+  type_components = NamedTuple(map(attrtypes(acset_schema(net))) do type
+    type => x->nothing
+  end)
   s = only(incident(type_net, stype, :sname))
   t = only(incident(type_net, ttype, :tname))
-  ACSetTransformation(net, isnothing(codom_net) ? type_net : codom_net;
-    S = repeat([s], ns(net)),
-    T = repeat([t], nt(net)),
-    I = repeat(incident(type_net, t, :it), nt(net)),
-    O = repeat(incident(type_net, t, :ot), nt(net)),
-    type_components...)
+  LooseACSetTransformation(
+    (S = repeat([s], ns(net)), T = repeat([t], nt(net)), I = repeat(incident(type_net, t, :it), nt(net)), O = repeat(incident(type_net, t, :ot), nt(net))),
+    type_components,
+    net,
+    isnothing(codom_net) ? type_net : codom_net
+  )
 end
 
 """ Make Petri net with 'identity' transformation between all species pairs.
