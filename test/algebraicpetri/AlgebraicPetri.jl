@@ -12,7 +12,6 @@ end
     include("petri.jl")
 end
 
-# TODO: Uncomment once AlgebraicRewriting has been updated
-# @testset "Rewriting" begin
-#   include("rewriting.jl")
-# end
+@testset "Rewriting" begin
+  include("rewriting.jl")
+end
