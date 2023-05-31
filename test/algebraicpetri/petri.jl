@@ -2,7 +2,7 @@ module TestPetri
 
 using Test
 using AlgebraicPetri
-using Catlab.CategoricalAlgebra
+using Catlab.CategoricalAlgebra, Catlab.Theories
 using Catlab.Graphs, Catlab.Graphics
 
 f = Open([1, 2], PetriNet(4, (1,3), (2,4)), [3, 4])

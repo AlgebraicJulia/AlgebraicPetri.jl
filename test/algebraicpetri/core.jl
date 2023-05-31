@@ -2,6 +2,7 @@ module TestCore
 
 using Test
 using AlgebraicPetri
+using Catlab.Theories
 using Catlab.CategoricalAlgebra
 
 p1 = codom(Open([1], PetriNet(1), [1]))

@@ -4,7 +4,7 @@ using Test
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology
 using Catlab.Programs
-using Catlab.CategoricalAlgebra
+using Catlab.CategoricalAlgebra, Catlab.Theories
 
 sir_petri = LabelledPetriNet([:S,:I,:R], :inf=>((:S,:I)=>(:I,:I)), :rec=>(:I=>:R))
 
