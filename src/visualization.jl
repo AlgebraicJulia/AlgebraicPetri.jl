@@ -138,8 +138,7 @@ function to_graphviz(m::Multispan{<:AbstractPetriNet};
   )
 end
 
-to_graphviz(p::StructACSetTransformation{<:Any, <:Any, <:AbstractPetriNet, <:AbstractPetriNet}; kw...) =
-  to_graphviz(Multispan(p.dom, [p]); kw...)
+to_graphviz(p::ACSetTransformation; kw...) = to_graphviz(Multispan(p.dom, [p]); kw...)
 
 # Subgraph Extensions
 #####################

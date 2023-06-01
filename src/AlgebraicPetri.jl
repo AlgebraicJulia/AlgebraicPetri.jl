@@ -412,7 +412,7 @@ flatten_labels(pn::AbstractPetriNet; attributes=[:Name], sep='_') = begin
   f = x->flat_symbol(x, sep)
   map(pn; Dict(attr=>f for attr in attributes)...)
 end
-flatten_labels(act::ACSetTransformation{S,Comp,<:AbstractPetriNet,<:AbstractPetriNet}; attributes=[:Name], sep='_') where {S,Comp} =
+flatten_labels(act::ACSetTransformation; attributes=[:Name], sep='_') =
   ACSetTransformation(flatten_labels(act.dom; attributes=attributes, sep=sep), act.codom; components(act)...)
 
 """ Concentration of a ReactionNet
