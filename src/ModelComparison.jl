@@ -5,7 +5,6 @@ module ModelComparison
 
 using AlgebraicPetri
 using Catlab
-using Catlab.CategoricalAlgebra
 import Catlab.CategoricalAlgebra: Subobject
 
 export petri_homomorphisms, compare, PetriSubobject

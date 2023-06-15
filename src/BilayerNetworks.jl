@@ -2,8 +2,6 @@ module BilayerNetworks
 
 using AlgebraicPetri
 using Catlab
-using Catlab.CategoricalAlgebra
-using Catlab.Graphics
 import Catlab.CategoricalAlgebra: migrate!
 
 export ThBilayerNetwork, AbstractBilayerNetwork, BilayerNetwork,

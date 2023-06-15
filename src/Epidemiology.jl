@@ -5,9 +5,6 @@ module Epidemiology
 
 using AlgebraicPetri
 using Catlab
-using Catlab.Theories
-using Catlab.WiringDiagrams
-using Catlab.CategoricalAlgebra.FinSets
 
 export oapply_epi, infection, exposure, illness, recovery, death
 

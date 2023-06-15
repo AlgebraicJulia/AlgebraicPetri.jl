@@ -3,9 +3,6 @@ export prim_petri, strip_names, prim_cospan, oapply_typed, typed_product,
   add_params, add_reflexives, pairwise_id_petri, pairwise_id_typed_petri
 
 using Catlab
-using Catlab.CategoricalAlgebra
-using Catlab.Theories
-using Catlab.WiringDiagrams
 using AlgebraicPetri
 using AlgebraicPetri: LabelledPetriNetUntyped, OpenLabelledPetriNetUntyped, LabelledReactionNetUntyped
 

@@ -1,5 +1,5 @@
-using Catlab.CategoricalAlgebra, Catlab.Graphics.Graphviz
-using Catlab.Graphs: PropertyGraph
+using Catlab, Catlab.Graphics.Graphviz
+using Catlab.Graphics.Graphviz: Graph
 
 import Catlab.Graphics.Graphviz: Subgraph
 import Catlab.Graphics: to_graphviz, to_graphviz_property_graph

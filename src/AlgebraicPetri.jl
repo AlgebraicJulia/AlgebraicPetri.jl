@@ -19,10 +19,6 @@ export SchPetriNet, PetriNet, OpenPetriNetOb, AbstractPetriNet,
   OpenPropertyPetriNetOb, OpenPropertyLabelledPetriNetOb, OpenPropertyReactionNetOb, OpenPropertyLabelledReactionNetOb
 
 using Catlab
-using Catlab.CategoricalAlgebra
-using Catlab.CategoricalAlgebra.FinSets
-using Catlab.Present
-using Catlab.Theories
 using LabelledArrays
 using GeneralizedGenerated: mk_function
 

@@ -7,7 +7,6 @@ using AlgebraicPetri:
     LabelledPetriNetUntyped, LabelledPetriNet, PetriNet, AbstractPetriNet, 
     ns, nt, tname
 using Catlab
-using Catlab.CategoricalAlgebra
 
 export OpenLabelledPetriNetObT, OpenLabelledPetriNetT, OpenT,
     OpenPetriNetObT, OpenPetriNetT

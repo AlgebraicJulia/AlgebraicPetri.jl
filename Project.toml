@@ -21,7 +21,7 @@ AlgebraicPetriOrdinaryDiffEqExt = "OrdinaryDiffEq"
 
 [compat]
 Catalyst = "13"
-Catlab = "0.14.16"
+Catlab = "0.15"
 GeneralizedGenerated = "0.3"
 LabelledArrays = "1"
 ModelingToolkit = "8"

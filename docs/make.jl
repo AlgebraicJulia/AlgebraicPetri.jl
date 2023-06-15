@@ -46,7 +46,6 @@ makedocs(
     "Examples" => Any[
       "generated/predation/lotka-volterra.md",
       "generated/covid/epidemiology.md",
-      "generated/covid/coexist/coexist.md",
       "generated/enzymes/enzyme_reactions.md",
       "generated/covid/bilayerconversion.md",
       "generated/covid/stratification.md",
