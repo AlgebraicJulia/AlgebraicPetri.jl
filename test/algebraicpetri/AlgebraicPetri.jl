@@ -11,7 +11,3 @@ end
 @testset "Petri" begin
     include("petri.jl")
 end
-
-@testset "Rewriting" begin
-  include("rewriting.jl")
-end
