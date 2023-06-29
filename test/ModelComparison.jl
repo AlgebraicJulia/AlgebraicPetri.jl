@@ -35,22 +35,21 @@ for pn in [models,
     @test ob(s) == pn[2]
   end
 
-  # TODO: Uncomment after Subobject logic support is fixed
-  # @test dom(hom(~foldl(∨, so) ∨ foldl(∨, so))) == pn[2]
-  # A,B = so
-  # @test implies(A, B) == ¬(A) ∨ B
-  # @test ¬(A ∧ B) == ¬(A) ∨ ¬(B)
-  # @test ¬(A ∧ B) != ¬(A) ∨ B
-  # # modus ponens holds only up to inclusion, not equality.
-  # @test length(compare(A ∧ implies(A,B), B)) > 0
-  # # this is an equivalent check because X ∧ B == X iff X ↪ B 
-  # @test (A ∧ implies(A,B)) == B ∧ (A ∧ implies(A,B))
-  # @test length(compare(B ∧ implies(B,A), A)) > 0
-  # @test (B ∧ implies(B,A)) == A ∧ (B ∧ implies(B,A))
-  # @test ¬(A ∨ (¬B)) == ¬(A) ∧ ¬(¬(B))
-  # @test ¬(A ∨ (¬B)) == ¬(A) ∧ B
-  # @test A ∧ ¬(¬(A)) == ¬(¬(A))
-  # @test implies((A∧B), A) == A∨B
+  @test dom(hom(~foldl(∨, so) ∨ foldl(∨, so))) == pn[2]
+  A,B = so
+  @test implies(A, B) == ¬(A) ∨ B
+  @test ¬(A ∧ B) == ¬(A) ∨ ¬(B)
+  @test ¬(A ∧ B) != ¬(A) ∨ B
+  # modus ponens holds only up to inclusion, not equality.
+  @test length(compare(A ∧ implies(A,B), B)) > 0
+  # this is an equivalent check because X ∧ B == X iff X ↪ B 
+  @test (A ∧ implies(A,B)) == B ∧ (A ∧ implies(A,B))
+  @test length(compare(B ∧ implies(B,A), A)) > 0
+  @test (B ∧ implies(B,A)) == A ∧ (B ∧ implies(B,A))
+  @test ¬(A ∨ (¬B)) == ¬(A) ∧ ¬(¬(B))
+  @test ¬(A ∨ (¬B)) == ¬(A) ∧ B
+  @test A ∧ ¬(¬(A)) == ¬(¬(A))
+  @test implies((A∧B), A) == A∨B
 end
 
 end
