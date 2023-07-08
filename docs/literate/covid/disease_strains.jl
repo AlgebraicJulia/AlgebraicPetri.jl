@@ -91,10 +91,10 @@ typed_product(sird_model, vax_model(2)) |> dom |> to_graphviz
 # This model can be typed  the `infectious_ontology`.
 # We add reflexives of `:disease` and `:strata` for the strain states but only `:strata` for the uninfected state.
 
-function strain_model(n)
+function strain_model′(n)
   uwd = RelationalPrograms.TypedUnnamedRelationDiagram{Symbol,Symbol,Symbol}()
   junction = :Uninfected
-  junctions[junction] = add_junction!(uwd, :Pop, variable=junction)
+  junctions = Dict(junction => add_junction!(uwd, :Pop, variable=junction))
   for i in 1:n  
     junction = Symbol("Strain$(i)")
     junctions[junction] = add_junction!(uwd, :Pop, variable=junction)
@@ -111,11 +111,11 @@ function strain_model(n)
   add_reflexives(act, vcat([[:strata]],repeat([[:disease,:strata]], n)), infectious_ontology)
 end
 
-to_graphviz(dom(strain_model(2)))
+to_graphviz(dom(strain_model′(2)))
 
 # ## Stratify the SIRD model for two strains
 
-typed_product(sird_model, strain_model(2)) |> dom |> to_graphviz
+typed_product(sird_model, strain_model′(2)) |> dom |> to_graphviz
 
 # Unfortunately, stratification of these models does not produce the desired result. 
 # There are quite a few extraneous states and transitions. 
@@ -153,7 +153,7 @@ to_graphviz(dom(sird_for_strains_model))
 function strain_model(n)
   uwd = RelationalPrograms.TypedUnnamedRelationDiagram{Symbol,Symbol,Symbol}()
   junction = :Uninfected
-  junctions[junction] = add_junction!(uwd, :Uninf, variable=junction)
+  junctions = Dict(junction => add_junction!(uwd, :Pop, variable=junction))
   for i in 1:n  
     junction = Symbol("Strain$(i)")
     junctions[junction] = add_junction!(uwd, :Inf, variable=junction)
