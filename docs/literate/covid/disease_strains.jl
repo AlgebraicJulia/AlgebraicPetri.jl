@@ -26,7 +26,7 @@ to_graphviz(infectious_ontology)
 
 # We define a simple SIRD model with reflexive transitions typed as `:strata` to indicate which states can be stratified
 # Here we add reflexive transitions to the susceptible, infected, and recovered populations but we leave out the dead
-# population because they cannote do things such as get vaccinated or travel between regions.
+# population because they cannot do things such as get vaccinated or travel between regions.
 
 sird_uwd = @relation () where {(S::Pop, I::Pop, R::Pop, D::Pop)} begin
   infect(S, I, I, I)
@@ -38,6 +38,51 @@ sird_model = oapply_typed(infectious_ontology, sird_uwd, [:infection, :recovery,
 sird_model = add_reflexives(sird_model, [[:strata], [:strata], [:strata], []], infectious_ontology)
 
 to_graphviz(dom(sird_model))
+
+# ## Define a model of multiple vaccine types
+
+# We define a model of vaccination with multiple vaccine types. 
+# In this model, vaccination transitions are typed as `:strata`.
+# Note that the `:infect` transitions must be included to enable cross-infection between different vax types.
+
+function vax_model(n)
+  uwd = RelationalPrograms.TypedUnnamedRelationDiagram{Symbol,Symbol,Symbol}()
+  junction = :Unvaxxed
+  junctions = Dict(junction => add_junction!(uwd, :Pop, variable=junction))
+  for i in 1:n  
+    junction = Symbol("VaxType$(i)")
+    junctions[junction] = add_junction!(uwd, :Pop, variable=junction)
+  end
+  strains = filter((x) -> x != Symbol("Unvaxxed"), keys(junctions))
+  for s in strains 
+    pair = (:Unvaxxed, s)
+    box = add_box!(uwd, [junction_type(uwd, junctions[p]) for p in pair], name=:strata)
+    for (rgn, port) in zip(pair, ports(uwd, box))
+      set_junction!(uwd, port, junctions[rgn])
+    end
+  end
+  tnames = [Symbol("vax_$(b)") for b in strains]
+
+  pairs = collect(Iterators.product(keys(junctions), keys(junctions)))
+  for pair in pairs
+    ins_outs = (pair[1], pair[2], pair[1], pair[2])
+    box = add_box!(uwd, [junction_type(uwd, junctions[p]) for p in ins_outs], name=:infect)
+    for (rgn, port) in zip(ins_outs, ports(uwd, box))
+      set_junction!(uwd, port, junctions[rgn])
+    end
+    push!(tnames,Symbol("inf_$(pair[1])_$(pair[2])"))
+  end
+  act = oapply_typed(infectious_ontology, uwd, tnames)
+  add_reflexives(act, repeat([[:disease]], n+1), infectious_ontology)
+end
+
+to_graphviz(dom(vax_model(2)))
+
+# ## Stratify the SIRD model with vaccinations for two vaccine types
+
+# We can now stratify the two typed models. 
+
+typed_product(sird_model, vax_model(2)) |> dom |> to_graphviz
 
 # ## Define a multi-strain model
 
@@ -152,31 +197,7 @@ strain_ont_uwd = @relation () where {(Uninf::Pop, Inf::Pop)} begin
 end
 strain_ont_act = oapply_typed(infectious_ontology,strain_ont_uwd,[:infect,:disease,:strataI,:strataU])
 
-
-# ### Vaccine model
-
-vax_uwd = @relation () where {(UV::Pop, V::Pop)} begin
-  strata(UV, V)
-  infect(V, V, V, V)
-  infect(V, UV, V, UV)
-  infect(UV, V, UV, V)
-  infect(UV, UV, UV, UV)
-end
-vax_model = oapply_typed(infectious_ontology, vax_uwd, [:vax, :infect_vv, :infect_uv, :infect_vu, :infect_uu])
-vax_model = add_reflexives(vax_model, [[:disease], [:disease]], infectious_ontology)
-
-to_graphviz(dom(vax_model))
-
-# Stratify our SIRD model on this vaccine model to get a model of SIRD with a vaccination rate:
-
-typed_product(sird_model, vax_model) |> dom |> to_graphviz
-
-
-# Stratify our SIRD model on this mask + vaccine model to get a model of SIRD with a vaccination rate and masking policies:
-
-typed_product(sird_model, mask_vax_model) |> dom |> to_graphviz
-
-# ## Define geographic models
+# ### Define geographic models
 
 # ### Travel model between $N$ regions
 
@@ -232,16 +253,6 @@ to_graphviz(dom(simple_trip_model))
 typed_product(sird_model, simple_trip_model) |> dom |> to_graphviz
 
 
-
 test = typed_product(sird_for_strains_model, strain_model(2))
 test2 = typed_product(compose(test,strain_ont_act),simple_trip_model)
-
-# ## Stratification of COVID models
-
-# we set up a simple helper function to connect the undirected wiring diagrams to our
-# infectious disease type system and add the necessary reflexive transitions for stratification.
-function oapply_mira_model(uwd) 
-  model = oapply_typed(infectious_ontology, uwd, [Symbol("t$(n)") for n in 1:nboxes(uwd)])
-  add_reflexives(model, [repeat([[:strata]], njunctions(uwd)-3)..., [], [:strata],[]], infectious_ontology)
-end
 
