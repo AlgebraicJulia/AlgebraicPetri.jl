@@ -266,6 +266,94 @@ to_graphviz(dom(sird_strain_trip))
 
 # ## Define a multi-strain SIRD model with vaccination by multiple vaccine types
 
+# We can similarly stratify the multi-strain SIRD model with the multi-vax model.
+
 sird_strain_vax = typed_product(sird_strain_retyped,vax_model(2))
 
 to_graphviz(dom(sird_strain_vax))
+
+# ## Re-stratify the multi-strain multi-vax SIRD model with the simple trip model
+
+# If we would like to re-stratify our SIRD-strain-vax model with the simple trip model, we again face a difficulty.
+# Both the "vaccination" transitions of the first model and the "travel" transitions of the second 
+# are currently typed to the `:strata` transition of the `infectious_ontology` type system.
+# To appropriately stratify, we need an additional "strata" transition to distinguish 
+# between the two types of transitions. 
+# We can again use post-compostion to overcome the difficulty.
+
+# ### Define an augmented version of the `infectious_ontology` type system with an additional "strata" transition
+
+const aug_inf_ontology = LabelledPetriNet(
+  [:nPop],
+  :ninfect => ((:nPop, :nPop) => (:nPop, :nPop)),
+  :ndisease => (:nPop => :nPop),
+  :nstrata => (:nPop => :nPop),
+  :nstrata2 => (:nPop => :nPop)
+)
+
+to_graphviz(aug_inf_ontology)
+
+# ### Define morphisms from the original type system to the new augmented type system
+
+# We form one morphism that maps the `:strata` transition to `:nstrata`.
+# This morphism will serve to re-type the SIRD-strain-vax model.
+
+function retype_inf_ont(strata_map)
+  uwd = RelationalPrograms.TypedUnnamedRelationDiagram{Symbol,Symbol,Symbol}()
+  junction = :Pop
+  junctions = Dict(junction => add_junction!(uwd, :nPop, variable=junction))
+  
+  boxes = [:ninfect, :ndisease, strata_map]
+  for bname in boxes
+    if bname == :ninfect
+      pair = (:Pop, :Pop, :Pop, :Pop)
+    else 
+      pair = (:Pop, :Pop)
+    end
+    box = add_box!(uwd, [junction_type(uwd, junctions[p]) for p in pair], name=bname)
+    for (rgn, port) in zip(pair, ports(uwd, box))
+      set_junction!(uwd, port, junctions[rgn])
+    end
+  end
+
+  act = oapply_typed(aug_inf_ontology, uwd, [:infect, :disease, :strata])
+end
+
+inf_ont_act = retype_inf_ont(:nstrata)
+
+to_graphviz(inf_ont_act)
+
+# We form another morphism that maps the `:strata` transition to `:nstrata2`.
+# This morphism will serve to re-type the simple trip model.
+
+rgn_ont_act = retype_inf_ont(:nstrata2)
+
+to_graphviz(rgn_ont_act)
+
+# ### Add reflexive transitions
+
+# To finish preparing for stratification, we need to add the new reflexive transitions to the component models.
+# To the SIRD-strain-vax model, we add an `:nstrata2` tranisiton to each state that does not represent 
+# a portion of the population that is deceased (because deceased individuals cannot travel). 
+
+sird_strain_vax_retyped = flatten_labels(compose(sird_strain_vax,inf_ont_act))
+reflx = [[:nstrata2]]
+for ii in 2:ns(dom(sird_strain_vax_retyped))
+  if split(String(dom(sird_strain_vax_retyped)[ii,:sname]),"_")[1] == "D" 
+    push!(reflx,[])
+  else
+    push!(reflx,[:nstrata2])  
+  end
+end
+aug_sird_strain_vax = add_reflexives(sird_strain_vax_retyped, reflx, aug_inf_ontology);
+
+# To the simple trip model, we add an `:nstrata` tranisiton for each state.
+
+simple_trip_retyped = flatten_labels(compose(simple_trip_model,rgn_ont_act))
+aug_trip = add_reflexives(simple_trip_retyped, repeat([[:nstrata]],ns(dom(simple_trip_retyped))), aug_inf_ontology);
+
+# ### Stratify the SIRD-strain-vax and simple trip models
+
+sird_strain_vax_trip = typed_product([aug_sird_strain_vax,aug_trip])
+
+to_graphviz(dom(sird_strain_vax_trip))
