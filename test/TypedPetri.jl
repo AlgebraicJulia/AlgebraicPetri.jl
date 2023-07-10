@@ -14,7 +14,7 @@ const infectious_ontology = LabelledPetriNet(
   :strata=>(:Pop=>:Pop)
 )
 
-sird_uwd = @relation () where (S::Pop, I::Pop, R::Pop, D::Pop) begin
+sird_uwd = @relation (S,I,R,D) where (S::Pop, I::Pop, R::Pop, D::Pop) begin
   infect(S,I,I,I) # inf
   disease(I,R) # recover
   disease(I,D) # die
@@ -35,7 +35,7 @@ typed_sird = add_params(
 
 # SIRD-with-quarantine model.
 
-quarantine_uwd = @relation () where (Q::Pop, NQ::Pop) begin
+quarantine_uwd = @relation (Q,NQ) where (Q::Pop, NQ::Pop) begin
   strata(Q,NQ) # enter quarantine
   strata(NQ,Q) # exit quarantine
 end

@@ -25,7 +25,7 @@ to_graphviz(infectious_ontology)
 # Here we add reflexive transitions to the susceptible, infected, and recovered populations but we leave out the dead
 # population because they cannote do things such as get vaccinated or travel between regions.
 
-sird_uwd = @relation () where {(S::Pop, I::Pop, R::Pop, D::Pop)} begin
+sird_uwd = @relation (S,I,R,D) where (S::Pop, I::Pop, R::Pop, D::Pop) begin
   infect(S, I, I, I)
   disease(I, R)
   disease(I, D)
@@ -40,7 +40,7 @@ to_graphviz(dom(sird_model))
 
 # ### Masking model
 
-masking_uwd = @relation () where {(M::Pop, UM::Pop)} begin
+masking_uwd = @relation (M,UM) where (M::Pop, UM::Pop) begin
   disease(M, UM)
   disease(UM, M)
   infect(M, UM, M, UM)
@@ -57,7 +57,7 @@ typed_product(sird_model, mask_model) |> dom |> to_graphviz
 
 # ### Vaccine model
 
-vax_uwd = @relation () where {(UV::Pop, V::Pop)} begin
+vax_uwd = @relation (UV,V) where (UV::Pop, V::Pop) begin
   strata(UV, V)
   infect(V, V, V, V)
   infect(V, UV, V, UV)
@@ -75,7 +75,7 @@ typed_product(sird_model, vax_model) |> dom |> to_graphviz
 
 # ### Mask-Vax Model
 
-mask_vax_uwd = @relation () where {(UV_UM::Pop, UV_M::Pop, V_UM::Pop, V_M::Pop)} begin
+mask_vax_uwd = @relation (UV_UM,UV_M,V_UM,V_M) where (UV_UM::Pop, UV_M::Pop, V_UM::Pop, V_M::Pop) begin
   strata(UV_UM, UV_M)
   strata(UV_M, UV_UM)
   strata(V_UM, V_M)
@@ -113,11 +113,13 @@ typed_product(sird_model, mask_vax_model) |> dom |> to_graphviz
 # to infect other people in the same region.
 
 function travel_model(n)
-  uwd = RelationalPrograms.TypedUnnamedRelationDiagram{Symbol,Symbol,Symbol}()
+  uwd = RelationDiagram(repeat([:Pop], n))
   junctions = Dict(begin
-    junction = Symbol("Region$(i)")
-    junction => add_junction!(uwd, :Pop, variable=junction)
-  end for i in 1:n)
+    variable = Symbol("Region$(i)")
+    junction = add_junction!(uwd, :Pop, variable=variable)
+    set_junction!(uwd, port, junction, outer=true)
+    variable => junction
+  end for (i, port) in enumerate(ports(uwd, outer=true)))
 
   pairs = filter(x -> first(x) != last(x), collect(Iterators.product(keys(junctions), keys(junctions))))
   for pair in pairs
@@ -172,7 +174,7 @@ end
 #
 # BIOMD0000000955_miranet
 
-m1_model = (@relation () where {(S::Pop, I::Pop, D::Pop, A::Pop, R::Pop, T::Pop, H::Pop, E::Pop)} begin
+m1_model = (@relation (S,I,D,A,R,T,H,E) where (S::Pop, I::Pop, D::Pop, A::Pop, R::Pop, T::Pop, H::Pop, E::Pop) begin
   infect(S, D, I, D)
   infect(S, A, I, A)
   infect(S, R, I, R)
@@ -197,7 +199,7 @@ to_graphviz(dom(m1_model))
 #
 # BIOMD0000000960_miranet
 
-m2_model = (@relation () where {(S::Pop, E::Pop, I::Pop, A::Pop, H::Pop, R::Pop, D::Pop)} begin
+m2_model = (@relation (S,E,I,A,H,R,D) where (S::Pop, E::Pop, I::Pop, A::Pop, H::Pop, R::Pop, D::Pop) begin
   infect(S, I, E, I)
   infect(S, A, E, A)
   infect(S, H, E, H)
@@ -218,7 +220,7 @@ to_graphviz(dom(m2_model))
 #
 # BIOMD0000000983_miranet
 
-m3_model = (@relation () where {(S::Pop, E::Pop, Iu::Pop, Ir::Pop, Q::Pop, R::Pop, D::Pop)} begin
+m3_model = (@relation (S,E,Iu,Ir,Q,R,D) where (S::Pop, E::Pop, Iu::Pop, Ir::Pop, Q::Pop, R::Pop, D::Pop) begin
   infect(S, Ir, E, Ir)
   infect(S, Iu, E, Iu)
   infect(S, Ir, Q, Ir)

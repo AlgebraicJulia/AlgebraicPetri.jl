@@ -63,6 +63,8 @@ colimiting the transitions together, and returns the ACSetTransformation
 from that Petri net to the type system.
 """
 function oapply_typed(type_system::LabelledPetriNet, uwd, tnames::Vector{Symbol})
+  junction(uwd, outer=true) == junctions(uwd) ||
+    error("Outer ports of UWD must coincide with junctions in `oapply_typed`")
   type_system′ = PetriNet(type_system)
   prim_cospan_data = Dict(
     tname(type_system, t) => prim_cospan(type_system′, t)
@@ -74,12 +76,16 @@ function oapply_typed(type_system::LabelledPetriNet, uwd, tnames::Vector{Symbol}
     colim,
     Multicospan(
       type_system′,
-      [prim_cospan_data[subpart(uwd, b, :name)][2] for b in 1:nboxes(uwd)]
+      [prim_cospan_data[uwd[b, :name]][2] for b in boxes(uwd)]
     )
   )
-  labelled_petri = LabelledPetriNet(unlabelled_map.dom, uwd[:variable], tnames)
+  state_labels = Vector{Symbol}(undef, njunctions(uwd))
+  for (j, leg) in zip(junctions(uwd), legs(petri))
+    state_labels[only(collect(leg[:S]))] = uwd[j, :variable]
+  end
+  labelled_petri = LabelledPetriNet(dom(unlabelled_map), state_labels, tnames)
   LooseACSetTransformation(
-    unlabelled_map.components,
+    components(unlabelled_map),
     (Name=x->nothing,),
     labelled_petri,
     type_system
