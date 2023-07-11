@@ -63,8 +63,13 @@ colimiting the transitions together, and returns the ACSetTransformation
 from that Petri net to the type system.
 """
 function oapply_typed(type_system::LabelledPetriNet, uwd, tnames::Vector{Symbol})
-  junction(uwd, outer=true) == junctions(uwd) ||
-    error("Outer ports of UWD must coincide with junctions in `oapply_typed`")
+  if junction(uwd, outer=true) != junctions(uwd)
+    # XXX: This could be considered a user error, but for the sake of backwards
+    # compatibility, we will fix it for them.
+    uwd = copy(uwd)
+    rem_parts!(uwd, :OuterPort, parts(uwd, :OuterPort))
+    add_parts!(uwd, :OuterPort, njunctions(uwd), outer_junction=junctions(uwd))
+  end
   type_system′ = PetriNet(type_system)
   prim_cospan_data = Dict(
     tname(type_system, t) => prim_cospan(type_system′, t)
