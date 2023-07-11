@@ -25,6 +25,15 @@ typed_sird_no_params = oapply_typed(infectious_ontology, sird_uwd,
 @test ns(dom(typed_sird_no_params)) == 4
 @test nt(dom(typed_sird_no_params)) == 3
 
+# Backwards compatibility: allow UWDs with no outer ports.
+sird_uwd_no_outer = @relation () where (S::Pop, I::Pop, R::Pop, D::Pop) begin
+  infect(S,I,I,I) # inf
+  disease(I,R) # recover
+  disease(I,D) # die
+end
+@test oapply_typed(infectious_ontology, sird_uwd_no_outer,
+                   [:inf, :recover, :die]) == typed_sird_no_params
+
 typed_sird = add_params(
   oapply_typed(infectious_ontology, sird_uwd, [:inf, :recover, :die]),
   Dict(:S => 1.0, :I => 1.0, :R => 0.0, :D => 0.0),
