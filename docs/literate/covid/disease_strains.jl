@@ -28,7 +28,7 @@ to_graphviz(infectious_ontology)
 # Here we add reflexive transitions to the susceptible, infected, and recovered populations but we leave out the dead
 # population because they cannot do things such as get vaccinated or travel between regions.
 
-sird_uwd = @relation () where {(S::Pop, I::Pop, R::Pop, D::Pop)} begin
+sird_uwd = @relation (S,I,R,D) where (S::Pop, I::Pop, R::Pop, D::Pop) begin
   infect(S, I, I, I)
   disease(I, R)
   disease(I, D)
@@ -46,13 +46,21 @@ to_graphviz(dom(sird_model))
 # Note that the `:infect` transitions must be included to enable cross-infection between different vax types.
 
 function vax_model(n)
-  uwd = RelationalPrograms.TypedUnnamedRelationDiagram{Symbol,Symbol,Symbol}()
-  junction = :Unvaxxed
-  junctions = Dict(junction => add_junction!(uwd, :Pop, variable=junction))
+  uwd = RelationDiagram(repeat([:Pop], n+1))
+
+  variable = :Unvaxxed
+  junction = add_junction!(uwd, :Pop, variable=variable)
+  port = ports(uwd, outer=true)[1]
+  set_junction!(uwd, port, junction, outer=true)
+  junctions = Dict(variable => junction)
   for i in 1:n  
-    junction = Symbol("VaxType$(i)")
-    junctions[junction] = add_junction!(uwd, :Pop, variable=junction)
+    variable = Symbol("VaxType$(i)")
+    junction = add_junction!(uwd, :Pop, variable=variable)
+    port = ports(uwd, outer=true)[i+1]
+    set_junction!(uwd, port, junction, outer=true)
+    junctions[variable] = junction
   end
+
   strains = filter((x) -> x != Symbol("Unvaxxed"), keys(junctions))
   for s in strains 
     pair = (:Unvaxxed, s)
@@ -92,12 +100,18 @@ typed_product(sird_model, vax_model(2)) |> dom |> to_graphviz
 # We add reflexives of `:disease` and `:strata` for the strain states but only `:strata` for the uninfected state.
 
 function strain_model′(n)
-  uwd = RelationalPrograms.TypedUnnamedRelationDiagram{Symbol,Symbol,Symbol}()
-  junction = :Uninfected
-  junctions = Dict(junction => add_junction!(uwd, :Pop, variable=junction))
+  uwd = RelationDiagram(repeat([:Pop], n+1))
+  variable = :Uninfected
+  junction = add_junction!(uwd, :Pop, variable=variable)
+  port = ports(uwd, outer=true)[1]
+  set_junction!(uwd, port, junction, outer=true)
+  junctions = Dict(variable => junction)
   for i in 1:n  
-    junction = Symbol("Strain$(i)")
-    junctions[junction] = add_junction!(uwd, :Pop, variable=junction)
+    variable = Symbol("Strain$(i)")
+    junction = add_junction!(uwd, :Pop, variable=variable)
+    port = ports(uwd, outer=true)[i+1]
+    set_junction!(uwd, port, junction, outer=true)
+    junctions[variable] = junction
   end
   strains = filter((x) -> x != Symbol("Uninfected"), keys(junctions))
   for s in strains 
@@ -140,7 +154,7 @@ const strain_ontology = LabelledPetriNet(
 to_graphviz(strain_ontology)
 
 # We now reform the SIRD model using the new type system. 
-sird_for_strains_uwd = @relation () where {(S::Uninf, I::Inf, R::Inf, D::Inf)} begin
+sird_for_strains_uwd = @relation (S,I,R,D) where (S::Uninf, I::Inf, R::Inf, D::Inf) begin
   infect(S, I, I, I)
   disease(I, R)
   disease(I, D)
@@ -153,12 +167,18 @@ to_graphviz(dom(sird_for_strains_model))
 # And similarly reform the multi-strain model.
 
 function strain_model(n)
-  uwd = RelationalPrograms.TypedUnnamedRelationDiagram{Symbol,Symbol,Symbol}()
-  junction = :Uninfected
-  junctions = Dict(junction => add_junction!(uwd, :Pop, variable=junction))
+  uwd = RelationDiagram(vcat([:Uninf],repeat([:Inf], n)))
+  variable = :Uninfected
+  junction = add_junction!(uwd, :Uninf, variable=variable)
+  port = ports(uwd, outer=true)[1]
+  set_junction!(uwd, port, junction, outer=true)
+  junctions = Dict(variable => junction)
   for i in 1:n  
-    junction = Symbol("Strain$(i)")
-    junctions[junction] = add_junction!(uwd, :Inf, variable=junction)
+    variable = Symbol("Strain$(i)")
+    junction = add_junction!(uwd, :Inf, variable=variable)
+    port = ports(uwd, outer=true)[i+1]
+    set_junction!(uwd, port, junction, outer=true)
+    junctions[variable] = junction
   end
   strains = filter((x) -> x != Symbol("Uninfected"), keys(junctions))
   for s in strains 
@@ -191,7 +211,7 @@ to_graphviz(dom(sird_strain))
 
 # ### Morphism from `strain_ontology` to `infectious_ontology`
 
-strain_ont_uwd = @relation () where {(Uninf::Pop, Inf::Pop)} begin
+strain_ont_uwd = @relation (Uninf,Inf) where (Uninf::Pop, Inf::Pop) begin
   infect(Uninf, Inf, Inf, Inf)
   disease(Inf, Inf)
   strata(Inf, Inf)
@@ -211,12 +231,14 @@ to_graphviz(strain_ont_act)
 # to infect other people in the same region.
 
 function travel_model(n)
-  uwd = RelationalPrograms.TypedUnnamedRelationDiagram{Symbol,Symbol,Symbol}()
+  uwd = RelationDiagram(repeat([:Pop], n))
   junctions = Dict(begin
-    junction = Symbol("Region$(i)")
-    junction => add_junction!(uwd, :Pop, variable=junction)
-  end for i in 1:n)
-
+    variable = Symbol("Region$(i)")
+    junction = add_junction!(uwd, :Pop, variable=variable)
+    set_junction!(uwd, port, junction, outer=true)
+    variable => junction
+  end for (i, port) in enumerate(ports(uwd, outer=true)))
+  
   pairs = filter(x -> first(x) != last(x), collect(Iterators.product(keys(junctions), keys(junctions))))
   for pair in pairs
     box = add_box!(uwd, [junction_type(uwd, junctions[p]) for p in pair], name=:strata)
@@ -299,10 +321,13 @@ to_graphviz(aug_inf_ontology)
 # This morphism will serve to re-type the SIRD-strain-vax model.
 
 function retype_inf_ont(strata_map)
-  uwd = RelationalPrograms.TypedUnnamedRelationDiagram{Symbol,Symbol,Symbol}()
-  junction = :Pop
-  junctions = Dict(junction => add_junction!(uwd, :nPop, variable=junction))
-  
+  uwd = RelationDiagram([:nPop])
+  variable = :Pop
+  junction = add_junction!(uwd, :nPop, variable=variable)
+  port = ports(uwd, outer=true)[1]
+  set_junction!(uwd, port, junction, outer=true)
+  junctions = Dict(variable => junction)
+
   boxes = [:ninfect, :ndisease, strata_map]
   for bname in boxes
     if bname == :ninfect
