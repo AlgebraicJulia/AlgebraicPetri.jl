@@ -5,7 +5,7 @@ module AlgebraicPetri
 export SchPetriNet, PetriNet, OpenPetriNetOb, AbstractPetriNet,
   ns, nt, ni, no, os, ot, is, it,
   add_species!, add_transition!, add_transitions!,
-  add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs,
+  add_input!, add_inputs!, add_output!, add_outputs!, inputs, outputs, induced_subnet,
   TransitionMatrices, vectorfield, vectorfield_expr, flatten_labels,
   SchLabelledPetriNet, LabelledPetriNet, AbstractLabelledPetriNet, sname, tname, snames, tnames,
   SchReactionNet, ReactionNet, AbstractReactionNet, concentration, concentrations, rate, rates,
@@ -271,6 +271,26 @@ inputs(p::AbstractPetriNet, t) = subpart(p, incident(p, t, :it), :is)
 """ Output relationships for a transition
 """
 outputs(p::AbstractPetriNet, t) = subpart(p, incident(p, t, :ot), :os)
+
+""" induced_subnet(p::T, t)
+
+Return the induced subnet consisting of the transition `t`, all input
+places and input arcs, and all output places and output arcs. The returned
+object will be of the same type as `p`.
+"""
+function induced_subnet(p::T, t) where {T <: AbstractPetriNet}
+  @assert t ∈ parts(p, :T)
+
+  input_arcs = incident(p, t, :it)
+  output_arcs = incident(p, t, :ot)
+
+  input_places = subpart(p, input_arcs, :is)
+  output_places = subpart(p, output_arcs, :os)
+
+  subnet = T()
+  copy_parts!(subnet, p, T=t, I=input_arcs, O=output_arcs, S=union(input_places, output_places))
+  return subnet
+end
 
 valueat(x::Number, u, t) = x
 valueat(f::Function, u, t) =
