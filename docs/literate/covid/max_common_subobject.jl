@@ -45,7 +45,8 @@ to_graphviz(seird)
 
 # ### Calculate the Maximum Common C-Set
 
-sub, morphisms = maximum_common_subobject(sir, sird, seir, seird) |> collect |> first
+sub, overlaps = maximum_common_subobject(sir, sird, seir, seird) |> first
+morphisms = legs(overlaps[1])
 
 to_graphviz(sub)
 
@@ -53,16 +54,16 @@ to_graphviz(sub)
 
 # #### SIR
 
-first(morphisms[1])(sub) |> to_graphviz
+morphisms[1](sub) |> to_graphviz
 
 # #### SIRD
 
-first(morphisms[2])(sub) |> to_graphviz
+morphisms[2](sub) |> to_graphviz
 
 # #### SEIR
 
-first(morphisms[3])(sub) |> to_graphviz
+morphisms[3](sub) |> to_graphviz
 
 # #### SEIRD
 
-first(morphisms[4])(sub) |> to_graphviz
+morphisms[4](sub) |> to_graphviz
