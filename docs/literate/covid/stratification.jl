@@ -262,4 +262,4 @@ Markdown.parse(join(table, "\n")) |> DisplayAs.HTML
 # number of states and transitions increase polynomially which causes the execution time
 # for calculating the final stratified model to also increase polynomially.
 #
-# ![Runtime vs. Number of Georgraphic Regions](../../../assets/runtime_vs_num_rgns.svg)
+# ![Runtime vs. Number of Georgraphic Regions](../../assets/runtime_vs_num_rgns.svg)
