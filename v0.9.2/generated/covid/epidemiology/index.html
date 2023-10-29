@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Basic Epidemiology Models · AlgebraicPetri.jl</title><meta name="title" content="Basic Epidemiology Models · AlgebraicPetri.jl"/><meta property="og:title" content="Basic Epidemiology Models · AlgebraicPetri.jl"/><meta property="twitter:title" content="Basic Epidemiology Models · AlgebraicPetri.jl"/><meta name="description" content="Documentation for AlgebraicPetri.jl."/><meta property="og:description" content="Documentation for AlgebraicPetri.jl."/><meta property="twitter:description" content="Documentation for AlgebraicPetri.jl."/><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../search_index.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script><script src="../../../assets/analytics.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">AlgebraicPetri.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../../">AlgebraicPetri.jl</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../predation/lotka-volterra/">Lotka-Volterra Model</a></li><li class="is-active"><a class="tocitem" href>Basic Epidemiology Models</a></li><li><a class="tocitem" href="../../enzymes/enzyme_reactions/">Cathepsin Enzyme Reactions</a></li><li><a class="tocitem" href="../bilayerconversion/">Converting Models to Computation Graphs</a></li><li><a class="tocitem" href="../stratification/">Stratification of COVID Models</a></li><li><a class="tocitem" href="../disease_strains/">Multiple-Strain Model of COVID and Vaccines</a></li><li><a class="tocitem" href="../max_common_subobject/">Maximum Common Sub C-Set</a></li></ul></li><li><a class="tocitem" href="../../../api/">Library Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Basic Epidemiology Models</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Basic Epidemiology Models</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/main/docs/literate/covid/epidemiology.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="epidemiology_example"><a class="docs-heading-anchor" href="#epidemiology_example">Basic Epidemiology Models</a><a id="epidemiology_example-1"></a><a class="docs-heading-anchor-permalink" href="#epidemiology_example" title="Permalink"></a></h1><p><a href="https://nbviewer.jupyter.org/github/AlgebraicJulia/AlgebraicPetri.jl/blob/gh-pages/v0.9.2/generated/covid/epidemiology.ipynb"><img src="https://img.shields.io/badge/show-nbviewer-579ACA.svg" alt/></a></p><pre><code class="language-julia hljs">using AlgebraicPetri
+using AlgebraicPetri.Epidemiology
+
+using LabelledArrays
+using OrdinaryDiffEq
+using Plots
+
+using Catlab
+using Catlab.Graphics
+using Catlab.WiringDiagrams
+using Catlab.CategoricalAlgebra
+using Catlab.Programs.RelationalPrograms
+
+display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=&gt;&quot;.75&quot;));</code></pre><h4 id="SIR-Model:"><a class="docs-heading-anchor" href="#SIR-Model:">SIR Model:</a><a id="SIR-Model:-1"></a><a class="docs-heading-anchor-permalink" href="#SIR-Model:" title="Permalink"></a></h4><p>define model</p><pre><code class="language-julia hljs">sir = @relation (s,i,r) begin
+    infection(s,i)
+    recovery(i,r)
+end
+display_uwd(sir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="276pt" height="198pt"
+ viewBox="0.00 0.00 275.96 197.57" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 193.57)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-193.57 271.96,-193.57 271.96,4 -4,4"/>
+<!-- n1 -->
+<g id="box1" class="node">
+<title>n1</title>
+<ellipse fill="none" stroke="black" cx="67.41" cy="-88.05" rx="41.59" ry="18"/>
+<text text-anchor="middle" x="67.41" y="-84.35" font-family="Serif" font-size="14.00">infection</text>
+</g>
+<!-- n6 -->
+<!-- junction -->
+<g id="junction1" class="node">
+<title>n6</title>
+<ellipse fill="black" stroke="black" cx="32.51" cy="-44.8" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="26.01" y="-51.1" font-family="Serif" font-size="14.00">s</text>
+</g>
+<!-- n1&%2345;&%2345;n6 -->
+<g id="edge1" class="edge">
+<title>n1&%2345;&%2345;n6</title>
+<path fill="none" stroke="black" d="M53.62,-70.96C46.3,-61.89 38.08,-51.71 34.43,-47.19"/>
+</g>
+<!-- n7 -->
+<!-- junction -->
+<g id="junction2" class="node">
+<title>n7</title>
+<ellipse fill="black" stroke="black" cx="100.38" cy="-136.7" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="95.38" y="-143" font-family="Serif" font-size="14.00">i</text>
+</g>
+<!-- n1&%2345;&%2345;n7 -->
+<g id="edge3" class="edge">
+<title>n1&%2345;&%2345;n7</title>
+<path fill="none" stroke="black" d="M79.13,-105.34C86.53,-116.27 95.34,-129.26 98.84,-134.43"/>
+</g>
+<!-- n2 -->
+<g id="box2" class="node">
+<title>n2</title>
+<ellipse fill="none" stroke="black" cx="159.11" cy="-139.55" rx="41.59" ry="18"/>
+<text text-anchor="middle" x="159.11" y="-135.85" font-family="Serif" font-size="14.00">recovery</text>
+</g>
+<!-- n2&%2345;&%2345;n7 -->
+<g id="edge4" class="edge">
+<title>n2&%2345;&%2345;n7</title>
+<path fill="none" stroke="black" d="M117.37,-137.53C111.39,-137.24 106.25,-136.99 103.24,-136.84"/>
+</g>
+<!-- n8 -->
+<!-- junction -->
+<g id="junction3" class="node">
+<title>n8</title>
+<ellipse fill="black" stroke="black" cx="214.34" cy="-146.01" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="208.34" y="-152.31" font-family="Serif" font-size="14.00">r</text>
+</g>
+<!-- n2&%2345;&%2345;n8 -->
+<g id="edge6" class="edge">
+<title>n2&%2345;&%2345;n8</title>
+<path fill="none" stroke="black" d="M199.54,-144.28C204.54,-144.86 208.82,-145.36 211.48,-145.67"/>
+</g>
+<!-- n3 -->
+<!-- n3&%2345;&%2345;n6 -->
+<g id="edge2" class="edge">
+<title>n3&%2345;&%2345;n6</title>
+<path fill="none" stroke="black" d="M1.06,-1.27C4.71,-6.32 25.31,-34.84 31.03,-42.76"/>
+</g>
+<!-- n4 -->
+<!-- n4&%2345;&%2345;n7 -->
+<g id="edge5" class="edge">
+<title>n4&%2345;&%2345;n7</title>
+<path fill="none" stroke="black" d="M71.1,-188.48C73.92,-183.49 93.87,-148.22 99.12,-138.94"/>
+</g>
+<!-- n5 -->
+<!-- n5&%2345;&%2345;n8 -->
+<g id="edge7" class="edge">
+<title>n5&%2345;&%2345;n8</title>
+<path fill="none" stroke="black" d="M266.87,-158.8C261.85,-157.58 226.67,-149.01 216.87,-146.62"/>
+</g>
+</g>
+</svg>
+'/><pre><code class="language-julia hljs">p_sir = apex(oapply_epi(sir))
+to_graphviz(p_sir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="375pt" height="47pt"
+ viewBox="0.00 0.00 375.00 47.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 43)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-43 371,-43 371,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="18" cy="-19.5" rx="18" ry="18"/>
+<text text-anchor="middle" x="18" y="-15.8" font-family="Times,serif" font-size="14.00">S</text>
+</g>
+<!-- n4 -->
+<g id="node4" class="node">
+<title>n4</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="118,-37.5 82,-37.5 82,-1.5 118,-1.5 118,-37.5"/>
+<text text-anchor="middle" x="100" y="-15.8" font-family="Times,serif" font-size="14.00">inf</text>
+</g>
+<!-- n1&%2345;&gt;n4 -->
+<g id="edge5" class="edge">
+<title>n1&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M36.36,-19.5C46.7,-19.5 60.06,-19.5 71.78,-19.5"/>
+<polygon fill="black" stroke="black" points="71.95,-23 81.95,-19.5 71.95,-16 71.95,-23"/>
+<text text-anchor="middle" x="59" y="-23.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="182" cy="-19.5" rx="18" ry="18"/>
+<text text-anchor="middle" x="182" y="-15.8" font-family="Times,serif" font-size="14.00">I</text>
+</g>
+<!-- n2&%2345;&gt;n4 -->
+<g id="edge1" class="edge">
+<title>n2&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M166.28,-9.96C160.25,-6.58 153.04,-3.2 146,-1.5 139.92,-0.03 133.58,-0.93 127.64,-2.95"/>
+<polygon fill="black" stroke="black" points="125.85,0.09 118.14,-7.18 128.7,-6.31 125.85,0.09"/>
+<text text-anchor="middle" x="141" y="-5.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n5 -->
+<g id="node5" class="node">
+<title>n5</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="285,-39 246,-39 246,0 285,0 285,-39"/>
+<text text-anchor="middle" x="265.5" y="-15.8" font-family="Times,serif" font-size="14.00">rec</text>
+</g>
+<!-- n2&%2345;&gt;n5 -->
+<g id="edge2" class="edge">
+<title>n2&%2345;&gt;n5</title>
+<path fill="none" stroke="black" d="M200.28,-19.5C210.52,-19.5 223.74,-19.5 235.53,-19.5"/>
+<polygon fill="black" stroke="black" points="235.82,-23 245.82,-19.5 235.82,-16 235.82,-23"/>
+<text text-anchor="middle" x="223" y="-23.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n3 -->
+<g id="node3" class="node">
+<title>n3</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="349" cy="-19.5" rx="18" ry="18"/>
+<text text-anchor="middle" x="349" y="-15.8" font-family="Times,serif" font-size="14.00">R</text>
+</g>
+<!-- n4&%2345;&gt;n2 -->
+<g id="edge3" class="edge">
+<title>n4&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M118.36,-19.5C128.7,-19.5 142.06,-19.5 153.78,-19.5"/>
+<polygon fill="black" stroke="black" points="153.95,-23 163.95,-19.5 153.95,-16 153.95,-23"/>
+<text text-anchor="middle" x="141" y="-23.3" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n5&%2345;&gt;n3 -->
+<g id="edge4" class="edge">
+<title>n5&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M285.4,-19.5C295.92,-19.5 309.18,-19.5 320.79,-19.5"/>
+<polygon fill="black" stroke="black" points="320.87,-23 330.87,-19.5 320.87,-16 320.87,-23"/>
+<text text-anchor="middle" x="308" y="-23.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+</g>
+</svg>
+'/><p>define initial states and transition rates, then create, solve, and visualize ODE problem</p><pre><code class="language-julia hljs">u0 = LVector(S=10, I=1, R=0);
+p = LVector(inf=0.4, rec=0.4);</code></pre><p>The C-Set representation has direct support for generating a DiffEq vector field</p><pre><code class="language-julia hljs">prob = ODEProblem(vectorfield(p_sir),u0,(0.0,7.5),p);
+sol = solve(prob,Tsit5())
+
+plot(sol)</code></pre><img src="66327f40.svg" alt="Example block output"/><h4 id="SEIR-Model:"><a class="docs-heading-anchor" href="#SEIR-Model:">SEIR Model:</a><a id="SEIR-Model:-1"></a><a class="docs-heading-anchor-permalink" href="#SEIR-Model:" title="Permalink"></a></h4><p>define model</p><pre><code class="language-julia hljs">seir = @relation (s,e,i,r) begin
+    exposure(s,i,e)
+    illness(e,i)
+    recovery(i,r)
+end
+display_uwd(seir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="228pt" height="332pt"
+ viewBox="0.00 0.00 228.17 332.04" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 328.04)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-328.04 224.17,-328.04 224.17,4 -4,4"/>
+<!-- n1 -->
+<g id="box1" class="node">
+<title>n1</title>
+<ellipse fill="none" stroke="black" cx="102.18" cy="-211.61" rx="43.62" ry="18"/>
+<text text-anchor="middle" x="102.18" y="-207.91" font-family="Serif" font-size="14.00">exposure</text>
+</g>
+<!-- n8 -->
+<!-- junction -->
+<g id="junction1" class="node">
+<title>n8</title>
+<ellipse fill="black" stroke="black" cx="85.46" cy="-269.27" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="78.96" y="-275.57" font-family="Serif" font-size="14.00">s</text>
+</g>
+<!-- n1&%2345;&%2345;n8 -->
+<g id="edge1" class="edge">
+<title>n1&%2345;&%2345;n8</title>
+<path fill="none" stroke="black" d="M96.98,-229.54C93.07,-243.02 88.08,-260.24 86.21,-266.68"/>
+</g>
+<!-- n9 -->
+<!-- junction -->
+<g id="junction2" class="node">
+<title>n9</title>
+<ellipse fill="black" stroke="black" cx="162.54" cy="-197.32" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="155.54" y="-203.62" font-family="Serif" font-size="14.00">e</text>
+</g>
+<!-- n1&%2345;&%2345;n9 -->
+<g id="edge3" class="edge">
+<title>n1&%2345;&%2345;n9</title>
+<path fill="none" stroke="black" d="M140.06,-202.64C148.59,-200.62 156.24,-198.81 160.03,-197.91"/>
+</g>
+<!-- n10 -->
+<!-- junction -->
+<g id="junction3" class="node">
+<title>n10</title>
+<ellipse fill="black" stroke="black" cx="73.11" cy="-155.65" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="68.11" y="-161.95" font-family="Serif" font-size="14.00">i</text>
+</g>
+<!-- n1&%2345;&%2345;n10 -->
+<g id="edge6" class="edge">
+<title>n1&%2345;&%2345;n10</title>
+<path fill="none" stroke="black" d="M92.98,-193.9C86.19,-180.84 77.6,-164.31 74.39,-158.13"/>
+</g>
+<!-- n2 -->
+<g id="box2" class="node">
+<title>n2</title>
+<ellipse fill="none" stroke="black" cx="135.26" cy="-144.07" rx="31.58" ry="18"/>
+<text text-anchor="middle" x="135.26" y="-140.37" font-family="Serif" font-size="14.00">illness</text>
+</g>
+<!-- n2&%2345;&%2345;n9 -->
+<g id="edge4" class="edge">
+<title>n2&%2345;&%2345;n9</title>
+<path fill="none" stroke="black" d="M144.19,-161.51C150.53,-173.88 158.42,-189.28 161.36,-195.02"/>
+</g>
+<!-- n2&%2345;&%2345;n10 -->
+<g id="edge7" class="edge">
+<title>n2&%2345;&%2345;n10</title>
+<path fill="none" stroke="black" d="M104.91,-149.73C93.08,-151.93 81.1,-154.16 75.86,-155.14"/>
+</g>
+<!-- n3 -->
+<g id="box3" class="node">
+<title>n3</title>
+<ellipse fill="none" stroke="black" cx="54.04" cy="-98.06" rx="41.59" ry="18"/>
+<text text-anchor="middle" x="54.04" y="-94.36" font-family="Serif" font-size="14.00">recovery</text>
+</g>
+<!-- n3&%2345;&%2345;n10 -->
+<g id="edge8" class="edge">
+<title>n3&%2345;&%2345;n10</title>
+<path fill="none" stroke="black" d="M59.97,-115.97C64.43,-129.44 70.12,-146.64 72.25,-153.07"/>
+</g>
+<!-- n11 -->
+<!-- junction -->
+<g id="junction4" class="node">
+<title>n11</title>
+<ellipse fill="black" stroke="black" cx="31.41" cy="-46.18" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="25.41" y="-52.48" font-family="Serif" font-size="14.00">r</text>
+</g>
+<!-- n3&%2345;&%2345;n11 -->
+<g id="edge10" class="edge">
+<title>n3&%2345;&%2345;n11</title>
+<path fill="none" stroke="black" d="M46.26,-80.21C41.14,-68.48 34.96,-54.31 32.5,-48.67"/>
+</g>
+<!-- n4 -->
+<!-- n4&%2345;&%2345;n8 -->
+<g id="edge2" class="edge">
+<title>n4&%2345;&%2345;n8</title>
+<path fill="none" stroke="black" d="M70.29,-322.93C71.74,-317.81 81.9,-281.86 84.73,-271.85"/>
+</g>
+<!-- n5 -->
+<!-- n5&%2345;&%2345;n9 -->
+<g id="edge5" class="edge">
+<title>n5&%2345;&%2345;n9</title>
+<path fill="none" stroke="black" d="M219.03,-207.61C213.63,-206.63 175.79,-199.73 165.26,-197.82"/>
+</g>
+<!-- n6 -->
+<!-- n6&%2345;&%2345;n10 -->
+<g id="edge9" class="edge">
+<title>n6&%2345;&%2345;n10</title>
+<path fill="none" stroke="black" d="M14.62,-172.62C20.25,-170.99 60.1,-159.42 70.58,-156.38"/>
+</g>
+<!-- n7 -->
+<!-- n7&%2345;&%2345;n11 -->
+<g id="edge11" class="edge">
+<title>n7&%2345;&%2345;n11</title>
+<path fill="none" stroke="black" d="M0.85,-1.01C3.77,-5.33 24.24,-35.58 29.94,-44.01"/>
+</g>
+</g>
+</svg>
+'/><pre><code class="language-julia hljs">p_seir = apex(oapply_epi(seir))
+to_graphviz(p_seir)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="545pt" height="112pt"
+ viewBox="0.00 0.00 545.00 112.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 108)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-108 541,-108 541,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="18" cy="-64" rx="18" ry="18"/>
+<text text-anchor="middle" x="18" y="-60.3" font-family="Times,serif" font-size="14.00">S</text>
+</g>
+<!-- n5 -->
+<g id="node5" class="node">
+<title>n5</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="124,-85 82,-85 82,-43 124,-43 124,-85"/>
+<text text-anchor="middle" x="103" y="-60.3" font-family="Times,serif" font-size="14.00">exp</text>
+</g>
+<!-- n1&%2345;&gt;n5 -->
+<g id="edge8" class="edge">
+<title>n1&%2345;&gt;n5</title>
+<path fill="none" stroke="black" d="M36.2,-64C46.48,-64 59.84,-64 71.83,-64"/>
+<polygon fill="black" stroke="black" points="71.9,-67.5 81.9,-64 71.9,-60.5 71.9,-67.5"/>
+<text text-anchor="middle" x="59" y="-67.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="352" cy="-64" rx="18" ry="18"/>
+<text text-anchor="middle" x="352" y="-60.3" font-family="Times,serif" font-size="14.00">I</text>
+</g>
+<!-- n2&%2345;&gt;n5 -->
+<g id="edge2" class="edge">
+<title>n2&%2345;&gt;n5</title>
+<path fill="none" stroke="black" d="M333.86,-64C292.46,-64 186.58,-64 134.23,-64"/>
+<polygon fill="black" stroke="black" points="134.21,-60.5 124.21,-64 134.21,-67.5 134.21,-60.5"/>
+<text text-anchor="middle" x="229" y="-67.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n7 -->
+<g id="node7" class="node">
+<title>n7</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="455,-83.5 416,-83.5 416,-44.5 455,-44.5 455,-83.5"/>
+<text text-anchor="middle" x="435.5" y="-60.3" font-family="Times,serif" font-size="14.00">rec</text>
+</g>
+<!-- n2&%2345;&gt;n7 -->
+<g id="edge7" class="edge">
+<title>n2&%2345;&gt;n7</title>
+<path fill="none" stroke="black" d="M370.28,-64C380.52,-64 393.74,-64 405.53,-64"/>
+<polygon fill="black" stroke="black" points="405.82,-67.5 415.82,-64 405.82,-60.5 405.82,-67.5"/>
+<text text-anchor="middle" x="393" y="-67.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n3 -->
+<g id="node3" class="node">
+<title>n3</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="188" cy="-18" rx="18" ry="18"/>
+<text text-anchor="middle" x="188" y="-14.3" font-family="Times,serif" font-size="14.00">E</text>
+</g>
+<!-- n6 -->
+<g id="node6" class="node">
+<title>n6</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="288,-36 252,-36 252,0 288,0 288,-36"/>
+<text text-anchor="middle" x="270" y="-14.3" font-family="Times,serif" font-size="14.00">ill</text>
+</g>
+<!-- n3&%2345;&gt;n6 -->
+<g id="edge5" class="edge">
+<title>n3&%2345;&gt;n6</title>
+<path fill="none" stroke="black" d="M206.36,-18C216.7,-18 230.06,-18 241.78,-18"/>
+<polygon fill="black" stroke="black" points="241.95,-21.5 251.95,-18 241.95,-14.5 241.95,-21.5"/>
+<text text-anchor="middle" x="229" y="-21.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4 -->
+<g id="node4" class="node">
+<title>n4</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="519" cy="-64" rx="18" ry="18"/>
+<text text-anchor="middle" x="519" y="-60.3" font-family="Times,serif" font-size="14.00">R</text>
+</g>
+<!-- n5&%2345;&gt;n2 -->
+<g id="edge3" class="edge">
+<title>n5&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M124.16,-72.82C129.82,-74.91 136.06,-76.87 142,-78 217.96,-92.51 240.25,-93.55 316,-78 319.27,-77.33 322.63,-76.37 325.9,-75.26"/>
+<polygon fill="black" stroke="black" points="327.26,-78.49 335.34,-71.65 324.75,-71.96 327.26,-78.49"/>
+<text text-anchor="middle" x="229" y="-92.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n5&%2345;&gt;n3 -->
+<g id="edge6" class="edge">
+<title>n5&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M124.16,-46.9C129.72,-42.67 135.9,-38.38 142,-35 147.94,-31.7 154.65,-28.78 161.05,-26.34"/>
+<polygon fill="black" stroke="black" points="162.43,-29.56 170.67,-22.89 160.07,-22.97 162.43,-29.56"/>
+<text text-anchor="middle" x="147" y="-38.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n6&%2345;&gt;n2 -->
+<g id="edge4" class="edge">
+<title>n6&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M288.27,-23.03C296.91,-25.91 307.34,-29.96 316,-35 321.03,-37.92 326.07,-41.57 330.69,-45.28"/>
+<polygon fill="black" stroke="black" points="328.58,-48.08 338.47,-51.88 333.11,-42.74 328.58,-48.08"/>
+<text text-anchor="middle" x="311" y="-38.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n7&%2345;&gt;n4 -->
+<g id="edge1" class="edge">
+<title>n7&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M455.4,-64C465.92,-64 479.18,-64 490.79,-64"/>
+<polygon fill="black" stroke="black" points="490.87,-67.5 500.87,-64 490.87,-60.5 490.87,-67.5"/>
+<text text-anchor="middle" x="478" y="-67.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+</g>
+</svg>
+'/><p>define initial states and transition rates, then create, solve, and visualize ODE problem</p><pre><code class="language-julia hljs">u0 = LVector(S=10, E=1, I=0, R=0);
+p = LVector(exp=.9, ill=.2, rec=.5);
+
+prob = ODEProblem(vectorfield(p_seir),u0,(0.0,15.0),p);
+sol = solve(prob,Tsit5())
+
+plot(sol)</code></pre><img src="e2bd1784.svg" alt="Example block output"/><h4 id="SEIRD-Model:"><a class="docs-heading-anchor" href="#SEIRD-Model:">SEIRD Model:</a><a id="SEIRD-Model:-1"></a><a class="docs-heading-anchor-permalink" href="#SEIRD-Model:" title="Permalink"></a></h4><p>define model</p><pre><code class="language-julia hljs">seird = @relation (s,e,i,r,d) begin
+    exposure(s,i,e)
+    illness(e,i)
+    recovery(i,r)
+    death(i,d)
+end
+display_uwd(seird)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="267pt" height="358pt"
+ viewBox="0.00 0.00 267.42 358.44" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 354.44)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-354.44 263.42,-354.44 263.42,4 -4,4"/>
+<!-- n1 -->
+<g id="box1" class="node">
+<title>n1</title>
+<ellipse fill="none" stroke="black" cx="122.41" cy="-208.06" rx="43.62" ry="18"/>
+<text text-anchor="middle" x="122.41" y="-204.36" font-family="Serif" font-size="14.00">exposure</text>
+</g>
+<!-- n10 -->
+<!-- junction -->
+<g id="junction1" class="node">
+<title>n10</title>
+<ellipse fill="black" stroke="black" cx="197.47" cy="-213.34" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="190.97" y="-219.64" font-family="Serif" font-size="14.00">s</text>
+</g>
+<!-- n1&%2345;&%2345;n10 -->
+<g id="edge1" class="edge">
+<title>n1&%2345;&%2345;n10</title>
+<path fill="none" stroke="black" d="M165.64,-211.1C178.15,-211.98 189.8,-212.8 194.84,-213.15"/>
+</g>
+<!-- n11 -->
+<!-- junction -->
+<g id="junction2" class="node">
+<title>n11</title>
+<ellipse fill="black" stroke="black" cx="57.5" cy="-223.54" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="50.5" y="-229.84" font-family="Serif" font-size="14.00">e</text>
+</g>
+<!-- n1&%2345;&%2345;n11 -->
+<g id="edge3" class="edge">
+<title>n1&%2345;&%2345;n11</title>
+<path fill="none" stroke="black" d="M84.65,-217.07C74.17,-219.57 64.44,-221.89 60.01,-222.94"/>
+</g>
+<!-- n12 -->
+<!-- junction -->
+<g id="junction3" class="node">
+<title>n12</title>
+<ellipse fill="black" stroke="black" cx="128.07" cy="-161.11" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="123.07" y="-167.41" font-family="Serif" font-size="14.00">i</text>
+</g>
+<!-- n1&%2345;&%2345;n12 -->
+<g id="edge6" class="edge">
+<title>n1&%2345;&%2345;n12</title>
+<path fill="none" stroke="black" d="M124.58,-190.05C125.78,-180.11 127.14,-168.8 127.75,-163.77"/>
+</g>
+<!-- n2 -->
+<g id="box2" class="node">
+<title>n2</title>
+<ellipse fill="none" stroke="black" cx="63.3" cy="-169.25" rx="31.58" ry="18"/>
+<text text-anchor="middle" x="63.3" y="-165.55" font-family="Serif" font-size="14.00">illness</text>
+</g>
+<!-- n2&%2345;&%2345;n11 -->
+<g id="edge4" class="edge">
+<title>n2&%2345;&%2345;n11</title>
+<path fill="none" stroke="black" d="M61.37,-187.33C60.05,-199.67 58.43,-214.83 57.79,-220.87"/>
+</g>
+<!-- n2&%2345;&%2345;n12 -->
+<g id="edge7" class="edge">
+<title>n2&%2345;&%2345;n12</title>
+<path fill="none" stroke="black" d="M94.54,-165.32C107.23,-163.73 120.14,-162.11 125.5,-161.43"/>
+</g>
+<!-- n3 -->
+<g id="box3" class="node">
+<title>n3</title>
+<ellipse fill="none" stroke="black" cx="163.13" cy="-108.91" rx="41.59" ry="18"/>
+<text text-anchor="middle" x="163.13" y="-105.21" font-family="Serif" font-size="14.00">recovery</text>
+</g>
+<!-- n3&%2345;&%2345;n12 -->
+<g id="edge8" class="edge">
+<title>n3&%2345;&%2345;n12</title>
+<path fill="none" stroke="black" d="M151.45,-126.29C143.33,-138.39 133.3,-153.32 129.57,-158.88"/>
+</g>
+<!-- n13 -->
+<!-- junction -->
+<g id="junction4" class="node">
+<title>n13</title>
+<ellipse fill="black" stroke="black" cx="182.89" cy="-53.9" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="176.89" y="-60.2" font-family="Serif" font-size="14.00">r</text>
+</g>
+<!-- n3&%2345;&%2345;n13 -->
+<g id="edge11" class="edge">
+<title>n3&%2345;&%2345;n13</title>
+<path fill="none" stroke="black" d="M169.6,-90.9C174.19,-78.11 179.91,-62.21 182.04,-56.27"/>
+</g>
+<!-- n4 -->
+<g id="box4" class="node">
+<title>n4</title>
+<ellipse fill="none" stroke="black" cx="153.94" cy="-229.7" rx="28.69" ry="18"/>
+<text text-anchor="middle" x="153.94" y="-226" font-family="Serif" font-size="14.00">death</text>
+</g>
+<!-- n4&%2345;&%2345;n12 -->
+<g id="edge9" class="edge">
+<title>n4&%2345;&%2345;n12</title>
+<path fill="none" stroke="black" d="M147.28,-212.03C140.93,-195.21 131.92,-171.33 129.01,-163.62"/>
+</g>
+<!-- n14 -->
+<!-- junction -->
+<g id="junction5" class="node">
+<title>n14</title>
+<ellipse fill="black" stroke="black" cx="165.31" cy="-293.67" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="157.81" y="-299.97" font-family="Serif" font-size="14.00">d</text>
+</g>
+<!-- n4&%2345;&%2345;n14 -->
+<g id="edge13" class="edge">
+<title>n4&%2345;&%2345;n14</title>
+<path fill="none" stroke="black" d="M157.17,-247.86C159.9,-263.22 163.57,-283.86 164.85,-291.06"/>
+</g>
+<!-- n5 -->
+<!-- n5&%2345;&%2345;n10 -->
+<g id="edge2" class="edge">
+<title>n5&%2345;&%2345;n10</title>
+<path fill="none" stroke="black" d="M258.23,-222.54C252.38,-221.65 210.98,-215.38 200.09,-213.73"/>
+</g>
+<!-- n6 -->
+<!-- n6&%2345;&%2345;n11 -->
+<g id="edge5" class="edge">
+<title>n6&%2345;&%2345;n11</title>
+<path fill="none" stroke="black" d="M1.14,-241.08C6.57,-239.39 44.97,-227.44 55.07,-224.3"/>
+</g>
+<!-- n7 -->
+<!-- n7&%2345;&%2345;n12 -->
+<g id="edge10" class="edge">
+<title>n7&%2345;&%2345;n12</title>
+<path fill="none" stroke="black" d="M89.75,-114.63C93.41,-119.07 119.08,-150.2 126.23,-158.87"/>
+</g>
+<!-- n8 -->
+<!-- n8&%2345;&%2345;n13 -->
+<g id="edge12" class="edge">
+<title>n8&%2345;&%2345;n13</title>
+<path fill="none" stroke="black" d="M199.16,-1.1C197.61,-6.14 186.71,-41.51 183.67,-51.36"/>
+</g>
+<!-- n9 -->
+<!-- n9&%2345;&%2345;n14 -->
+<g id="edge14" class="edge">
+<title>n9&%2345;&%2345;n14</title>
+<path fill="none" stroke="black" d="M181.07,-349.31C179.57,-344 169.01,-306.72 166.07,-296.34"/>
+</g>
+</g>
+</svg>
+'/><pre><code class="language-julia hljs">p_seird = apex(oapply_epi(seird))
+to_graphviz(p_seird)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="563pt" height="125pt"
+ viewBox="0.00 0.00 563.40 124.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 120.5)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-120.5 559.4,-120.5 559.4,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="18" cy="-64" rx="18" ry="18"/>
+<text text-anchor="middle" x="18" y="-60.3" font-family="Times,serif" font-size="14.00">S</text>
+</g>
+<!-- n6 -->
+<g id="node6" class="node">
+<title>n6</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="124,-85 82,-85 82,-43 124,-43 124,-85"/>
+<text text-anchor="middle" x="103" y="-60.3" font-family="Times,serif" font-size="14.00">exp</text>
+</g>
+<!-- n1&%2345;&gt;n6 -->
+<g id="edge5" class="edge">
+<title>n1&%2345;&gt;n6</title>
+<path fill="none" stroke="black" d="M36.2,-64C46.48,-64 59.84,-64 71.83,-64"/>
+<polygon fill="black" stroke="black" points="71.9,-67.5 81.9,-64 71.9,-60.5 71.9,-67.5"/>
+<text text-anchor="middle" x="59" y="-67.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="352" cy="-64" rx="18" ry="18"/>
+<text text-anchor="middle" x="352" y="-60.3" font-family="Times,serif" font-size="14.00">I</text>
+</g>
+<!-- n2&%2345;&gt;n6 -->
+<g id="edge9" class="edge">
+<title>n2&%2345;&gt;n6</title>
+<path fill="none" stroke="black" d="M333.86,-64C292.46,-64 186.58,-64 134.23,-64"/>
+<polygon fill="black" stroke="black" points="134.21,-60.5 124.21,-64 134.21,-67.5 134.21,-60.5"/>
+<text text-anchor="middle" x="229" y="-67.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n8 -->
+<g id="node8" class="node">
+<title>n8</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="464,-116.5 425,-116.5 425,-77.5 464,-77.5 464,-116.5"/>
+<text text-anchor="middle" x="444.5" y="-93.3" font-family="Times,serif" font-size="14.00">rec</text>
+</g>
+<!-- n2&%2345;&gt;n8 -->
+<g id="edge1" class="edge">
+<title>n2&%2345;&gt;n8</title>
+<path fill="none" stroke="black" d="M369.18,-69.9C382.03,-74.58 400.29,-81.24 415.5,-86.79"/>
+<polygon fill="black" stroke="black" points="414.37,-90.1 424.96,-90.24 416.77,-83.53 414.37,-90.1"/>
+<text text-anchor="middle" x="393" y="-82.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n9 -->
+<g id="node9" class="node">
+<title>n9</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="473,-59.5 416,-59.5 416,-2.5 473,-2.5 473,-59.5"/>
+<text text-anchor="middle" x="444.5" y="-27.3" font-family="Times,serif" font-size="14.00">death</text>
+</g>
+<!-- n2&%2345;&gt;n9 -->
+<g id="edge10" class="edge">
+<title>n2&%2345;&gt;n9</title>
+<path fill="none" stroke="black" d="M369.18,-58.1C379.47,-54.35 393.24,-49.33 406.13,-44.63"/>
+<polygon fill="black" stroke="black" points="407.55,-47.84 415.74,-41.12 405.15,-41.26 407.55,-47.84"/>
+<text text-anchor="middle" x="393" y="-53.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n3 -->
+<g id="node3" class="node">
+<title>n3</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="188" cy="-18" rx="18" ry="18"/>
+<text text-anchor="middle" x="188" y="-14.3" font-family="Times,serif" font-size="14.00">E</text>
+</g>
+<!-- n7 -->
+<g id="node7" class="node">
+<title>n7</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="288,-36 252,-36 252,0 288,0 288,-36"/>
+<text text-anchor="middle" x="270" y="-14.3" font-family="Times,serif" font-size="14.00">ill</text>
+</g>
+<!-- n3&%2345;&gt;n7 -->
+<g id="edge2" class="edge">
+<title>n3&%2345;&gt;n7</title>
+<path fill="none" stroke="black" d="M206.36,-18C216.7,-18 230.06,-18 241.78,-18"/>
+<polygon fill="black" stroke="black" points="241.95,-21.5 251.95,-18 241.95,-14.5 241.95,-21.5"/>
+<text text-anchor="middle" x="229" y="-21.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4 -->
+<g id="node4" class="node">
+<title>n4</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="537.2" cy="-97" rx="18" ry="18"/>
+<text text-anchor="middle" x="537.2" y="-93.3" font-family="Times,serif" font-size="14.00">R</text>
+</g>
+<!-- n5 -->
+<g id="node5" class="node">
+<title>n5</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="537.2" cy="-31" rx="18.4" ry="18.4"/>
+<text text-anchor="middle" x="537.2" y="-27.3" font-family="Times,serif" font-size="14.00">D</text>
+</g>
+<!-- n6&%2345;&gt;n2 -->
+<g id="edge3" class="edge">
+<title>n6&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M124.16,-72.82C129.82,-74.91 136.06,-76.87 142,-78 217.96,-92.51 240.25,-93.55 316,-78 319.27,-77.33 322.63,-76.37 325.9,-75.26"/>
+<polygon fill="black" stroke="black" points="327.26,-78.49 335.34,-71.65 324.75,-71.96 327.26,-78.49"/>
+<text text-anchor="middle" x="229" y="-92.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n6&%2345;&gt;n3 -->
+<g id="edge8" class="edge">
+<title>n6&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M124.16,-46.9C129.72,-42.67 135.9,-38.38 142,-35 147.94,-31.7 154.65,-28.78 161.05,-26.34"/>
+<polygon fill="black" stroke="black" points="162.43,-29.56 170.67,-22.89 160.07,-22.97 162.43,-29.56"/>
+<text text-anchor="middle" x="147" y="-38.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n7&%2345;&gt;n2 -->
+<g id="edge4" class="edge">
+<title>n7&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M288.27,-23.03C296.91,-25.91 307.34,-29.96 316,-35 321.03,-37.92 326.07,-41.57 330.69,-45.28"/>
+<polygon fill="black" stroke="black" points="328.58,-48.08 338.47,-51.88 333.11,-42.74 328.58,-48.08"/>
+<text text-anchor="middle" x="311" y="-38.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n8&%2345;&gt;n4 -->
+<g id="edge6" class="edge">
+<title>n8&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M464.29,-97C477.11,-97 494.3,-97 508.66,-97"/>
+<polygon fill="black" stroke="black" points="508.96,-100.5 518.96,-97 508.96,-93.5 508.96,-100.5"/>
+<text text-anchor="middle" x="496" y="-100.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n9&%2345;&gt;n5 -->
+<g id="edge7" class="edge">
+<title>n9&%2345;&gt;n5</title>
+<path fill="none" stroke="black" d="M473.21,-31C484.5,-31 497.52,-31 508.78,-31"/>
+<polygon fill="black" stroke="black" points="508.92,-34.5 518.92,-31 508.92,-27.5 508.92,-34.5"/>
+<text text-anchor="middle" x="496" y="-34.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+</g>
+</svg>
+'/><p>define initial states and transition rates, then create, solve, and visualize ODE problem</p><pre><code class="language-julia hljs">u0 = LVector(S=10, E=1, I=0, R=0, D=0);
+p = LVector(exp=0.9, ill=0.2, rec=0.5, death=0.1);
+
+prob = ODEProblem(vectorfield(p_seird),u0,(0.0,15.0),p);
+sol = solve(prob,Tsit5())
+
+plot(sol)</code></pre><img src="ade9543d.svg" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../predation/lotka-volterra/">« Lotka-Volterra Model</a><a class="docs-footer-nextpage" href="../../enzymes/enzyme_reactions/">Cathepsin Enzyme Reactions »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.2 on <span class="colophon-date" title="Sunday 29 October 2023 00:46">Sunday 29 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

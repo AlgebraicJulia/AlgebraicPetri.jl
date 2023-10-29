@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Lotka-Volterra Model · AlgebraicPetri.jl</title><meta name="title" content="Lotka-Volterra Model · AlgebraicPetri.jl"/><meta property="og:title" content="Lotka-Volterra Model · AlgebraicPetri.jl"/><meta property="twitter:title" content="Lotka-Volterra Model · AlgebraicPetri.jl"/><meta name="description" content="Documentation for AlgebraicPetri.jl."/><meta property="og:description" content="Documentation for AlgebraicPetri.jl."/><meta property="twitter:description" content="Documentation for AlgebraicPetri.jl."/><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../search_index.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script><script src="../../../assets/analytics.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">AlgebraicPetri.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../../">AlgebraicPetri.jl</a></li><li><span class="tocitem">Examples</span><ul><li class="is-active"><a class="tocitem" href>Lotka-Volterra Model</a></li><li><a class="tocitem" href="../../covid/epidemiology/">Basic Epidemiology Models</a></li><li><a class="tocitem" href="../../enzymes/enzyme_reactions/">Cathepsin Enzyme Reactions</a></li><li><a class="tocitem" href="../../covid/bilayerconversion/">Converting Models to Computation Graphs</a></li><li><a class="tocitem" href="../../covid/stratification/">Stratification of COVID Models</a></li><li><a class="tocitem" href="../../covid/disease_strains/">Multiple-Strain Model of COVID and Vaccines</a></li><li><a class="tocitem" href="../../covid/max_common_subobject/">Maximum Common Sub C-Set</a></li></ul></li><li><a class="tocitem" href="../../../api/">Library Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Lotka-Volterra Model</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Lotka-Volterra Model</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/main/docs/literate/predation/lotka-volterra.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="predation_example"><a class="docs-heading-anchor" href="#predation_example">Lotka-Volterra Model</a><a id="predation_example-1"></a><a class="docs-heading-anchor-permalink" href="#predation_example" title="Permalink"></a></h1><p><a href="https://nbviewer.jupyter.org/github/AlgebraicJulia/AlgebraicPetri.jl/blob/gh-pages/v0.9.2/generated/predation/lotka-volterra.ipynb"><img src="https://img.shields.io/badge/show-nbviewer-579ACA.svg" alt/></a></p><pre><code class="language-julia hljs">using AlgebraicPetri
+
+using OrdinaryDiffEq
+using Plots
+
+using Catlab
+using Catlab.Graphics
+using Catlab.WiringDiagrams
+using Catlab.CategoricalAlgebra
+using Catlab.Programs.RelationalPrograms
+
+display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=&gt;&quot;.75&quot;));</code></pre><h4 id="Step-1:-Define-the-building-block-Petri-nets-needed-to-construct-the-model"><a class="docs-heading-anchor" href="#Step-1:-Define-the-building-block-Petri-nets-needed-to-construct-the-model">Step 1: Define the building block Petri nets needed to construct the model</a><a id="Step-1:-Define-the-building-block-Petri-nets-needed-to-construct-the-model-1"></a><a class="docs-heading-anchor-permalink" href="#Step-1:-Define-the-building-block-Petri-nets-needed-to-construct-the-model" title="Permalink"></a></h4><pre><code class="language-julia hljs">birth_petri = Open(PetriNet(1, 1=&gt;(1,1)));
+to_graphviz(birth_petri)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="126pt" height="46pt"
+ viewBox="0.00 0.00 126.00 46.21" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 42.21)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-42.21 122,-42.21 122,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="18" cy="-20.21" rx="18" ry="18"/>
+<text text-anchor="middle" x="18" y="-16.51" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="118,-38.21 82,-38.21 82,-2.21 118,-2.21 118,-38.21"/>
+<text text-anchor="middle" x="100" y="-16.51" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n1&%2345;&gt;n2 -->
+<g id="edge1" class="edge">
+<title>n1&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M36.36,-20.21C46.7,-20.21 60.06,-20.21 71.78,-20.21"/>
+<polygon fill="black" stroke="black" points="71.95,-23.71 81.95,-20.21 71.95,-16.71 71.95,-23.71"/>
+<text text-anchor="middle" x="59" y="-24.01" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2&%2345;&gt;n1 -->
+<g id="edge2" class="edge">
+<title>n2&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M81.9,-7.21C73.67,-2.46 63.53,1.21 54,-1.21 50.04,-2.22 46.05,-3.77 42.24,-5.56"/>
+<polygon fill="black" stroke="black" points="40.48,-2.54 33.31,-10.34 43.78,-8.71 40.48,-2.54"/>
+<text text-anchor="middle" x="59" y="-5.01" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+</g>
+</svg>
+'/><pre><code class="language-julia hljs">predation_petri = Open(PetriNet(2, (1,2)=&gt;(2,2)));
+to_graphviz(predation_petri)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="208pt" height="46pt"
+ viewBox="0.00 0.00 208.00 46.38" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 42.38)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-42.38 204,-42.38 204,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="18" cy="-20.38" rx="18" ry="18"/>
+<text text-anchor="middle" x="18" y="-16.68" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n3 -->
+<g id="node3" class="node">
+<title>n3</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="118,-38.38 82,-38.38 82,-2.38 118,-2.38 118,-38.38"/>
+<text text-anchor="middle" x="100" y="-16.68" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n1&%2345;&gt;n3 -->
+<g id="edge2" class="edge">
+<title>n1&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M36.36,-20.38C46.7,-20.38 60.06,-20.38 71.78,-20.38"/>
+<polygon fill="black" stroke="black" points="71.95,-23.88 81.95,-20.38 71.95,-16.88 71.95,-23.88"/>
+<text text-anchor="middle" x="59" y="-24.18" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="182" cy="-20.38" rx="18" ry="18"/>
+<text text-anchor="middle" x="182" y="-16.68" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n2&%2345;&gt;n3 -->
+<g id="edge3" class="edge">
+<title>n2&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M167.19,-9.38C158.47,-3.76 146.85,1.38 136,-1.38 133.01,-2.14 130.01,-3.21 127.08,-4.46"/>
+<polygon fill="black" stroke="black" points="125.51,-1.33 118.1,-8.9 128.61,-7.6 125.51,-1.33"/>
+<text text-anchor="middle" x="141" y="-5.18" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n3&%2345;&gt;n2 -->
+<g id="edge1" class="edge">
+<title>n3&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M118.36,-20.38C128.7,-20.38 142.06,-20.38 153.78,-20.38"/>
+<polygon fill="black" stroke="black" points="153.95,-23.88 163.95,-20.38 153.95,-16.88 153.95,-23.88"/>
+<text text-anchor="middle" x="141" y="-24.18" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+</g>
+</svg>
+'/><pre><code class="language-julia hljs">death_petri = Open(PetriNet(1, 1=&gt;()));
+to_graphviz(death_petri)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="126pt" height="44pt"
+ viewBox="0.00 0.00 126.00 44.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 40)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-40 122,-40 122,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="18" cy="-18" rx="18" ry="18"/>
+<text text-anchor="middle" x="18" y="-14.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="118,-36 82,-36 82,0 118,0 118,-36"/>
+<text text-anchor="middle" x="100" y="-14.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n1&%2345;&gt;n2 -->
+<g id="edge1" class="edge">
+<title>n1&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M36.36,-18C46.7,-18 60.06,-18 71.78,-18"/>
+<polygon fill="black" stroke="black" points="71.95,-21.5 81.95,-18 71.95,-14.5 71.95,-21.5"/>
+<text text-anchor="middle" x="59" y="-21.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+</g>
+</svg>
+'/><h4 id="Step-2:-Generate-models-using-a-relational-syntax"><a class="docs-heading-anchor" href="#Step-2:-Generate-models-using-a-relational-syntax">Step 2: Generate models using a relational syntax</a><a id="Step-2:-Generate-models-using-a-relational-syntax-1"></a><a class="docs-heading-anchor-permalink" href="#Step-2:-Generate-models-using-a-relational-syntax" title="Permalink"></a></h4><pre><code class="language-julia hljs">lotka_volterra = @relation (wolves, rabbits) begin
+  birth(rabbits)
+  predation(rabbits, wolves)
+  death(wolves)
+end
+display_uwd(lotka_volterra)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="263pt" height="207pt"
+ viewBox="0.00 0.00 263.35 207.23" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 203.23)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-203.23 259.35,-203.23 259.35,4 -4,4"/>
+<!-- n1 -->
+<g id="box1" class="node">
+<title>n1</title>
+<ellipse fill="none" stroke="black" cx="25.9" cy="-67.71" rx="25.8" ry="18"/>
+<text text-anchor="middle" x="25.9" y="-64.01" font-family="Serif" font-size="14.00">birth</text>
+</g>
+<!-- n7 -->
+<!-- junction -->
+<g id="junction2" class="node">
+<title>n7</title>
+<ellipse fill="black" stroke="black" cx="84.25" cy="-59.02" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="107.75" y="-65.32" font-family="Serif" font-size="14.00">rabbits</text>
+</g>
+<!-- n1&%2345;&%2345;n7 -->
+<g id="edge4" class="edge">
+<title>n1&%2345;&%2345;n7</title>
+<path fill="none" stroke="black" d="M51.33,-63.92C63.36,-62.13 76.27,-60.21 81.66,-59.41"/>
+</g>
+<!-- n2 -->
+<g id="box2" class="node">
+<title>n2</title>
+<ellipse fill="none" stroke="black" cx="125.85" cy="-100.01" rx="45.83" ry="18"/>
+<text text-anchor="middle" x="125.85" y="-96.31" font-family="Serif" font-size="14.00">predation</text>
+</g>
+<!-- n6 -->
+<!-- junction -->
+<g id="junction1" class="node">
+<title>n6</title>
+<ellipse fill="black" stroke="black" cx="168.3" cy="-140.1" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="141.3" y="-146.4" font-family="Serif" font-size="14.00">wolves</text>
+</g>
+<!-- n2&%2345;&%2345;n6 -->
+<g id="edge1" class="edge">
+<title>n2&%2345;&%2345;n6</title>
+<path fill="none" stroke="black" d="M143.61,-116.78C152.33,-125.02 161.86,-134.02 166.08,-138"/>
+</g>
+<!-- n2&%2345;&%2345;n7 -->
+<g id="edge5" class="edge">
+<title>n2&%2345;&%2345;n7</title>
+<path fill="none" stroke="black" d="M108.45,-82.86C99.9,-74.44 90.56,-65.24 86.43,-61.17"/>
+</g>
+<!-- n3 -->
+<g id="box3" class="node">
+<title>n3</title>
+<ellipse fill="none" stroke="black" cx="226.5" cy="-130.16" rx="28.69" ry="18"/>
+<text text-anchor="middle" x="226.5" y="-126.46" font-family="Serif" font-size="14.00">death</text>
+</g>
+<!-- n3&%2345;&%2345;n6 -->
+<g id="edge2" class="edge">
+<title>n3&%2345;&%2345;n6</title>
+<path fill="none" stroke="black" d="M198.43,-134.95C187.26,-136.86 175.9,-138.8 170.92,-139.65"/>
+</g>
+<!-- n4 -->
+<!-- n4&%2345;&%2345;n6 -->
+<g id="edge3" class="edge">
+<title>n4&%2345;&%2345;n6</title>
+<path fill="none" stroke="black" d="M161.78,-198.07C162.41,-192.48 166.85,-152.99 168.02,-142.6"/>
+</g>
+<!-- n5 -->
+<!-- n5&%2345;&%2345;n7 -->
+<g id="edge6" class="edge">
+<title>n5&%2345;&%2345;n7</title>
+<path fill="none" stroke="black" d="M91.98,-1.16C91.24,-6.73 85.97,-46.16 84.59,-56.53"/>
+</g>
+</g>
+</svg>
+'/><pre><code class="language-julia hljs">lv_dict = Dict(:birth=&gt;birth_petri, :predation=&gt;predation_petri, :death=&gt;death_petri);
+lotka_petri = apex(oapply(lotka_volterra, lv_dict))
+to_graphviz(lotka_petri)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="290pt" height="110pt"
+ viewBox="0.00 0.00 290.00 110.47" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 106.47)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-106.47 286,-106.47 286,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="18" cy="-57.47" rx="18" ry="18"/>
+<text text-anchor="middle" x="18" y="-53.77" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n3 -->
+<g id="node3" class="node">
+<title>n3</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="118,-102.47 82,-102.47 82,-66.47 118,-66.47 118,-102.47"/>
+<text text-anchor="middle" x="100" y="-80.77" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n1&%2345;&gt;n3 -->
+<g id="edge5" class="edge">
+<title>n1&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M34.42,-65.28C40.43,-68.12 47.44,-71.19 54,-73.47 59.6,-75.42 65.71,-77.15 71.57,-78.64"/>
+<polygon fill="black" stroke="black" points="71.15,-82.14 81.68,-81.04 72.76,-75.33 71.15,-82.14"/>
+<text text-anchor="middle" x="59" y="-80.27" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4 -->
+<g id="node4" class="node">
+<title>n4</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="118,-37.47 82,-37.47 82,-1.47 118,-1.47 118,-37.47"/>
+<text text-anchor="middle" x="100" y="-15.77" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n1&%2345;&gt;n4 -->
+<g id="edge6" class="edge">
+<title>n1&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M33.66,-47.87C39.81,-44.06 47.11,-39.81 54,-36.47 59.68,-33.72 65.93,-31.11 71.92,-28.8"/>
+<polygon fill="black" stroke="black" points="73.44,-31.97 81.6,-25.22 71.01,-25.41 73.44,-31.97"/>
+<text text-anchor="middle" x="59" y="-40.27" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="182" cy="-19.47" rx="18" ry="18"/>
+<text text-anchor="middle" x="182" y="-15.77" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n2&%2345;&gt;n4 -->
+<g id="edge1" class="edge">
+<title>n2&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M166.28,-9.93C160.25,-6.55 153.04,-3.18 146,-1.47 139.92,0 133.58,-0.9 127.64,-2.92"/>
+<polygon fill="black" stroke="black" points="125.85,0.12 118.14,-7.15 128.7,-6.28 125.85,0.12"/>
+<text text-anchor="middle" x="141" y="-5.27" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n5 -->
+<g id="node5" class="node">
+<title>n5</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="282,-37.47 246,-37.47 246,-1.47 282,-1.47 282,-37.47"/>
+<text text-anchor="middle" x="264" y="-15.77" font-family="Times,serif" font-size="14.00">3</text>
+</g>
+<!-- n2&%2345;&gt;n5 -->
+<g id="edge3" class="edge">
+<title>n2&%2345;&gt;n5</title>
+<path fill="none" stroke="black" d="M200.36,-19.47C210.7,-19.47 224.06,-19.47 235.78,-19.47"/>
+<polygon fill="black" stroke="black" points="235.95,-22.97 245.95,-19.47 235.95,-15.97 235.95,-22.97"/>
+<text text-anchor="middle" x="223" y="-23.27" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n3&%2345;&gt;n1 -->
+<g id="edge2" class="edge">
+<title>n3&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M81.7,-68.37C76.41,-64.38 70.3,-60.63 64,-58.47 58.46,-56.57 52.3,-55.7 46.36,-55.41"/>
+<polygon fill="black" stroke="black" points="46.09,-51.91 36.1,-55.44 46.11,-58.91 46.09,-51.91"/>
+<text text-anchor="middle" x="59" y="-62.27" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n4&%2345;&gt;n2 -->
+<g id="edge4" class="edge">
+<title>n4&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M118.36,-19.47C128.7,-19.47 142.06,-19.47 153.78,-19.47"/>
+<polygon fill="black" stroke="black" points="153.95,-22.97 163.95,-19.47 153.95,-15.97 153.95,-22.97"/>
+<text text-anchor="middle" x="141" y="-23.27" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+</g>
+</svg>
+'/><p>Generate appropriate vector fields, define parameters, and visualize solution</p><pre><code class="language-julia hljs">u0 = [100, 10];
+p = [.3, .015, .7];
+prob = ODEProblem(vectorfield(lotka_petri),u0,(0.0,100.0),p);
+sol = solve(prob,Tsit5(),abstol=1e-8);
+plot(sol)</code></pre><img src="747a8f7c.svg" alt="Example block output"/><h4 id="Step-3:-Extend-your-model-to-handle-more-complex-phenomena"><a class="docs-heading-anchor" href="#Step-3:-Extend-your-model-to-handle-more-complex-phenomena">Step 3: Extend your model to handle more complex phenomena</a><a id="Step-3:-Extend-your-model-to-handle-more-complex-phenomena-1"></a><a class="docs-heading-anchor-permalink" href="#Step-3:-Extend-your-model-to-handle-more-complex-phenomena" title="Permalink"></a></h4><p>such as a small food chain between little fish, big fish, and sharks</p><pre><code class="language-julia hljs">dual_lv = @relation (fish, Fish, Shark) begin
+  birth(fish)
+  predation(fish, Fish)
+  death(Fish)
+  predation(Fish, Shark)
+  death(Shark)
+end
+display_uwd(dual_lv)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="365pt" height="220pt"
+ viewBox="0.00 0.00 364.81 219.63" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 215.63)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-215.63 360.81,-215.63 360.81,4 -4,4"/>
+<!-- n1 -->
+<g id="box1" class="node">
+<title>n1</title>
+<ellipse fill="none" stroke="black" cx="25.9" cy="-137.15" rx="25.8" ry="18"/>
+<text text-anchor="middle" x="25.9" y="-133.45" font-family="Serif" font-size="14.00">birth</text>
+</g>
+<!-- n9 -->
+<!-- junction -->
+<g id="junction1" class="node">
+<title>n9</title>
+<ellipse fill="black" stroke="black" cx="83.79" cy="-152.34" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="68.29" y="-158.64" font-family="Serif" font-size="14.00">fish</text>
+</g>
+<!-- n1&%2345;&%2345;n9 -->
+<g id="edge1" class="edge">
+<title>n1&%2345;&%2345;n9</title>
+<path fill="none" stroke="black" d="M50.45,-143.59C62.53,-146.76 75.66,-150.21 81.15,-151.65"/>
+</g>
+<!-- n2 -->
+<g id="box2" class="node">
+<title>n2</title>
+<ellipse fill="none" stroke="black" cx="134.1" cy="-119.76" rx="45.83" ry="18"/>
+<text text-anchor="middle" x="134.1" y="-116.06" font-family="Serif" font-size="14.00">predation</text>
+</g>
+<!-- n2&%2345;&%2345;n9 -->
+<g id="edge2" class="edge">
+<title>n2&%2345;&%2345;n9</title>
+<path fill="none" stroke="black" d="M110.12,-135.29C100.41,-141.58 90.45,-148.03 86.08,-150.86"/>
+</g>
+<!-- n10 -->
+<!-- junction -->
+<g id="junction2" class="node">
+<title>n10</title>
+<ellipse fill="black" stroke="black" cx="179.37" cy="-77.1" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="161.37" y="-83.4" font-family="Serif" font-size="14.00">Fish</text>
+</g>
+<!-- n2&%2345;&%2345;n10 -->
+<g id="edge4" class="edge">
+<title>n2&%2345;&%2345;n10</title>
+<path fill="none" stroke="black" d="M151.99,-102.9C161.88,-93.58 173.03,-83.07 177.43,-78.92"/>
+</g>
+<!-- n3 -->
+<g id="box3" class="node">
+<title>n3</title>
+<ellipse fill="none" stroke="black" cx="195.54" cy="-18" rx="28.69" ry="18"/>
+<text text-anchor="middle" x="195.54" y="-14.3" font-family="Serif" font-size="14.00">death</text>
+</g>
+<!-- n3&%2345;&%2345;n10 -->
+<g id="edge5" class="edge">
+<title>n3&%2345;&%2345;n10</title>
+<path fill="none" stroke="black" d="M190.6,-36.05C186.81,-49.9 181.93,-67.74 180.1,-74.42"/>
+</g>
+<!-- n4 -->
+<g id="box4" class="node">
+<title>n4</title>
+<ellipse fill="none" stroke="black" cx="237.66" cy="-98.47" rx="45.83" ry="18"/>
+<text text-anchor="middle" x="237.66" y="-94.77" font-family="Serif" font-size="14.00">predation</text>
+</g>
+<!-- n4&%2345;&%2345;n10 -->
+<g id="edge6" class="edge">
+<title>n4&%2345;&%2345;n10</title>
+<path fill="none" stroke="black" d="M204.09,-86.16C194.78,-82.74 186.08,-79.56 181.93,-78.03"/>
+</g>
+<!-- n11 -->
+<!-- junction -->
+<g id="junction3" class="node">
+<title>n11</title>
+<ellipse fill="black" stroke="black" cx="296.63" cy="-109.1" rx="2.5" ry="2.5"/>
+<text text-anchor="middle" x="315.63" y="-115.4" font-family="Serif" font-size="14.00">Shark</text>
+</g>
+<!-- n4&%2345;&%2345;n11 -->
+<g id="edge8" class="edge">
+<title>n4&%2345;&%2345;n11</title>
+<path fill="none" stroke="black" d="M279.58,-106.03C285.58,-107.11 290.74,-108.04 293.77,-108.59"/>
+</g>
+<!-- n5 -->
+<g id="box5" class="node">
+<title>n5</title>
+<ellipse fill="none" stroke="black" cx="327.96" cy="-159.74" rx="28.69" ry="18"/>
+<text text-anchor="middle" x="327.96" y="-156.04" font-family="Serif" font-size="14.00">death</text>
+</g>
+<!-- n5&%2345;&%2345;n11 -->
+<g id="edge9" class="edge">
+<title>n5&%2345;&%2345;n11</title>
+<path fill="none" stroke="black" d="M317.53,-142.88C310.27,-131.14 301.31,-116.66 297.97,-111.27"/>
+</g>
+<!-- n6 -->
+<!-- n6&%2345;&%2345;n9 -->
+<g id="edge3" class="edge">
+<title>n6&%2345;&%2345;n9</title>
+<path fill="none" stroke="black" d="M74.53,-210.47C75.42,-204.87 81.73,-165.27 83.39,-154.85"/>
+</g>
+<!-- n7 -->
+<!-- n7&%2345;&%2345;n10 -->
+<g id="edge7" class="edge">
+<title>n7&%2345;&%2345;n10</title>
+<path fill="none" stroke="black" d="M141.28,-30.16C144.91,-34.64 170.43,-66.08 177.54,-74.84"/>
+</g>
+<!-- n8 -->
+<!-- n8&%2345;&%2345;n11 -->
+<g id="edge10" class="edge">
+<title>n8&%2345;&%2345;n11</title>
+<path fill="none" stroke="black" d="M343.55,-73.09C339.07,-76.52 307.64,-100.65 298.89,-107.37"/>
+</g>
+</g>
+</svg>
+'/><pre><code class="language-julia hljs">dual_lv_petri = apex(oapply(dual_lv, lv_dict))
+to_graphviz(dual_lv_petri)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="454pt" height="138pt"
+ viewBox="0.00 0.00 454.00 138.38" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 134.38)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-134.38 450,-134.38 450,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="18" cy="-85.38" rx="18" ry="18"/>
+<text text-anchor="middle" x="18" y="-81.68" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4 -->
+<g id="node4" class="node">
+<title>n4</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="118,-130.38 82,-130.38 82,-94.38 118,-94.38 118,-130.38"/>
+<text text-anchor="middle" x="100" y="-108.68" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n1&%2345;&gt;n4 -->
+<g id="edge6" class="edge">
+<title>n1&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M34.42,-93.19C40.43,-96.03 47.44,-99.1 54,-101.38 59.6,-103.32 65.71,-105.06 71.57,-106.55"/>
+<polygon fill="black" stroke="black" points="71.15,-110.05 81.68,-108.95 72.76,-103.23 71.15,-110.05"/>
+<text text-anchor="middle" x="59" y="-108.18" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n5 -->
+<g id="node5" class="node">
+<title>n5</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="118,-65.38 82,-65.38 82,-29.38 118,-29.38 118,-65.38"/>
+<text text-anchor="middle" x="100" y="-43.68" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n1&%2345;&gt;n5 -->
+<g id="edge9" class="edge">
+<title>n1&%2345;&gt;n5</title>
+<path fill="none" stroke="black" d="M33.66,-75.78C39.81,-71.97 47.11,-67.71 54,-64.38 59.68,-61.63 65.93,-59.02 71.92,-56.71"/>
+<polygon fill="black" stroke="black" points="73.44,-59.88 81.6,-53.13 71.01,-53.31 73.44,-59.88"/>
+<text text-anchor="middle" x="59" y="-68.18" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="182" cy="-47.38" rx="18" ry="18"/>
+<text text-anchor="middle" x="182" y="-43.68" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n2&%2345;&gt;n5 -->
+<g id="edge2" class="edge">
+<title>n2&%2345;&gt;n5</title>
+<path fill="none" stroke="black" d="M166.28,-37.84C160.25,-34.46 153.04,-31.08 146,-29.38 139.92,-27.91 133.58,-28.81 127.64,-30.82"/>
+<polygon fill="black" stroke="black" points="125.85,-27.79 118.14,-35.06 128.7,-34.18 125.85,-27.79"/>
+<text text-anchor="middle" x="141" y="-33.18" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n6 -->
+<g id="node6" class="node">
+<title>n6</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="282,-92.38 246,-92.38 246,-56.38 282,-56.38 282,-92.38"/>
+<text text-anchor="middle" x="264" y="-70.68" font-family="Times,serif" font-size="14.00">3</text>
+</g>
+<!-- n2&%2345;&gt;n6 -->
+<g id="edge10" class="edge">
+<title>n2&%2345;&gt;n6</title>
+<path fill="none" stroke="black" d="M199.19,-52.84C209.75,-56.4 223.79,-61.14 236.01,-65.27"/>
+<polygon fill="black" stroke="black" points="235.13,-68.67 245.73,-68.55 237.37,-62.03 235.13,-68.67"/>
+<text text-anchor="middle" x="223" y="-66.18" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n7 -->
+<g id="node7" class="node">
+<title>n7</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="282,-38.38 246,-38.38 246,-2.38 282,-2.38 282,-38.38"/>
+<text text-anchor="middle" x="264" y="-16.68" font-family="Times,serif" font-size="14.00">4</text>
+</g>
+<!-- n2&%2345;&gt;n7 -->
+<g id="edge7" class="edge">
+<title>n2&%2345;&gt;n7</title>
+<path fill="none" stroke="black" d="M199.19,-41.91C209.75,-38.35 223.79,-33.61 236.01,-29.49"/>
+<polygon fill="black" stroke="black" points="237.37,-32.72 245.73,-26.21 235.13,-26.09 237.37,-32.72"/>
+<text text-anchor="middle" x="223" y="-39.18" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n3 -->
+<g id="node3" class="node">
+<title>n3</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="346" cy="-20.38" rx="18" ry="18"/>
+<text text-anchor="middle" x="346" y="-16.68" font-family="Times,serif" font-size="14.00">3</text>
+</g>
+<!-- n3&%2345;&gt;n7 -->
+<g id="edge3" class="edge">
+<title>n3&%2345;&gt;n7</title>
+<path fill="none" stroke="black" d="M331.19,-9.38C322.47,-3.76 310.85,1.38 300,-1.38 297.01,-2.14 294.01,-3.21 291.08,-4.46"/>
+<polygon fill="black" stroke="black" points="289.51,-1.33 282.1,-8.9 292.61,-7.6 289.51,-1.33"/>
+<text text-anchor="middle" x="305" y="-5.18" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n8 -->
+<g id="node8" class="node">
+<title>n8</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="446,-38.38 410,-38.38 410,-2.38 446,-2.38 446,-38.38"/>
+<text text-anchor="middle" x="428" y="-16.68" font-family="Times,serif" font-size="14.00">5</text>
+</g>
+<!-- n3&%2345;&gt;n8 -->
+<g id="edge8" class="edge">
+<title>n3&%2345;&gt;n8</title>
+<path fill="none" stroke="black" d="M364.36,-20.38C374.7,-20.38 388.06,-20.38 399.78,-20.38"/>
+<polygon fill="black" stroke="black" points="399.95,-23.88 409.95,-20.38 399.95,-16.88 399.95,-23.88"/>
+<text text-anchor="middle" x="387" y="-24.18" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4&%2345;&gt;n1 -->
+<g id="edge5" class="edge">
+<title>n4&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M81.7,-96.28C76.41,-92.29 70.3,-88.54 64,-86.38 58.46,-84.48 52.3,-83.6 46.36,-83.32"/>
+<polygon fill="black" stroke="black" points="46.09,-79.82 36.1,-83.35 46.11,-86.82 46.09,-79.82"/>
+<text text-anchor="middle" x="59" y="-90.18" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n5&%2345;&gt;n2 -->
+<g id="edge4" class="edge">
+<title>n5&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M118.36,-47.38C128.7,-47.38 142.06,-47.38 153.78,-47.38"/>
+<polygon fill="black" stroke="black" points="153.95,-50.88 163.95,-47.38 153.95,-43.88 153.95,-50.88"/>
+<text text-anchor="middle" x="141" y="-51.18" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n7&%2345;&gt;n3 -->
+<g id="edge1" class="edge">
+<title>n7&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M282.36,-20.38C292.7,-20.38 306.06,-20.38 317.78,-20.38"/>
+<polygon fill="black" stroke="black" points="317.95,-23.88 327.95,-20.38 317.95,-16.88 317.95,-23.88"/>
+<text text-anchor="middle" x="305" y="-24.18" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+</g>
+</svg>
+'/><p>Generate a new solver, provide parameters, and analyze results</p><pre><code class="language-julia hljs">u0 = [100, 10, 2];
+p = [.3, .015, .7, .017, .35];
+prob = ODEProblem(vectorfield(dual_lv_petri),u0,(0.0,100.0),p);
+sol = solve(prob,Tsit5(),abstol=1e-6);
+plot(sol)</code></pre><img src="8d2c1342.svg" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../">« AlgebraicPetri.jl</a><a class="docs-footer-nextpage" href="../../covid/epidemiology/">Basic Epidemiology Models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.2 on <span class="colophon-date" title="Sunday 29 October 2023 00:46">Sunday 29 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
