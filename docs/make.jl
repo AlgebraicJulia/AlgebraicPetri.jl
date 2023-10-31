@@ -6,6 +6,9 @@ const generated_dir = joinpath(@__DIR__, "src", "generated")
 
 @info "Loading AlgebraicPetri"
 using AlgebraicPetri
+using Catalyst
+using ModelingToolkit
+using OrdinaryDiffEq
 
 const no_literate = "--no-literate" in ARGS
 if !no_literate
@@ -30,11 +33,16 @@ if !no_literate
       end
     end
   end
+else
+  @info "Literate.jl: skipped"
 end
+
+extensions = ["Catalyst", "ModelingToolkit", "OrdinaryDiffEq"]
+extension_modules = [Base.get_extension(AlgebraicPetri, Symbol("AlgebraicPetri"*ext*"Ext")) for ext in extensions]
 
 @info "Building Documenter.jl docs"
 makedocs(
-  modules   = [AlgebraicPetri],
+  modules   = vcat([AlgebraicPetri], extension_modules),
   format    = Documenter.HTML(
     assets = ["assets/analytics.js"],
   ),
