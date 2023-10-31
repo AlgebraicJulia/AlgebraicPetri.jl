@@ -8,8 +8,9 @@ import Catalyst: ReactionSystem
 
 counter(a) = [count(==(i),a) for i in unique(a)]
 
-""" Convert a general PetriNet to a ReactionSystem
+""" ReactionSystem(pn::AbstractPetriNet)
 
+Convert a general PetriNet to a ReactionSystem
 This conversion forgets any labels or rates provided, and converts all
 parameters and variables into symbols. It does preserve the ordering of
 transitions and states though (Transition 1 has a rate of k[1], state 1 has a
