@@ -8,7 +8,7 @@
 #SBATCH --output=daemon_test_%j.log   # Standard output and error log
 pwd; hostname; date
 
-module load gcc/9.3.0 openmpi/4.1.5 julia
+module load gcc/12.2.0 openmpi/4.1.5 julia
 
 echo "Running tests on a single CPU core"
 
