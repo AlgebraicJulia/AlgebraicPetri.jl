@@ -1,4 +1,3 @@
 #!/bin/bash
 
-julia --project tests/runtests.jl > log_test.txt
-
+julia --project tests/runtests.jl > log_test.md
