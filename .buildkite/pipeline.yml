@@ -1,0 +1,20 @@
+env:
+  JULIA_VERSION: "1.9.3"
+
+steps:
+  - label: ":scroll: script!"
+    command: "script.sh"
+
+  - wait
+  
+  - label: "initialize julia"
+    command: 
+      - "echo $JULIA_VERSION"
+      - "julia --project -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
+      - "julia --project -e 'using Pkg; Pkg.precompile'"
+      - "julia --project -e 'using Pkg; Pkg.status'"
+
+  - label: "run tests"
+    command:
+      - "sbatch jobscript.sh"
+
