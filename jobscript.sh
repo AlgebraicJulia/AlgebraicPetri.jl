@@ -10,7 +10,7 @@ pwd; hostname; date
 
 module load gcc/12.2.0 openmpi/4.1.5 julia
 
-echo "Running some tests!?! webhook updated!"
+echo "Running some tests!?! webhook updated!!"
 
 srun --mpi=$HPC_PMIX ./job.sh
 
