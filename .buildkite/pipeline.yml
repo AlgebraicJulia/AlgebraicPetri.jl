@@ -3,7 +3,7 @@ env:
 
 steps:
   - label: ":scroll: script!"
-    command: "script.sh"
+    command: echo "testing!!!"
 
   - wait
   
