@@ -10,7 +10,11 @@ steps:
       - "julia --project -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
       - "julia --project -e 'using Pkg; Pkg.precompile'"
       - "julia --project -e 'using Pkg; Pkg.status'"
-
+    agents:
+      config: cpu
+      queue: central
+      slurm_ntasks: 1
+  
   - wait 
 
   - label: "run tests"
