@@ -8,7 +8,7 @@
 #SBATCH --output=daemon_test_%j.log   # Standard output and error log
 pwd; hostname; date
 
-module load libcurl/7.49.1 gcc/12.2.0 openmpi/4.1.5 julia
+module load gcc/12.2.0 openmpi/4.1.5
 
 echo "Running some tests!?! webhook updated!! ahh!! ah!!!"
 

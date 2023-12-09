@@ -3,7 +3,8 @@ env:
 
 steps:
   - label: ":scroll: script!"
-    command: echo "testing!!!"
+    command:
+      - "module load julia" 
 
   - wait
   
