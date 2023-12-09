@@ -2,7 +2,7 @@ env:
   JULIA_VERSION: "1.9.3"
 
 steps: 
-  - label: "initialize julia"
+  - label: ":sunrise: initialize julia"
     command: 
       - "echo $JULIA_VERSION"
       - "julia --project -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
