@@ -1,13 +1,7 @@
 env:
   JULIA_VERSION: "1.9.3"
 
-steps:
-  - label: ":scroll: script!"
-    command:
-      - "module load julia" 
-
-  - wait
-  
+steps: 
   - label: "initialize julia"
     command: 
       - "echo $JULIA_VERSION"
