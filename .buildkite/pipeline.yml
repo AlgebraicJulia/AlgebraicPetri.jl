@@ -17,3 +17,5 @@ steps:
     command:
       - "sbatch jobscript.sh"
 
+  - wait
+
