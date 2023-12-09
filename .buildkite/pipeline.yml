@@ -1,7 +1,8 @@
 env:
   JULIA_VERSION: "1.9.3"
 
-steps: 
+steps:
+
   - label: ":sunrise: initialize julia"
     command: 
       - "echo $JULIA_VERSION"
