@@ -5,6 +5,7 @@ steps:
 
   - label: ":sunrise: initialize julia"
     command: 
+      - "module load julia"
       - "echo $JULIA_VERSION"
       - "julia --project -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
       - "julia --project -e 'using Pkg; Pkg.precompile'"
