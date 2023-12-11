@@ -13,7 +13,7 @@ steps:
 
   - label: "run tests"
     command:
-      - "srun jobscript.sh"
+      - "srun --mem=8G jobscript.sh"
 
   - wait
 
