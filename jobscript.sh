@@ -12,7 +12,9 @@ module load gcc/12.2.0 openmpi/4.1.5 julia
 
 echo "Running some tests!?! webhook updated!! ahh!! ah!!!"
 
-srun --mpi=$HPC_PMIX ./job.sh
+./job.sh
+
+# mpiexec -np 1 julia --project -e test/runtests.jl
 
 date
 
