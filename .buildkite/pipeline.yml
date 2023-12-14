@@ -15,6 +15,8 @@ steps:
   - label: ":scroll: Build docs"
     command:
       - "srun --mem=8G --time=1:00:00 --ntasks=10 --output=log_%j.log jobscript.sh"
+    env:
+      JULIA_PROJECT: "docs/
 
   # - wait
 
