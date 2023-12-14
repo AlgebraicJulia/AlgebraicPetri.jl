@@ -16,7 +16,7 @@ if !no_literate
 
   # Set Literate.jl config if not being compiled on recognized service.
   config = Dict{String,String}()
-  if !(haskey(ENV, "GITHUB_ACTIONS") || haskey(ENV, "GITLAB_CI"))
+  if !(haskey(ENV, "GITHUB_ACTIONS") || haskey(ENV, "GITLAB_CI") || haskey(ENV, "BUILDKITE_CI"))
     config["nbviewer_root_url"] = "https://nbviewer.jupyter.org/github/AlgebraicJulia/AlgebraicPetri.jl/blob/gh-pages/dev"
     config["repo_root_url"] = "https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/docs"
   end
@@ -65,8 +65,8 @@ makedocs(
 )
 
 @info "Deploying docs"
-deploydocs(
-  target = "build",
-  repo   = "github.com/AlgebraicJulia/AlgebraicPetri.jl.git",
-  branch = "gh-pages"
-)
+# deploydocs(
+#   target = "build",
+#   repo   = "github.com/AlgebraicJulia/AlgebraicPetri.jl.git",
+#   branch = "gh-pages"
+# )
