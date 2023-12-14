@@ -8,12 +8,13 @@ steps:
       - "module load julia"
       - "echo $JULIA_VERSION"
       - "julia --project=docs/ -e 'using Pkg; Pkg.instantiate(;verbose=true); Pkg.precompile(); Pkg.status()'"
+      - "srun --mem=8G --time=1:00:00 --output=log_%j.log jobscript.sh"
    
   - wait 
 
-  - label: "run docs"
-    command:
-      - "srun --mem=8G --time=1:00:00 --output=log_%j.log jobscript.sh"
+  # - label: "run docs"
+    # command:
+      # - "srun --mem=8G --time=1:00:00 --output=log_%j.log jobscript.sh"
 
-  - wait
+  # - wait
 
