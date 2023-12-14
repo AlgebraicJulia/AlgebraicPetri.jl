@@ -12,7 +12,7 @@ module load gcc/12.2.0 openmpi/4.1.5 julia
 
 echo "Running some tests!?! webhook updated!! ahh!! ah!!!"
 
-julia --project -e 'using Pkg; Pkg.status; include("docs/make.jl")'
+julia --project=docs/ -e 'using Pkg; Pkg.status; include("docs/make.jl")'
 # julia --project -e 'using Pkg; Pkg.status; Pkg.test()' > log_test.md
 # ./job.sh
 

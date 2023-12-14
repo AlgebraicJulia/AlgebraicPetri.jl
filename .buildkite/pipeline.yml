@@ -7,7 +7,7 @@ steps:
     command: 
       - "module load julia"
       - "echo $JULIA_VERSION"
-      - "julia --project -e 'using Pkg; Pkg.instantiate(;verbose=true); Pkg.precompile(); Pkg.status()'"
+      - "julia --project=docs/ -e 'using Pkg; Pkg.instantiate(;verbose=true); Pkg.precompile(); Pkg.status()'"
    
   - wait 
 
