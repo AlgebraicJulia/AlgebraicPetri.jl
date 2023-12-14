@@ -13,7 +13,6 @@ steps:
 
   - label: "run docs"
     command:
-      - "julia --project=docs/ -e 'using Pkg; Pkg.status()'"
       - "srun --mem=8G --time=1:00:00 --output=log_%j.log jobscript.sh"
 
   - wait
