@@ -18,5 +18,5 @@ steps:
     env:
       JULIA_PROJECT: "docs/"
 
-  # - wait
+  - wait
 

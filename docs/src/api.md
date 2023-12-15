@@ -52,6 +52,6 @@ ModelingToolkit.ODESystem
 
 ### [OrdinaryDiffEq.jl](https://github.com/SciML/OrdinaryDiffEq.jl)
 
-<!-- ```@docs -->
-<!-- OrdinaryDiffEq.ODEProblem -->
-<!-- ``` -->
+```@docs
+OrdinaryDiffEq.ODEProblem
+```
