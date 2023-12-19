@@ -21,6 +21,8 @@ if !no_literate
     config["repo_root_url"] = "https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/docs"
   end
 
+  @info config
+
   for (root, dirs, files) in walkdir(literate_dir)
     out_dir = joinpath(generated_dir, relpath(root, literate_dir))
     for file in files
