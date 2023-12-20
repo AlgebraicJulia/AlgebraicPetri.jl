@@ -64,10 +64,12 @@ makedocs(
   ]
 )
 
+@info ENV
 @info "Deploying docs"
 deploydocs(
   target = "build",
   repo   = "github.com/AlgebraicJulia/AlgebraicPetri.jl.git",
-  branch = "gh-pages"
-  devbranch = "main"
+  versions = ["stable" => "v^", "dev" => "dev", "v#.#.#"],
+  branch = "gh-pages",
+  devbranch = "testing-hpg"
 )
