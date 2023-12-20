@@ -10,7 +10,7 @@ pwd; hostname; date
 
 module load gcc/12.2.0 openmpi/4.1.5 julia
 
-echo "Running some docs!"
+echo "Running docs build"
 
 julia --project=docs/ -e 'using Pkg; Pkg.status()'
 julia --project=docs/ -e 'using Pkg; Pkg.instantiate(); include("docs/make.jl")'
