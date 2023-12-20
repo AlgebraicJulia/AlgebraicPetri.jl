@@ -69,4 +69,5 @@ deploydocs(
   target = "build",
   repo   = "github.com/AlgebraicJulia/AlgebraicPetri.jl.git",
   branch = "gh-pages"
+  devbranch = "main"
 )
