@@ -13,6 +13,7 @@ using OrdinaryDiffEq
 const no_literate = "--no-literate" in ARGS
 if !no_literate
   @info "Building Literate.jl docs"
+  @info ENV
 
   # Set Literate.jl config if not being compiled on recognized service.
   config = Dict{String,String}()
@@ -20,8 +21,6 @@ if !no_literate
     config["nbviewer_root_url"] = "https://nbviewer.jupyter.org/github/AlgebraicJulia/AlgebraicPetri.jl/blob/gh-pages/dev"
     config["repo_root_url"] = "https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/master/docs"
   end
-
-  @info config
 
   for (root, dirs, files) in walkdir(literate_dir)
     out_dir = joinpath(generated_dir, relpath(root, literate_dir))
@@ -66,6 +65,7 @@ makedocs(
   ]
 )
 
+@info ENV
 @info "Deploying docs"
 deploydocs(
   target = "build",
