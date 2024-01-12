@@ -17,7 +17,6 @@ steps:
       - "srun --mem=8G --time=1:00:00 --output=log_%j.log jobscript.sh"
     env:
       JULIA_PROJECT: "docs/"
-      BUILDKITE_BRANCH: "gh-pages"
 
   - wait
 
