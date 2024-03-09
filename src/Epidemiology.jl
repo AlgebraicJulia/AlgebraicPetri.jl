@@ -49,7 +49,7 @@ epi_dict = Dict(:infection=>infection, :exposure=>exposure, :illness=>illness, :
 """ oapply_epi(ex, args...)
 
 Generates a LabelledPetriNet under a composition pattern described by the
-undirected wiring diagram `ex`. This requires that the nodes in `ex` are only
+undirected wiring diagram `ex`. This requires that the boxes in `ex` are only
 labelled with labels from the following set:
 ```
 [:infection, :exposure, :illness, :recovery, :death]

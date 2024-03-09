@@ -17,14 +17,32 @@ using Catlab.Programs.RelationalPrograms
 
 display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=>".75"));
 
-# #### SIR Model:
+# #### SIR Model
 
-# define model
+# We use the `@relation` macro from Catlab to create an undirected wiring diagram (UWD)
+# which describes the composition syntax for the SIR model. Briefly, boxes (labeled ovals)
+# represent processes which may depend on (consume or produce) resources represented by
+# junctions (labeled dots).
 sir = @relation (s,i,r) begin
     infection(s,i)
     recovery(i,r)
 end
 display_uwd(sir)
+
+# To generate a Petri net (PN) from our compositional syntax, we need to apply a composition
+# syntax, which assigns concrete mathematical models to each process. To compose
+# with PNs, each box in the UWD will correspond to an open PN whose feet attach to
+# the junctions that box is connected to. The composite PN is then constructed by
+# gluing the component PNs along at the shared junctions (places).
+# 
+# The method `oapply_epi` is used to do this composition. It is a wrapper for the `oapply`
+# method, which can be used with general models, and substitutes PNs for boxes
+# in the UWD according to the box name. For a list of the allowed box labels/PNs,
+# please see the help file for the function.
+# 
+# The returned object is a `MultiCospan`, where the feet are each outer port of the UWD
+# and legs are morphisms which identify each outer port to a place in the composed PN.
+# The apex of the multicospan is thus the composed model.
 #-
 p_sir = apex(oapply_epi(sir))
 to_graphviz(p_sir)
