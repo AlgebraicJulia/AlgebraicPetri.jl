@@ -47,18 +47,20 @@ display_uwd(sir)
 p_sir = apex(oapply_epi(sir))
 to_graphviz(p_sir)
 
-# define initial states and transition rates, then
-# create, solve, and visualize ODE problem
+# Define initial states and transition rates, then
+# create, solve, and visualize ODE problem.
 
 u0 = LVector(S=10, I=1, R=0);
 p = LVector(inf=0.4, rec=0.4);
 
-# The C-Set representation has direct support for generating a DiffEq vector field
+# The `vectorfield` method interprets the PN as describing mass-action kinetics
+# with a rate constant associated to each transition, which can be used to
+# simulate ODEs associated to the PN.
 
 prob = ODEProblem(vectorfield(p_sir),u0,(0.0,7.5),p);
 sol = solve(prob,Tsit5())
 
-plot(sol)
+plot(sol, labels=hcat(string.(p_sir[:,:sname])...))
 
 # #### SEIR Model:
 
