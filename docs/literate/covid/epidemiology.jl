@@ -47,8 +47,7 @@ display_uwd(sir)
 p_sir = apex(oapply_epi(sir))
 to_graphviz(p_sir)
 
-# Define initial states and transition rates, then
-# create, solve, and visualize ODE problem.
+# Labelled vectors are used to create the initial state and reaction rate parameters for each transition.
 
 u0 = LVector(S=10, I=1, R=0);
 p = LVector(inf=0.4, rec=0.4);
@@ -60,11 +59,13 @@ p = LVector(inf=0.4, rec=0.4);
 prob = ODEProblem(vectorfield(p_sir),u0,(0.0,7.5),p);
 sol = solve(prob,Tsit5())
 
-plot(sol, labels=hcat(string.(p_sir[:,:sname])...))
+plot(sol, labels=["S" "I" "R"])
 
-# #### SEIR Model:
+# #### SEIR Model
 
-# define model
+# Like the SIR model, we use an undirected wiring diagram as the composition syntax, where
+# junctions correspond to places and boxes to Petri nets.
+
 seir = @relation (s,e,i,r) begin
     exposure(s,i,e)
     illness(e,i)
@@ -75,8 +76,8 @@ display_uwd(seir)
 p_seir = apex(oapply_epi(seir))
 to_graphviz(p_seir)
 
-# define initial states and transition rates, then
-# create, solve, and visualize ODE problem
+# Define initial states and transition rates, then
+# create, solve, and visualize ODE problem:
 
 u0 = LVector(S=10, E=1, I=0, R=0);
 p = LVector(exp=.9, ill=.2, rec=.5);
@@ -84,11 +85,12 @@ p = LVector(exp=.9, ill=.2, rec=.5);
 prob = ODEProblem(vectorfield(p_seir),u0,(0.0,15.0),p);
 sol = solve(prob,Tsit5())
 
-plot(sol)
+plot(sol, labels=["S" "E" "I" "R"])
 
 # #### SEIRD Model:
 
-# define model
+# We can add a deceased component and a death process to the SEIR model, specified with
+# an undirected wiring diagram.
 seird = @relation (s,e,i,r,d) begin
     exposure(s,i,e)
     illness(e,i)
@@ -100,8 +102,8 @@ display_uwd(seird)
 p_seird = apex(oapply_epi(seird))
 to_graphviz(p_seird)
 
-# define initial states and transition rates, then
-# create, solve, and visualize ODE problem
+# Define initial states and transition rates, then
+# create, solve, and visualize ODE problem:
 
 u0 = LVector(S=10, E=1, I=0, R=0, D=0);
 p = LVector(exp=0.9, ill=0.2, rec=0.5, death=0.1);
@@ -109,4 +111,4 @@ p = LVector(exp=0.9, ill=0.2, rec=0.5, death=0.1);
 prob = ODEProblem(vectorfield(p_seird),u0,(0.0,15.0),p);
 sol = solve(prob,Tsit5())
 
-plot(sol)
+plot(sol, labels=["S" "E" "I" "R" "D"])
