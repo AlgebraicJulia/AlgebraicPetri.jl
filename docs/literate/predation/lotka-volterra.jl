@@ -106,8 +106,6 @@ plot(sol, label=["Little fish" "Big fish" "Sharks"])
 
 lotka_volterra_hawk = @relation (hawks, rabbits) begin
   birth(rabbits)
-  # hawk_predation(rabbits, hawks)
-  # hawk_death(hawks)
   predation(rabbits, hawks)
   death(hawks)
 end
@@ -134,7 +132,6 @@ display_uwd(rabbit_uwd)
 
 hawk_transform  = ACSetTransformation((Box=[1], Junction=[2], Port=[1], OuterPort=[2]), rabbit_uwd, lotka_volterra_hawk)
 wolf_transform = ACSetTransformation((Box=[1], Junction=[2], Port=[1], OuterPort=[2]), rabbit_uwd, lotka_volterra)
-
 lotka_volterra_composed = ob(pushout(hawk_transform, wolf_transform))
 
 display_uwd(lotka_volterra_composed)

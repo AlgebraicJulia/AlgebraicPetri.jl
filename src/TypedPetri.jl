@@ -97,7 +97,7 @@ function oapply_typed(type_system::LabelledPetriNet, uwd, tnames::Vector{Symbol}
   )
 end
 
-r"""
+"""
 Modify a typed petri net to add "reflexive transitions". These are transitions which go from one species to itself, so they don't change the mass action semantics, but they are important for stratification.
 
 The idea behind this is similar to the fact that the product of the graph *----* with itself is
