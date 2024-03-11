@@ -27,7 +27,7 @@ display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, e
 # Because these models will be composed, we use `Open` to generate an open Petri net. When given only a single argument,
 # `Open` generates a structured multicospan, which is an object containing the original Petri net ``S`` (accessed by `apex`),
 # a list of finite sets ``A_{1},\dots,A_{n}`` (accessed by `feet`), and morphisms ``A_{1}\to S,\dots,A_{n}\to S`` (accessed by `legs`).
-# The feet are where the Petri net may interact with other systems, justifying the moniker open Petri nets.
+# The feet are where the Petri net may interact with other systems, justifying the term "open" Petri nets.
 # 
 # The basic Petri nets are generated and the apex of each open Petri net is displayed.
 birth_petri = Open(PetriNet(1, 1=>(1,1)));
@@ -96,3 +96,61 @@ p = [.3, .015, .7, .017, .35];
 prob = ODEProblem(vectorfield(dual_lv_petri),u0,(0.0,100.0),p);
 sol = solve(prob,Tsit5(),abstol=1e-6);
 plot(sol, label=["Little fish" "Big fish" "Sharks"])
+
+# However, at this point it is natural to be concerned about the scalability of needing to define
+# the UWD for larger models; is there a way to compose UWDs themselves to get a larger UWD?
+# As you may have guessed, the answer is yes. Let's see how.
+# 
+# Let's say we want to include another predator of rabbits into the model, hawks. Hawks
+# will behave like flying wolves in this setup, but they don't need to.
+
+lotka_volterra_hawk = @relation (hawks, rabbits) begin
+  birth(rabbits)
+  # hawk_predation(rabbits, hawks)
+  # hawk_death(hawks)
+  predation(rabbits, hawks)
+  death(hawks)
+end
+display_uwd(lotka_volterra_hawk)
+
+# We would like to "glue" the two UWDs describing terrestrial and aerial predation together
+# along the rabbits junction and birth box. We cannot simply take a disjoint union of the
+# two UWDs (coproduct) as then we would be modelling two disconnected systems. Instead we
+# need to perform a categorical operation called a "pushout", which is like a disjoint union
+# but where certain elements are glued together.
+# 
+# We specify this overlap between the two systems where we will glue them together below.
+
+rabbit_uwd = @relation (rabbits,) begin
+  birth(rabbits)
+end
+display_uwd(rabbit_uwd)
+
+# Next we need to define mappings from this overlap into each of the UWDs we want to glue together.
+# We use the `ACSetTransformation` method from Catlab for this, which defines a natural transformation
+# between two C-Sets. The result is a "span", where the apex is the overlap, and the acset transformations
+# are arrows from the apex into each of the original UWDs. We take the pushout of the span
+# to glue the UWDs together along the apex.
+
+hawk_transform  = ACSetTransformation((Box=[1], Junction=[2], Port=[1], OuterPort=[2]), rabbit_uwd, lotka_volterra_hawk)
+wolf_transform = ACSetTransformation((Box=[1], Junction=[2], Port=[1], OuterPort=[2]), rabbit_uwd, lotka_volterra)
+
+lotka_volterra_composed = ob(pushout(hawk_transform, wolf_transform))
+
+display_uwd(lotka_volterra_composed)
+
+# Now that we have the composition syntax for the combined terrestrial-aerial predation system, we
+# can substitute concrete mathematical models (open Petri nets) into each box as before to
+# produce a concrete model of the composed system.
+
+lotka_petri = apex(oapply(lotka_volterra_composed, lv_dict))
+to_graphviz(lotka_petri)
+
+# We may now again interpret the model as a differential equation,
+# solve, and plot the solution.
+
+u0 = [10.0, 100.0, 50.0];
+p = [.3, .015, .7, 0.01, 0.5];
+prob = ODEProblem(vectorfield(lotka_petri),u0,(0.0,100.0),p);
+sol = solve(prob,Tsit5());
+plot(sol, label=["Rabbits" "Wolves" "Hawks"])
