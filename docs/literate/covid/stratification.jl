@@ -45,6 +45,10 @@ to_graphviz(infectious_ontology)
 # The typed Petri net is modified with reflexive transitions typed as `:strata` to indicate which states can be stratified
 # Here we add reflexive transitions to the susceptible, infected, and recovered populations but we leave out the dead
 # population as no individuals entering that compartment may leave.
+# 
+# Calling `to_graphviz` on the resulting object will display $\phi : P \to P_{infectious}$. We could apply `dom` (domain)
+# or `codom` (codomain) on the object to extract $P$ or $P_{infectious}$, respectively, if we just wanted to plot
+# a single Petri net.
 
 sird_uwd = @relation (S,I,R,D) where (S::Pop, I::Pop, R::Pop, D::Pop) begin
   infect(S, I, I, I)
@@ -55,7 +59,7 @@ end
 sird_model = oapply_typed(infectious_ontology, sird_uwd, [:infection, :recovery, :death])
 sird_model = add_reflexives(sird_model, [[:strata], [:strata], [:strata], []], infectious_ontology)
 
-to_graphviz(dom(sird_model))
+to_graphviz(sird_model)
 
 # ## Define intervention models
 
@@ -91,6 +95,10 @@ typed_product(sird_model, mask_model) |> dom |> to_graphviz
 
 # ### Vaccine model
 
+# By changing ``P^{'}`` slightly, we can generate a stratification scheme to model vaccination. In this case,
+# the transition between strata is irreversible (i.e.; the vaccine is not leaky), infection may occur between any
+# pair of individuals, and change in disease state may occur in any strata.
+
 vax_uwd = @relation (UV,V) where (UV::Pop, V::Pop) begin
   strata(UV, V)
   infect(V, V, V, V)
@@ -103,7 +111,7 @@ vax_model = add_reflexives(vax_model, [[:disease], [:disease]], infectious_ontol
 
 to_graphviz(dom(vax_model))
 
-# Stratify our SIRD model on this vaccine model to get a model of SIRD with a vaccination rate:
+# Once again, the typed product, or pullback gives the SIRD model stratified by vaccination.
 
 typed_product(sird_model, vax_model) |> dom |> to_graphviz
 
@@ -142,9 +150,10 @@ typed_product(sird_model, mask_vax_model) |> dom |> to_graphviz
 
 # ### Travel model between $N$ regions
 
-# For this model we can use a julia function to programmatically build up our undirected wiring diagram for defining this model.
-# Here we want there to be $N$ regions in which people can travel between each region and people within the same region are able
-# to infect other people in the same region.
+# In many cases, it is not practical to construct by hand the undirected wiring diagram used for composition. Here we demonstrate
+# how to use the imperative interface provided by Catlab to construct a UWD describing a model of a population spread out amongst $N$
+# regions. Individuals can travel between regions, but disease transmission is only possible between individuals in the same region.
+# The result is a typed Petri net describing this travel model.
 
 function travel_model(n)
   uwd = RelationDiagram(repeat([:Pop], n))
@@ -178,6 +187,9 @@ typed_product(sird_model, travel_model(2)) |> dom |> to_graphviz
 # For this model we can use a julia function to programmatically build up our model where people have the property of living somewhere
 # and we are modelling them travelling between locations while maintaining the status of where they live.  Here we can actually just
 # define the model of having a "Living" status and stratify it with the previously defined travel model to get a model of someone taking a simple trip.
+# In the "living model" we allow for infections between individuals who live at different places; when we take the typed
+# product with the simple trip model this will result in a model where infection is allowed between individuals at
+# the same region, regardless of their home region.
 
 function living_model(n)
   typed_living = pairwise_id_typed_petri(infectious_ontology, :Pop, :infect, [Symbol("Living$(i)") for i in 1:n])

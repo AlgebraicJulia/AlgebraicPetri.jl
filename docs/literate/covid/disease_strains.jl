@@ -10,10 +10,11 @@ using DisplayAs, Markdown
 
 # This example presents models incorporating multiple strains of disease and vaccine type.
 # Importantly, it shows why stratification by disease strain is different from other stratifications, e.g. geography or age, and requires using a different type system.
+# If you are unfamiliar with stratification, we reccomend first reading the [stratification tutorial](@ref stratification_example).
 
 # ## Define basic epidemiology model
 
-# We start by defining our basic type system for infectious disease models.
+# We start by defining our basic type system, $P_{infectious}$ for infectious disease models.
 
 const infectious_ontology = LabelledPetriNet(
   [:Pop],
@@ -24,9 +25,9 @@ const infectious_ontology = LabelledPetriNet(
 
 to_graphviz(infectious_ontology)
 
-# We define a simple SIRD model with reflexive transitions typed as `:strata` to indicate which states can be stratified.
-# Here we add reflexive transitions to the susceptible, infected, and recovered populations but we leave out the dead
-# population because they cannot do things such as get vaccinated or travel between regions.
+# We define a simple SIRD model with reflexive transitions typed as "strata" to indicate which stratified
+# states will interact with transitions amongst strata. All but the dead population will have reflexive 
+# transitions amongst strata because no individuals may leave any death state.
 
 sird_uwd = @relation (S,I,R,D) where (S::Pop, I::Pop, R::Pop, D::Pop) begin
   infect(S, I, I, I)
@@ -41,9 +42,10 @@ to_graphviz(dom(sird_model))
 
 # ## Define a model of multiple vaccine types
 
-# We also define a model of vaccination with multiple vaccine types. 
-# In this model, vaccination transitions are typed as `:strata`.
-# Note that the `:infect` transitions must be included to enable cross-infection between different vax types.
+# We also define a model of vaccination with multiple vaccine types, typed over $P_{infectious}$.
+# Each stratum has reflexive "disease" transitions. Transitions which represent the administration
+# of a vaccine to an individual are typed as "strata". Infection (typed as "infect") between individuals of different
+# vaccination status is possible (i.e.; we do not assume a perfect vaccine).
 
 function vax_model(n)
   uwd = RelationDiagram(repeat([:Pop], n+1))
@@ -129,9 +131,10 @@ to_graphviz(dom(strain_model′(2)))
 
 # ## Stratify the SIRD model for two strains
 
-# Unfortunately, stratification of these models does not produce the desired result. 
-# There are quite a few extraneous states and transitions. 
-# The primary issue is the asymmetry in the role of the uninfected population. 
+# Unfortunately, stratification of these models does not produce the desired result, leading
+# to many states and transitions. The problem is that it does not make sense for the
+# uninfected population to be stratified over the full set of states of the SIRD model
+# (i.e.; uninfected persons can never have any disease state other than "S"). 
 # We can address this by changing the type system.
 
 typed_product(sird_model, strain_model′(2)) |> dom |> to_graphviz
@@ -153,7 +156,8 @@ const strain_ontology = LabelledPetriNet(
 
 to_graphviz(strain_ontology)
 
-# We now reform the SIRD model using the new type system. 
+# We now reform the SIRD model using the new type system. Note that the `where` clause is used to define
+# the types for boxes in the UWD.
 sird_for_strains_uwd = @relation (S,I,R,D) where (S::Uninf, I::Inf, R::Inf, D::Inf) begin
   infect(S, I, I, I)
   disease(I, R)
@@ -194,22 +198,28 @@ end
 
 to_graphviz(dom(strain_model(2)))
 
-# When we now stratify we get the desired model.
+# When we now stratify we get the desired model. Note however that there are extraneous "strata"
+# transitions; this is because there were no non-trivial stratum transitions in either $\phi$ or $\phi^{'}$
+# (note that only "disease" and "infect" transition types were needed to fully define the multiple strain dynamics).
 
 sird_strain = typed_product(sird_for_strains_model, strain_model(2)) 
 
 to_graphviz(dom(sird_strain))
 
-# ## Post-composition: Typing the type system
+# ## Post-composition: Retyping the type system
 
 # In some instances, we may want to relate models typed to different type systems. 
 # For example, we usually type our `simple_trip` model of geographic regions to the `infectious_ontology` such that we can stratify a disease model by geographic regions, 
 # but the multi-strain disease model above is typed by the new `strain_ontology`.
 
-# Crucially, we can accomplish this IF there is an appropriate morphism (map) between the type systems because post-composition by a morphism of type systems is functorial.
+# Crucially, we can accomplish this IF there is an appropriate morphism (map) between the type systems 
+# ($P_{strain}$ and $P_{infectious}$) because post-composition by a morphism of type systems is functorial.
 # In this case, there is a morphism from `strain_ontology` to `infectious_ontology`, so we can form the morphism
 
 # ### Morphism from `strain_ontology` to `infectious_ontology`
+
+# We use `oapply_typed` on a UWD representation of the `strain_ontology`, but note that we could also directly
+# define the map $P_{strain}\to P_{infectious}$ with `ACSetTransformation`.
 
 strain_ont_uwd = @relation (Uninf,Inf) where (Uninf::Pop, Inf::Pop) begin
   infect(Uninf, Inf, Inf, Inf)
@@ -226,9 +236,8 @@ to_graphviz(strain_ont_act)
 # To demonstrate stratification utilizing post-composition to re-type the models, we use the simple-trip geographic model.
 # This model is comprises a travel model and a living model.
 
-# **Travel model between $N$ regions**\n
 # In this model, there are $N$ regions which people can travel between. People within the same region are able
-# to infect other people in the same region.
+# to infect other people in the same region. It is typed by `infectious_ontology` ($P_{infectious}$).
 
 function travel_model(n)
   uwd = RelationDiagram(repeat([:Pop], n))
@@ -256,8 +265,8 @@ to_graphviz(dom(travel_model(2)))
 # This model could itself be stratified with the SIRD model, but we want to model
 # persons travelling between locations while maintaining the status of where they live.  
 
-# **Living model of $N$ regions**\n
-# In this model, people have the property of "Living" somewhere. 
+# In this model, people have the property of "Living" somewhere.
+# It is also typed by `infectious_ontology` ($P_{infectious}$).
 
 function living_model(n)
   typed_living = pairwise_id_typed_petri(infectious_ontology, :Pop, :infect, [Symbol("Living$(i)") for i in 1:n])
@@ -266,21 +275,24 @@ end
 
 to_graphviz(dom(living_model(2)))
 
-# **Simple trip model of $N$ regions**\n
 # We can stratify the living model with the travel model to get a model of someone taking a simple trip.
 
 simple_trip_model = typed_product(travel_model(2), living_model(2))
 
 to_graphviz(dom(simple_trip_model))
 
-# ### Stratify SIRD-multi-strain and simple-trip models
+# ### Stratify multi-strain SIRD and simple-trip models
 
 # Now, to stratify our multi-strain SIRD model with the simple-trip, we first retype the multi-strain model 
-# to the `infectious_ontology` by composing with the morphism we defined.
+# to the `infectious_ontology` by composing with the morphism we defined. Mathematically, because
+# the multi-strain SIRD model is a typed Petri net, it is a morphism $\phi : P \to P_{strain}$.
+# The object `strain_ont_act` we made earlier is a morphism between $P_{strain} \to P_{infectious}$,
+# so when we post-compose, we get a new morphism between $P \to P_{infectious}$.
 
 sird_strain_retyped = compose(sird_strain,strain_ont_act)
 
-# We can now stratify.
+# We can now take the typed product to get the multi-strain SIRD model stratified over the simple trip model
+# of movement between different regions.
 
 sird_strain_trip = typed_product(sird_strain_retyped,simple_trip_model)
 
@@ -288,7 +300,9 @@ to_graphviz(dom(sird_strain_trip))
 
 # ## Define a multi-strain SIRD model with vaccination by multiple vaccine types
 
-# We can similarly stratify the multi-strain SIRD model with the multi-vax model.
+# Because the multi-vaccine model was typed according to $P_{infectious}$, our retyped
+# multi-strain SIRD can be stratified according to the multiple vaccine model in a
+# similar way.
 
 sird_strain_vax = typed_product(sird_strain_retyped,vax_model(2))
 
@@ -299,9 +313,11 @@ to_graphviz(dom(sird_strain_vax))
 # If we would like to re-stratify our SIRD-strain-vax model with the simple trip model, we again face a difficulty.
 # Both the "vaccination" transitions of the first model and the "travel" transitions of the second 
 # are currently typed to the `:strata` transition of the `infectious_ontology` type system.
+# Naively stratifying would thus produce transitions in which persons traveled and were vaccinated simultaneously.
+
 # To appropriately stratify, we need an additional "strata" transition to distinguish 
 # between the two types of transitions. 
-# We can again use post-compostion to overcome the difficulty.
+# We can again use post-compostion with the morphism between type systems to reuse our existing models.
 
 # ### Define an augmented version of the `infectious_ontology` type system with an additional "strata" transition
 
