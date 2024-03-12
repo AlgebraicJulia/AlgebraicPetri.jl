@@ -61,6 +61,8 @@ where each of the boxes is labeled by a symbol that matches the label
 of a transition in the petri net. Then produces a petri net given by
 colimiting the transitions together, and returns the ACSetTransformation
 from that Petri net to the type system.
+
+The `tnames` argument renames the transitions in the resulting typed Petri net.
 """
 function oapply_typed(type_system::LabelledPetriNet, uwd, tnames::Vector{Symbol})
   if junction(uwd, outer=true) != junctions(uwd)
