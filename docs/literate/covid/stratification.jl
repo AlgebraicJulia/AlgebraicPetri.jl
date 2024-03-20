@@ -1,4 +1,4 @@
-# # [Stratification of COVID Models](@id stratification_example)
+# # [Stratification of Epidemiological Models](@id stratification_example)
 #
 #md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/covid/stratification.ipynb)
 
@@ -8,9 +8,20 @@ using Catlab.CategoricalAlgebra
 using Catlab.WiringDiagrams
 using DisplayAs, Markdown
 
+display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=>".75"));
+
+# In this tutorial we show how to use this package to define basic epidemiological models and 
+# model stratification, when a submodel is replicated across a variable and allowed to interact
+# in some specified way (e.g.; age-structured infection dynamics). For more details on the underlying
+# theory, please see the research article ["An algebraic framework for structured epidemic modelling"](https://doi.org/10.1098/rsta.2021.0309).
+
 # ## Define basic epidemiology model
 
-# Define the type system for infectious disease models
+# One of the fundamental parts of getting model stratification to work is defining a "type system"
+# for the models one is interested in, which ensures that spurious or erroneous transitions are
+# not generated when we construct the stratified model (e.g.; no vector to vector transmission in a malaria model).
+# In the research article this tutorial follows, the Petri net that defines the type system is ``P_{type}``.
+# We define ``P_{infectious}`` below.
 
 const infectious_ontology = LabelledPetriNet(
   [:Pop],
@@ -21,9 +32,23 @@ const infectious_ontology = LabelledPetriNet(
 
 to_graphviz(infectious_ontology)
 
-# Define a simple SIRD model with reflexive transitions typed as `:strata` to indicate which states can be stratified
+# More details are given in the article, but briefly, ``P_{infectious}`` has a single place, which represents
+# a potentially stratified population, and 3 "types" of transitions: "infect" is for infections, "disease" for changes
+# in disease state (e.g.; from E to I), and "strata" for changes not in disease state (e.g.; from region ``i`` to region ``j``).
+# 
+# A typed Petri net is a morphism ``\phi: P \to P_{type}``. Here we define a Petri net representing the SIRD model
+# typed over ``P_{infectious}``. We start by defining an undirected wiring diagram (UWD) which represents the processes
+# and states in the SIRD model; note that the name of each box corresponds to one of the transitions in ``P_{infectious}``,
+# and that we specify the types of the junctions as `Pop` in the `where` clause.
+# 
+# Next we use `oapply_typed` which produces a typed Petri net by composing transitions based on ``P_{infectious}``.
+# The typed Petri net is modified with reflexive transitions typed as `:strata` to indicate which states can be stratified
 # Here we add reflexive transitions to the susceptible, infected, and recovered populations but we leave out the dead
-# population because they cannote do things such as get vaccinated or travel between regions.
+# population as no individuals entering that compartment may leave.
+# 
+# Calling `to_graphviz` on the resulting object will display $\phi : P \to P_{infectious}$. We could apply `dom` (domain)
+# or `codom` (codomain) on the object to extract $P$ or $P_{infectious}$, respectively, if we just wanted to plot
+# a single Petri net.
 
 sird_uwd = @relation (S,I,R,D) where (S::Pop, I::Pop, R::Pop, D::Pop) begin
   infect(S, I, I, I)
@@ -34,28 +59,45 @@ end
 sird_model = oapply_typed(infectious_ontology, sird_uwd, [:infection, :recovery, :death])
 sird_model = add_reflexives(sird_model, [[:strata], [:strata], [:strata], []], infectious_ontology)
 
-to_graphviz(dom(sird_model))
+to_graphviz(sird_model)
 
 # ## Define intervention models
 
 # ### Masking model
 
+# Let's say we want to stratify the populations in the SIRD model by masking or non-masking; or, generally
+# by any behavioral change which is reversible and does not preclude the possibility of infection in either
+# state. To generate our stratification scheme, we begin with a UWD describing the strata levels we are
+# interested in (Masked and UnMasked), and the transitions possible in each level. Note that we give
+# transitions of type `strata` which allow masking or unmasking. Unmasked individuals may transmit
+# disease to either masked or unmasked individuals, but masked persons cannot transmit disease.
+# 
+# We again use `oapply_typed` to generate the stratification scheme ``\phi^{'}:P^{'}\to P_{infectious}``,
+# adding reflexive `disease` transitions to the typed Petri net as changes in disease status may occur
+# in either stratum.
+
 masking_uwd = @relation (M,UM) where (M::Pop, UM::Pop) begin
-  disease(M, UM)
-  disease(UM, M)
+  strata(M, UM)
+  strata(UM, M)
   infect(M, UM, M, UM)
   infect(UM, UM, UM, UM)
 end
 mask_model = oapply_typed(infectious_ontology, masking_uwd, [:unmask, :mask, :infect_um, :infect_uu])
-mask_model = add_reflexives(mask_model, [[:strata], [:strata]], infectious_ontology)
+mask_model = add_reflexives(mask_model, [[:disease], [:disease]], infectious_ontology)
 
 to_graphviz(dom(mask_model))
 
+# To generate the stratified SIRD model, we use `typed_product`. As described in the article, a stratification of
+# a model can be seen as a pullback of ``\phi`` and ``\phi^{'}``, or a product in the slice category ``Petri/P_{type}``.
 # Stratify our SIRD model on this masking model to get a model of SIRD with masking:
 
 typed_product(sird_model, mask_model) |> dom |> to_graphviz
 
 # ### Vaccine model
+
+# By changing ``P^{'}`` slightly, we can generate a stratification scheme to model vaccination. In this case,
+# the transition between strata is irreversible (i.e.; the vaccine is not leaky), infection may occur between any
+# pair of individuals, and change in disease state may occur in any strata.
 
 vax_uwd = @relation (UV,V) where (UV::Pop, V::Pop) begin
   strata(UV, V)
@@ -69,7 +111,7 @@ vax_model = add_reflexives(vax_model, [[:disease], [:disease]], infectious_ontol
 
 to_graphviz(dom(vax_model))
 
-# Stratify our SIRD model on this vaccine model to get a model of SIRD with a vaccination rate:
+# Once again, the typed product, or pullback gives the SIRD model stratified by vaccination.
 
 typed_product(sird_model, vax_model) |> dom |> to_graphviz
 
@@ -108,9 +150,10 @@ typed_product(sird_model, mask_vax_model) |> dom |> to_graphviz
 
 # ### Travel model between $N$ regions
 
-# For this model we can use a julia function to programmatically build up our undirected wiring diagram for defining this model.
-# Here we want there to be $N$ regions in which people can travel between each region and people within the same region are able
-# to infect other people in the same region.
+# In many cases, it is not practical to construct by hand the undirected wiring diagram used for composition. Here we demonstrate
+# how to use the imperative interface provided by Catlab to construct a UWD describing a model of a population spread out amongst $N$
+# regions. Individuals can travel between regions, but disease transmission is only possible between individuals in the same region.
+# The result is a typed Petri net describing this travel model.
 
 function travel_model(n)
   uwd = RelationDiagram(repeat([:Pop], n))
@@ -144,6 +187,9 @@ typed_product(sird_model, travel_model(2)) |> dom |> to_graphviz
 # For this model we can use a julia function to programmatically build up our model where people have the property of living somewhere
 # and we are modelling them travelling between locations while maintaining the status of where they live.  Here we can actually just
 # define the model of having a "Living" status and stratify it with the previously defined travel model to get a model of someone taking a simple trip.
+# In the "living model" we allow for infections between individuals who live at different places; when we take the typed
+# product with the simple trip model this will result in a model where infection is allowed between individuals at
+# the same region, regardless of their home region.
 
 function living_model(n)
   typed_living = pairwise_id_typed_petri(infectious_ontology, :Pop, :infect, [Symbol("Living$(i)") for i in 1:n])
