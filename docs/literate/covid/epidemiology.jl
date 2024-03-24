@@ -1,4 +1,4 @@
-# # [Basic Epidemiology Models](@id epidemiology_example)
+# # [Basic Epidemiological Models](@id epidemiology_basic)
 #
 #md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/covid/epidemiology.ipynb)
 
@@ -10,12 +10,31 @@ using OrdinaryDiffEq
 using Plots
 
 using Catlab
-using Catlab.Graphics
-using Catlab.WiringDiagrams
-using Catlab.CategoricalAlgebra
-using Catlab.Programs.RelationalPrograms
+# using Catlab.Graphics
+# using Catlab.WiringDiagrams
+# using Catlab.CategoricalAlgebra
+# using Catlab.Programs.RelationalPrograms
 
 display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=>".75"));
+
+# In this tutorial we introduce the basic concepts of modeling with open Petri nets (PN). Specifically,
+# methods from the section "Compositional methods of model specification" of
+# [[Libkind 2022](https://doi.org/10.1098/rsta.2021.0309)] are presented.
+
+# #### Petri nets
+
+# Petri nets are a mathematical langauge to describe state transition systems which
+# can effectively represent complex dependencies between processes, such as parallelism,
+# concurrency,
+
+to_graphviz(SchPetriNet)
+
+# #### SI Model
+
+# The susceptible-infectious (SI) model is perhaps the simplest, and fundamental model
+# of mathematical epidemiology. Nontheless it is a useful starting point to understand
+# how to use PNs to express and build more complex epidemiological models.
+
 
 # #### SIR Model
 
