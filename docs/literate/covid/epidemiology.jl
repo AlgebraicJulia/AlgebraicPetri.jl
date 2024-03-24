@@ -25,7 +25,18 @@ display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, e
 
 # Petri nets are a mathematical langauge to describe state transition systems which
 # can effectively represent complex dependencies between processes, such as parallelism,
-# concurrency,
+# concurrency, conflict, and random choice. Originally developed for the design of digital
+# systems, their extremely general formulation has made them useful for modeling in chemistry,
+# biology, ecology, epidemiology, among other domains. For more information, see the [Wikipedia article](https://en.wikipedia.org/wiki/Petri_net).
+
+# The type of Petri nets used in AlgebraicPetri.jl are *whole-grain Petri nets*
+# introduced by [[Kock 2020](https://arxiv.org/abs/2005.05108)]. Briefly, these Petri nets
+# can be described by the following *schema*, where $S$ is the set of places or species,
+# $T$ is the set of transitions, and $I$ and $O$ are the sets of input (transition to place)
+# and output (place to transition) arcs. For a concrete instance of a Petri net, the labeled
+# boxes in the diagram become sets, and arrows become functions, and such a data instance
+# on a schema is known as a C-Set (or acset, for Attributed C-Set); please see [Catlab.jl](https://github.com/AlgebraicJulia/Catlab.jl)
+# for more details.
 
 to_graphviz(SchPetriNet)
 
