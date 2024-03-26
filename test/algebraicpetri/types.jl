@@ -176,4 +176,57 @@ for p in [sir_proplpetri, sir_proplrxn]
   @test Open(p, [:S], [:I], [:R]) == Open(p)
 end
 
+# test subnet for each type of net
+for net in [sir_petri, sir_rxn]
+  si_net = induced_subnet(net, 1)
+
+  @test ns(si_net) == 2
+  @test nt(si_net) == 1
+  @test is(si_net) == [1,2]
+  @test os(si_net) == [2,2]
+  
+  r_net = induced_subnet(net, 2)
+  
+  @test ns(r_net) == 2
+  @test nt(r_net) == 1
+  @test is(r_net) == [1]
+  @test os(r_net) == [2]
+end
+
+for net in [sir_lpetri, sir_lrxn]
+  si_net = induced_subnet(sir_lpetri, 1)
+
+  @test ns(si_net) == 2
+  @test nt(si_net) == 1
+  @test is(si_net) == [1,2]
+  @test os(si_net) == [2,2]
+  @test only(si_net[:tname]) == :inf
+  @test si_net[:sname] == [:S,:I]
+  
+  r_net = induced_subnet(sir_lpetri, 2)
+  
+  @test ns(r_net) == 2
+  @test nt(r_net) == 1
+  @test is(r_net) == [1]
+  @test os(r_net) == [2]
+  @test only(r_net[:tname]) == :rec
+  @test r_net[:sname] == [:I,:R]  
+end
+
+sir_net = induced_subnet(sir_petri, [1,2])
+sir_net == sir_petri
+
+test_petri = PetriNet(
+  6,
+  1 => (3,4),
+  1 => 2,
+  5 => 6
+)
+
+test_net = induced_subnet(test_petri, [1,2])
+@test ns(test_net) == 4
+@test nt(test_net) == 2
+@test is(test_net) == [1,1]
+@test os(test_net) == [2,3,4]
+
 end
