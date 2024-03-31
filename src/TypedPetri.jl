@@ -216,7 +216,8 @@ end
 
 """ Make typed Petri net with 'identity' transformation between species pairs.
 
-Assumes a single species type and a single transition type.
+Assumes a single species type and a single transition type. For each pair of places, generate a transition
+consuming 1 input for each place and producing 1 output in each place.
 """
 function pairwise_id_typed_petri(type_net, stype, ttype, args...;
                                  codom_net=nothing) # TODO: this keyword parameter is a workaround. It should be removed and fixed later.

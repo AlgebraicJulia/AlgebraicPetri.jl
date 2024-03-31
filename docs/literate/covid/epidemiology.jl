@@ -18,7 +18,7 @@ display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, e
 # [[Libkind 2022](https://doi.org/10.1098/rsta.2021.0309)] are presented, which should
 # be consulted for more information.
 
-# #### Petri nets
+# ## Petri nets
 
 # Petri nets are a mathematical langauge to describe state transition systems which
 # can effectively represent complex relationships between processes, such as parallelism,
@@ -37,7 +37,7 @@ display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, e
 
 to_graphviz(SchPetriNet)
 
-# #### SIS Model
+# ## SIS Model
 
 # The susceptible-infectious-susceptible (SIS) model is one of the simplest models
 # of mathematical epidemiology. Nontheless it is a useful starting point to understand
@@ -83,8 +83,12 @@ to_graphviz(first(legs(si_inf)))
 # to generate the composed system. Specifically, composition is described using an undirected wiring diagram (UWD),
 # a graphical language for describing relations between objects. We can specify the UWD for the SIS system
 # using the `@relation` macro from Catlab; the function-like syntax in the body are "boxes" and variables
-# are "junctions". When we compose our open Petri nets together, their feet will be glued together along
-# the junctions according to the wiring structure in the diagram.
+# are "junctions". Generally, boxes represent processes which may consume or produce resources represnted
+# as junctions. 
+
+# To compose the open Petri nets, each box in the UWD will correspond to an open PN whose feet attach to
+# the junctions that box is connected to. The composite PN is then constructed by
+# gluing the component PNs along at the shared junctions (places).
 
 si_uwd = @relation (s,i) begin
     infection(s,i)
@@ -101,33 +105,20 @@ si = oapply(si_uwd, Dict(:infection=>si_inf, :recovery=>si_rec))
 
 to_graphviz(si)
 
-# #### SIR Model
+# ## SIR Model
 
-# We use the `@relation` macro from Catlab to create an undirected wiring diagram (UWD)
-# which describes the composition syntax for the SIR model. Briefly, boxes (labeled ovals)
-# represent processes which may depend on (consume or produce) resources represented by
-# junctions (labeled dots).
+# The susceptible-infectious-recovered (SIR) model is another basic model of mathematical epidemiology.
+
 sir = @relation (s,i,r) begin
     infection(s,i)
     recovery(i,r)
 end
 display_uwd(sir)
 
-# To generate a Petri net (PN) from our compositional syntax, we need to apply a composition
-# syntax, which assigns concrete mathematical models to each process. To compose
-# with PNs, each box in the UWD will correspond to an open PN whose feet attach to
-# the junctions that box is connected to. The composite PN is then constructed by
-# gluing the component PNs along at the shared junctions (places).
-# 
-# The method `oapply_epi` is used to do this composition. It is a wrapper for the `oapply`
-# method, which can be used with general models, and substitutes PNs for boxes
-# in the UWD according to the box name. For a list of the allowed box labels/PNs,
-# please see the help file for the function.
-# 
-# The returned object is a `MultiCospan`, where the feet are each outer port of the UWD
-# and legs are morphisms which identify each outer port to a place in the composed PN.
-# The apex of the multicospan is thus the composed model.
-#-
+# To generate the SIR model as a Petri net, we use the helper function `oapply_epi` from the `Epidemiology`
+# module of AlgebraicPetri, which has some definitions of common "atomic" Petri nets from
+# epidemiological models. For more details, please see the documentation for that method.
+
 p_sir = apex(oapply_epi(sir))
 to_graphviz(p_sir)
 
@@ -145,10 +136,10 @@ sol = solve(prob,Tsit5())
 
 plot(sol, labels=["S" "I" "R"])
 
-# #### SEIR Model
+# ## SEIR Model
 
-# Like the SIR model, we use an undirected wiring diagram as the composition syntax, where
-# junctions correspond to places and boxes to Petri nets.
+# For the susceptible-exposed-infectious-recovered (SEIR) model, we again define a UWD to describe composition 
+# syntax.
 
 seir = @relation (s,e,i,r) begin
     exposure(s,i,e)
@@ -171,7 +162,7 @@ sol = solve(prob,Tsit5())
 
 plot(sol, labels=["S" "E" "I" "R"])
 
-# #### SEIRD Model:
+# #### SEIRD Model
 
 # We can add a deceased component and a death process to the SEIR model, specified with
 # an undirected wiring diagram.
