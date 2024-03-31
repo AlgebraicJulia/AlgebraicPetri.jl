@@ -1,6 +1,6 @@
 # # [Multiple-strain Disease Model with Vaccination](@id epidemiology_strains)
 #
-#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/covid/disease_strains.ipynb)
+#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/epidemiology/disease_strains.ipynb)
 
 using AlgebraicPetri, AlgebraicPetri.TypedPetri
 using Catlab.Programs, Catlab.Graphics
@@ -138,7 +138,7 @@ to_graphviz(dom(strain_model′(2)))
 
 # We can address this by changing the type system to include multiple place types.
 
-typed_product(sird_model, strain_model′(2)) |> dom |> to_graphviz
+typed_product(sir_model, strain_model′(2)) |> dom |> to_graphviz
 
 # ## Define a new type system and corresponding disease and multi-strain models
 
@@ -378,7 +378,7 @@ aug_sir_strain_vax = add_reflexives(sir_strain_vax_retyped, reflx, aug_inf_ontol
 simple_trip_retyped = flatten_labels(compose(simple_trip_model,rgn_ont_act))
 aug_trip = add_reflexives(simple_trip_retyped, repeat([[:nstrata]],ns(dom(simple_trip_retyped))), aug_inf_ontology);
 
-# ### Stratify the SIRD-strain-vax and simple trip models
+# ### Stratify the SIR-strain-vax and simple trip models
 
 sir_strain_vax_trip = typed_product([aug_sir_strain_vax,aug_trip])
 

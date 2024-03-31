@@ -1,6 +1,6 @@
-# # [Basic Epidemiological Models](@id epidemiology_basic)
+# # [Composition of Epidemiological Models](@id epidemiology_basic)
 #
-#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/covid/epidemiology.ipynb)
+#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/epidemiology/composition.ipynb)
 
 using AlgebraicPetri
 using AlgebraicPetri.Epidemiology

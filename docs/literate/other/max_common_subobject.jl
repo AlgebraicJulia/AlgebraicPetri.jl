@@ -1,6 +1,6 @@
 # # [Maximum Common Sub C-Set](@id max_common_subobject)
 #
-#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/covid/max_common_subobject.ipynb)
+#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/other/max_common_subobject.ipynb)
 
 using AlgebraicPetri
 using Catlab.CategoricalAlgebra, Catlab.Graphics
@@ -51,6 +51,8 @@ morphisms = legs(overlaps[1])
 to_graphviz(sub)
 
 # ### Visualize Sub C-Sets
+
+# The morphism from each model to the maximum common C-Set is depicted in bold. 
 
 # #### SIR
 

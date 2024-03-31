@@ -23,7 +23,7 @@ please consult [[Baez 2018](https://arxiv.org/abs/1808.05415)] or [[Libkind 2022
 with the latter being more oriented towards applied practitioners.
 
 Tutorials are organized by theme. Currently examples from epidemiology are the most
-developed. The basic tutorial introduces the main themes of modeling with open Petri nets,
+developed. The basic tutorial introduces the main themes of compositional modeling with open Petri nets,
 followed by a detailed tutorial on model stratification, and a detailed example
 of developing a complex model with multiple strains of a directly-transmitted disease
 with vaccines.
