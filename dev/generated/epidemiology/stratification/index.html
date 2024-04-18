@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Stratification of Epidemiological Models · AlgebraicPetri.jl</title><meta name="title" content="Stratification of Epidemiological Models · AlgebraicPetri.jl"/><meta property="og:title" content="Stratification of Epidemiological Models · AlgebraicPetri.jl"/><meta property="twitter:title" content="Stratification of Epidemiological Models · AlgebraicPetri.jl"/><meta name="description" content="Documentation for AlgebraicPetri.jl."/><meta property="og:description" content="Documentation for AlgebraicPetri.jl."/><meta property="twitter:description" content="Documentation for AlgebraicPetri.jl."/><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../search_index.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script><script src="../../../assets/analytics.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">AlgebraicPetri.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../../">AlgebraicPetri.jl</a></li><li><span class="tocitem">Epidemiology</span><ul><li><a class="tocitem" href="../composition/">Composition of Epidemiological Models</a></li><li class="is-active"><a class="tocitem" href>Stratification of Epidemiological Models</a><ul class="internal"><li><a class="tocitem" href="#Typed-Petri-nets"><span>Typed Petri nets</span></a></li><li><a class="tocitem" href="#Define-intervention-models"><span>Define intervention models</span></a></li><li><a class="tocitem" href="#Define-geographic-models"><span>Define geographic models</span></a></li><li><a class="tocitem" href="#Model-stratification-and-performance"><span>Model stratification and performance</span></a></li><li><a class="tocitem" href="#Performance"><span>Performance</span></a></li></ul></li><li><a class="tocitem" href="../disease_strains/">Multiple-strain Disease Model with Vaccination</a></li></ul></li><li><span class="tocitem">Ecology</span><ul><li><a class="tocitem" href="../../predation/lotka-volterra/">Lotka-Volterra Model</a></li></ul></li><li><span class="tocitem">Other</span><ul><li><a class="tocitem" href="../../enzymes/enzyme_reactions/">Cathepsin Enzyme Reactions</a></li><li><a class="tocitem" href="../../other/bilayerconversion/">Converting Models to Computation Graphs</a></li><li><a class="tocitem" href="../../other/max_common_subobject/">Maximum Common Sub C-Set</a></li></ul></li><li><a class="tocitem" href="../../../api/">Library Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Epidemiology</a></li><li class="is-active"><a href>Stratification of Epidemiological Models</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Stratification of Epidemiological Models</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/main/docs/literate/epidemiology/stratification.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="epidemiology_stratification"><a class="docs-heading-anchor" href="#epidemiology_stratification">Stratification of Epidemiological Models</a><a id="epidemiology_stratification-1"></a><a class="docs-heading-anchor-permalink" href="#epidemiology_stratification" title="Permalink"></a></h1><p><a href="https://nbviewer.jupyter.org/github/AlgebraicJulia/AlgebraicPetri.jl/blob/gh-pages/dev/generated/epidemiology/stratification.ipynb"><img src="https://img.shields.io/badge/show-nbviewer-579ACA.svg" alt/></a></p><pre><code class="language-julia hljs">using AlgebraicPetri, AlgebraicPetri.TypedPetri
+using Catlab
+using DisplayAs, Markdown
+
+display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, edge_attrs=Dict(:len=&gt;&quot;.75&quot;));</code></pre><p>This tutorial describes typed Petri nets and model stratification. Model stratification is the process by which a submodel is replicated along some axis and the submodels are allowed to interact in some specified way (e.g.; age-structured models). Specifically, methods from the section &quot;Type systems for open Petri nets&quot; of [<a href="https://doi.org/10.1098/rsta.2021.0309">Libkind 2022</a>] are presented, which should be consulted for more information.</p><h2 id="Typed-Petri-nets"><a class="docs-heading-anchor" href="#Typed-Petri-nets">Typed Petri nets</a><a id="Typed-Petri-nets-1"></a><a class="docs-heading-anchor-permalink" href="#Typed-Petri-nets" title="Permalink"></a></h2><p>An important part of model stratification is making sure that when combining e.g.; a mode of ageing and a model of disease transmission, that spurious or erroneous states or transitions are not generated (for example, simultaneously ageing and becoming infected). Category theory provides a way to specify formal stratification schemes that will respect domain knowledge via a type system for Petri nets. A typed Petri net is a <em>morphism</em> (generalized function) from a Petri net to another, where the codomain Petri net represents the type system under consideration, given as <span>$\phi: P \to P_{type}$</span>. The morphism does not need to be injective, that is, multiple places can be mapped to the same place (likewise for transitions, etc).</p><p>We denote the Petri net that defines a type system as <span>$P_{type}$</span>. Let&#39;s consider a very simple type system that will nonetheless be very useful for a class of models of directly transmitted diseases, called <span>$P_{infectious}$</span>. There is a single type of place (population) and three types of transitions. Infectious transitions require two inputs and produce two outputs. Disease transitions are those that move a single individual amongst disease classes (e.g.; from <span>$E$</span> to <span>$I$</span>). Strata transitions are those that move an individual amongst classes of the stratifying variable (e.g.; between age classes). Because all transitions in the generated (stratified Petri nets) must have a map into <span>$P_{infectious}$</span>, we already see that spurious transitions like our example earlier are excluded.</p><pre><code class="language-julia hljs">const infectious_ontology = LabelledPetriNet(
+  [:Pop],
+  :infect =&gt; ((:Pop, :Pop) =&gt; (:Pop, :Pop)),
+  :disease =&gt; (:Pop =&gt; :Pop),
+  :strata =&gt; (:Pop =&gt; :Pop)
+)
+
+to_graphviz(infectious_ontology)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="180pt" height="240pt"
+ viewBox="0.00 0.00 179.90 240.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 236)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-236 175.9,-236 175.9,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="27.95" cy="-112.5" rx="27.9" ry="27.9"/>
+<text text-anchor="middle" x="27.95" y="-108.8" font-family="Times,serif" font-size="14.00">Pop</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="165.4,-232 108.4,-232 108.4,-175 165.4,-175 165.4,-232"/>
+<text text-anchor="middle" x="136.9" y="-199.8" font-family="Times,serif" font-size="14.00">infect</text>
+</g>
+<!-- n1&%2345;&gt;n2 -->
+<g id="edge1" class="edge">
+<title>n1&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M39.03,-138.2C46.46,-153.98 58.03,-173.42 73.9,-185.5 81.09,-190.98 89.9,-194.79 98.6,-197.44"/>
+<polygon fill="black" stroke="black" points="97.72,-200.83 108.28,-199.97 99.49,-194.06 97.72,-200.83"/>
+<text text-anchor="middle" x="78.9" y="-194.3" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n3 -->
+<g id="node3" class="node">
+<title>n3</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="171.9,-153.5 101.9,-153.5 101.9,-83.5 171.9,-83.5 171.9,-153.5"/>
+<text text-anchor="middle" x="136.9" y="-114.8" font-family="Times,serif" font-size="14.00">disease</text>
+</g>
+<!-- n1&%2345;&gt;n3 -->
+<g id="edge3" class="edge">
+<title>n1&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M55.93,-114.01C66.66,-114.62 79.28,-115.32 91.28,-116"/>
+<polygon fill="black" stroke="black" points="91.43,-119.51 101.61,-116.58 91.83,-112.52 91.43,-119.51"/>
+<text text-anchor="middle" x="78.9" y="-119.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4 -->
+<g id="node4" class="node">
+<title>n4</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="166.4,-59 107.4,-59 107.4,0 166.4,0 166.4,-59"/>
+<text text-anchor="middle" x="136.9" y="-25.8" font-family="Times,serif" font-size="14.00">strata</text>
+</g>
+<!-- n1&%2345;&gt;n4 -->
+<g id="edge6" class="edge">
+<title>n1&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M49.72,-94.39C57.24,-87.98 65.85,-80.8 73.9,-74.5 81.9,-68.22 90.66,-61.68 99.01,-55.59"/>
+<polygon fill="black" stroke="black" points="101.12,-58.38 107.17,-49.68 97.02,-52.71 101.12,-58.38"/>
+<text text-anchor="middle" x="78.9" y="-78.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2&%2345;&gt;n1 -->
+<g id="edge5" class="edge">
+<title>n2&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M108.19,-179.92C92.66,-166.71 73.33,-150.27 57.65,-136.92"/>
+<polygon fill="black" stroke="black" points="59.71,-134.08 49.82,-130.26 55.17,-139.41 59.71,-134.08"/>
+<text text-anchor="middle" x="78.9" y="-161.3" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n3&%2345;&gt;n1 -->
+<g id="edge2" class="edge">
+<title>n3&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M101.66,-100.2C95.87,-97.84 89.82,-95.8 83.9,-94.5 76.85,-92.95 69.42,-93.69 62.39,-95.56"/>
+<polygon fill="black" stroke="black" points="60.78,-92.41 52.46,-98.96 63.05,-99.03 60.78,-92.41"/>
+<text text-anchor="middle" x="78.9" y="-98.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4&%2345;&gt;n1 -->
+<g id="edge4" class="edge">
+<title>n4&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M107.39,-16.32C96.25,-13.16 83.79,-12.26 73.9,-18.5 54.17,-30.93 42.91,-54.68 36.6,-75.19"/>
+<polygon fill="black" stroke="black" points="33.19,-74.37 33.88,-84.94 39.94,-76.25 33.19,-74.37"/>
+<text text-anchor="middle" x="78.9" y="-22.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+</g>
+</svg>
+'/><p>Now that we have <span>$P_{infectious}$</span>, we define a SIRD model with that type system We start by defining an undirected wiring diagram (UWD) which represents the processes and states in the SIRD model; note that the name of each box corresponds to one of the transitions in <span>$P_{infectious}$</span>, and that we specify the types of the junctions as <code>Pop</code> in the <code>where</code> clause.</p><p>Next we use <code>oapply_typed</code> which produces a typed Petri net by composing transitions based on <span>$P_{infectious}$</span>. The first two arguments are the type Petri net and UWD, and the vector of symbols gives the names of the transitions in the new typed Petri net. We then add reflexive transitions typed as <code>:strata</code> to indicate which states can be stratified Here we add reflexive transitions to the susceptible, infected, and recovered populations but we leave out the dead population as no individuals entering that compartment may leave.</p><p>Calling <code>to_graphviz</code> on the resulting object will display <span>$\phi : P \to P_{infectious}$</span>. We could apply <code>dom</code> (domain) or <code>codom</code> (codomain) on the object to extract <span>$P$</span> or <span>$P_{infectious}$</span>, respectively.</p><pre><code class="language-julia hljs">sird_uwd = @relation (S,I,R,D) where (S::Pop, I::Pop, R::Pop, D::Pop) begin
+  infect(S, I, I, I)
+  disease(I, R)
+  disease(I, D)
+end
+
+sird_model = oapply_typed(infectious_ontology, sird_uwd, [:infection, :recovery, :death])
+sird_model = add_reflexives(sird_model, [[:strata], [:strata], [:strata], []], infectious_ontology)
+
+to_graphviz(sird_model)</code></pre><img src="2680eb5c.svg" alt="Example block output"/><h2 id="Define-intervention-models"><a class="docs-heading-anchor" href="#Define-intervention-models">Define intervention models</a><a id="Define-intervention-models-1"></a><a class="docs-heading-anchor-permalink" href="#Define-intervention-models" title="Permalink"></a></h2><h3 id="Masking-model"><a class="docs-heading-anchor" href="#Masking-model">Masking model</a><a id="Masking-model-1"></a><a class="docs-heading-anchor-permalink" href="#Masking-model" title="Permalink"></a></h3><p>Let&#39;s say we want to stratify the populations in the SIRD model by masking or non-masking; or, generally by any reversible behavioral change. To generate our stratification scheme, we begin with a UWD describing the strata levels we are interested in (Masked and UnMasked), and the transitions possible in each level. Note that we give transitions of type <code>strata</code> which allow masking or unmasking. Unmasked individuals may transmit disease to either masked or unmasked individuals, but masked persons cannot transmit disease.</p><p>We again use <code>oapply_typed</code> to generate the stratification scheme <span>$\phi^{&#39;}:P^{&#39;}\to P_{infectious}$</span>, adding reflexive <code>disease</code> transitions to the typed Petri net as changes in disease status may occur in either stratum.</p><pre><code class="language-julia hljs">masking_uwd = @relation (M,UM) where (M::Pop, UM::Pop) begin
+  strata(M, UM)
+  strata(UM, M)
+  infect(M, UM, M, UM)
+  infect(UM, UM, UM, UM)
+end
+mask_model = oapply_typed(infectious_ontology, masking_uwd, [:unmask, :mask, :infect_um, :infect_uu])
+mask_model = add_reflexives(mask_model, [[:disease], [:disease]], infectious_ontology)
+
+to_graphviz(dom(mask_model))</code></pre><img src="0c06b8c2.svg" alt="Example block output"/><p>To generate the stratified SIRD model, we use <code>typed_product</code>. As described in [<a href="https://doi.org/10.1098/rsta.2021.0309">Libkind 2022</a>], stratification of a model can be seen as a pullback of <span>$\phi$</span> and <span>$\phi^{&#39;}$</span>, or as a product in the slice category <span>$Petri/P_{type}$</span>.</p><pre><code class="language-julia hljs">typed_product(sird_model, mask_model) |&gt; dom |&gt; to_graphviz</code></pre><img src="222941ae.svg" alt="Example block output"/><h3 id="Vaccine-model"><a class="docs-heading-anchor" href="#Vaccine-model">Vaccine model</a><a id="Vaccine-model-1"></a><a class="docs-heading-anchor-permalink" href="#Vaccine-model" title="Permalink"></a></h3><p>By changing <span>$P^{&#39;}$</span> slightly, we can generate a stratification scheme to model vaccination. In this case, the transition between strata is irreversible (non-leaky vaccine), infection may occur between any pair of individuals (imperfect protection), and change in disease state may occur in any strata.</p><pre><code class="language-julia hljs">vax_uwd = @relation (UV,V) where (UV::Pop, V::Pop) begin
+  strata(UV, V)
+  infect(V, V, V, V)
+  infect(V, UV, V, UV)
+  infect(UV, V, UV, V)
+  infect(UV, UV, UV, UV)
+end
+vax_model = oapply_typed(infectious_ontology, vax_uwd, [:vax, :infect_vv, :infect_uv, :infect_vu, :infect_uu])
+vax_model = add_reflexives(vax_model, [[:disease], [:disease]], infectious_ontology)
+
+to_graphviz(dom(vax_model))</code></pre><img src="9f12ba8b.svg" alt="Example block output"/><p>Once again, the typed product, or pullback gives the SIRD model stratified by vaccination.</p><pre><code class="language-julia hljs">typed_product(sird_model, vax_model) |&gt; dom |&gt; to_graphviz</code></pre><img src="d60e305a.svg" alt="Example block output"/><h3 id="Mask-Vax-Model"><a class="docs-heading-anchor" href="#Mask-Vax-Model">Mask-Vax Model</a><a id="Mask-Vax-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Mask-Vax-Model" title="Permalink"></a></h3><p>By using a more complicated UWD, we can have a model that combines masking and vaccination.</p><pre><code class="language-julia hljs">mask_vax_uwd = @relation (UV_UM,UV_M,V_UM,V_M) where (UV_UM::Pop, UV_M::Pop, V_UM::Pop, V_M::Pop) begin
+  strata(UV_UM, UV_M)
+  strata(UV_M, UV_UM)
+  strata(V_UM, V_M)
+  strata(V_M, V_UM)
+  strata(UV_UM, V_UM)
+  strata(UV_M, V_M)
+  infect(V_UM, V_UM, V_UM, V_UM)
+  infect(V_UM, UV_UM, V_UM, UV_UM)
+  infect(UV_UM, V_UM, UV_UM, V_UM)
+  infect(UV_UM, UV_UM, UV_UM, UV_UM)
+  infect(V_M, V_UM, V_M, V_UM)
+  infect(V_M, UV_UM, V_M, UV_UM)
+  infect(UV_M, V_UM, UV_M, V_UM)
+  infect(UV_M, UV_UM, UV_M, UV_UM)
+end
+mask_vax_model = oapply_typed(
+  infectious_ontology,
+  mask_vax_uwd,
+  [:mask_uv, :unmask_uv, :mask_v, :unmask_v, :vax_um, :vax_m, :infect_um_vv, :infect_um_uv, :infect_um_vu, :infect_um_uu, :infect_m_vv, :infect_m_uv, :infect_m_vu, :infect_m_uu]
+)
+mask_vax_model = add_reflexives(mask_vax_model, [[:disease], [:disease], [:disease], [:disease]], infectious_ontology)
+
+to_graphviz(dom(mask_vax_model))</code></pre><img src="21393d96.svg" alt="Example block output"/><p>Stratify our SIRD model on this mask + vaccine model to get a model of SIRD with a vaccination rate and masking policies:</p><pre><code class="language-julia hljs">typed_product(sird_model, mask_vax_model) |&gt; dom |&gt; to_graphviz</code></pre><img src="55f77c20.svg" alt="Example block output"/><h2 id="Define-geographic-models"><a class="docs-heading-anchor" href="#Define-geographic-models">Define geographic models</a><a id="Define-geographic-models-1"></a><a class="docs-heading-anchor-permalink" href="#Define-geographic-models" title="Permalink"></a></h2><h3 id="Flux-model-between-N-regions"><a class="docs-heading-anchor" href="#Flux-model-between-N-regions">Flux model between <span>$N$</span> regions</a><a id="Flux-model-between-N-regions-1"></a><a class="docs-heading-anchor-permalink" href="#Flux-model-between-N-regions" title="Permalink"></a></h3><p>In many cases, it is not practical to construct by hand the composition diagram used to build a complex typed Petri net. Here we demonstrate how to use the imperative interface provided by Catlab to construct a UWD describing a model of a population spread out amongst <span>$N$</span> regions. Individuals can travel between regions, but disease transmission is only possible between individuals in the same region. This is known as a flux model because individuals have the same behavior, so that the model can correctly simulate net &quot;flux&quot; of individuals between regions but not specific travel patterns.</p><pre><code class="language-julia hljs">function travel_model(n)
+  uwd = RelationDiagram(repeat([:Pop], n))
+  junctions = Dict(begin
+    variable = Symbol(&quot;Region$(i)&quot;)
+    junction = add_junction!(uwd, :Pop, variable=variable)
+    set_junction!(uwd, port, junction, outer=true)
+    variable =&gt; junction
+  end for (i, port) in enumerate(ports(uwd, outer=true)))
+
+  pairs = filter(x -&gt; first(x) != last(x), collect(Iterators.product(keys(junctions), keys(junctions))))
+  for pair in pairs
+    box = add_box!(uwd, [junction_type(uwd, junctions[p]) for p in pair], name=:strata)
+    for (rgn, port) in zip(pair, ports(uwd, box))
+      set_junction!(uwd, port, junctions[rgn])
+    end
+  end
+
+  act = oapply_typed(infectious_ontology, uwd, [Symbol(&quot;$(a)_$(b)&quot;) for (a, b) in pairs])
+  add_reflexives(act, repeat([[:infect, :disease]], n), infectious_ontology)
+end
+
+to_graphviz(dom(travel_model(2)))</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="621pt" height="363pt"
+ viewBox="0.00 0.00 620.98 363.05" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 359.05)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-359.05 616.98,-359.05 616.98,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="48.75" cy="-106.05" rx="48.99" ry="48.99"/>
+<text text-anchor="middle" x="48.75" y="-102.35" font-family="Times,serif" font-size="14.00">Region2</text>
+</g>
+<!-- n3 -->
+<g id="node3" class="node">
+<title>n3</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="283.49,-333.05 143.49,-333.05 143.49,-193.05 283.49,-193.05 283.49,-333.05"/>
+<text text-anchor="middle" x="213.49" y="-259.35" font-family="Times,serif" font-size="14.00">Region2_Region1</text>
+</g>
+<!-- n1&%2345;&gt;n3 -->
+<g id="edge1" class="edge">
+<title>n1&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M84.66,-139.73C99.7,-154.24 117.92,-171.81 135.83,-189.09"/>
+<polygon fill="black" stroke="black" points="133.85,-192.05 143.48,-196.47 138.71,-187.01 133.85,-192.05"/>
+<text text-anchor="middle" x="120.49" y="-178.85" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n5 -->
+<g id="node5" class="node">
+<title>n5</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="241.99,-174.55 184.99,-174.55 184.99,-117.55 241.99,-117.55 241.99,-174.55"/>
+<text text-anchor="middle" x="213.49" y="-142.35" font-family="Times,serif" font-size="14.00">infect</text>
+</g>
+<!-- n1&%2345;&gt;n5 -->
+<g id="edge6" class="edge">
+<title>n1&%2345;&gt;n5</title>
+<path fill="none" stroke="black" d="M90.69,-131.33C98.66,-135.23 107.14,-138.74 115.49,-141.05 134.51,-146.32 156.41,-147.82 174.59,-147.89"/>
+<polygon fill="black" stroke="black" points="174.84,-151.39 184.81,-147.78 174.77,-144.39 174.84,-151.39"/>
+<text text-anchor="middle" x="120.49" y="-145.85" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n6 -->
+<g id="node6" class="node">
+<title>n6</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="248.49,-99.05 178.49,-99.05 178.49,-29.05 248.49,-29.05 248.49,-99.05"/>
+<text text-anchor="middle" x="213.49" y="-60.35" font-family="Times,serif" font-size="14.00">disease</text>
+</g>
+<!-- n1&%2345;&gt;n6 -->
+<g id="edge9" class="edge">
+<title>n1&%2345;&gt;n6</title>
+<path fill="none" stroke="black" d="M96.38,-94.01C119.03,-88.17 146.09,-81.19 168.39,-75.43"/>
+<polygon fill="black" stroke="black" points="169.46,-78.77 178.26,-72.88 167.71,-71.99 169.46,-78.77"/>
+<text text-anchor="middle" x="120.49" y="-91.85" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="378.24" cy="-251.05" rx="48.99" ry="48.99"/>
+<text text-anchor="middle" x="378.24" y="-247.35" font-family="Times,serif" font-size="14.00">Region1</text>
+</g>
+<!-- n4 -->
+<g id="node4" class="node">
+<title>n4</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="612.98,-140.05 472.98,-140.05 472.98,-0.05 612.98,-0.05 612.98,-140.05"/>
+<text text-anchor="middle" x="542.98" y="-66.35" font-family="Times,serif" font-size="14.00">Region1_Region2</text>
+</g>
+<!-- n2&%2345;&gt;n4 -->
+<g id="edge10" class="edge">
+<title>n2&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M411.39,-215.29C428.78,-195.95 450.97,-171.28 472.1,-147.77"/>
+<polygon fill="black" stroke="black" points="474.83,-149.97 478.92,-140.19 469.63,-145.29 474.83,-149.97"/>
+<text text-anchor="middle" x="449.98" y="-179.85" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n7 -->
+<g id="node7" class="node">
+<title>n7</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="571.48,-250.55 514.48,-250.55 514.48,-193.55 571.48,-193.55 571.48,-250.55"/>
+<text text-anchor="middle" x="542.98" y="-218.35" font-family="Times,serif" font-size="14.00">infect</text>
+</g>
+<!-- n2&%2345;&gt;n7 -->
+<g id="edge5" class="edge">
+<title>n2&%2345;&gt;n7</title>
+<path fill="none" stroke="black" d="M426.31,-242.66C451.06,-238.25 480.99,-232.92 504.2,-228.78"/>
+<polygon fill="black" stroke="black" points="505.12,-232.17 514.35,-226.97 503.89,-225.28 505.12,-232.17"/>
+<text text-anchor="middle" x="449.98" y="-242.85" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n8 -->
+<g id="node8" class="node">
+<title>n8</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="577.98,-355.05 507.98,-355.05 507.98,-285.05 577.98,-285.05 577.98,-355.05"/>
+<text text-anchor="middle" x="542.98" y="-316.35" font-family="Times,serif" font-size="14.00">disease</text>
+</g>
+<!-- n2&%2345;&gt;n8 -->
+<g id="edge7" class="edge">
+<title>n2&%2345;&gt;n8</title>
+<path fill="none" stroke="black" d="M423.28,-269.72C446.69,-279.65 475.37,-291.81 498.68,-301.69"/>
+<polygon fill="black" stroke="black" points="497.4,-304.95 507.97,-305.63 500.13,-298.5 497.4,-304.95"/>
+<text text-anchor="middle" x="449.98" y="-284.85" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n3&%2345;&gt;n2 -->
+<g id="edge2" class="edge">
+<title>n3&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M283.51,-257.96C295.44,-257.08 307.73,-256.17 319.32,-255.32"/>
+<polygon fill="black" stroke="black" points="319.59,-258.81 329.31,-254.58 319.08,-251.83 319.59,-258.81"/>
+<text text-anchor="middle" x="306.49" y="-259.85" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4&%2345;&gt;n1 -->
+<g id="edge3" class="edge">
+<title>n4&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M472.88,-41.71C391.38,-12.69 253.14,22.63 143.49,-20.05 121.89,-28.45 102.25,-44.42 86.59,-60.33"/>
+<polygon fill="black" stroke="black" points="84.03,-57.95 79.68,-67.61 89.1,-62.77 84.03,-57.95"/>
+<text text-anchor="middle" x="306.49" y="-7.85" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n5&%2345;&gt;n1 -->
+<g id="edge8" class="edge">
+<title>n5&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M184.79,-137.94C167.75,-133.07 145.44,-126.9 125.49,-122.05 119.41,-120.57 113.03,-119.1 106.66,-117.68"/>
+<polygon fill="black" stroke="black" points="107.23,-114.22 96.72,-115.5 105.74,-121.06 107.23,-114.22"/>
+<text text-anchor="middle" x="120.49" y="-125.85" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n6&%2345;&gt;n1 -->
+<g id="edge11" class="edge">
+<title>n6&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M178.18,-61.5C159.32,-61.08 135.72,-62.17 115.49,-68.05 109.81,-69.7 104.11,-71.93 98.56,-74.5"/>
+<polygon fill="black" stroke="black" points="96.77,-71.49 89.4,-79.09 99.91,-77.74 96.77,-71.49"/>
+<text text-anchor="middle" x="120.49" y="-71.85" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n7&%2345;&gt;n2 -->
+<g id="edge4" class="edge">
+<title>n7&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M514.35,-212.35C494.68,-206.89 467.82,-202.38 444.98,-209.05 438.75,-210.87 432.55,-213.48 426.59,-216.52"/>
+<polygon fill="black" stroke="black" points="424.49,-213.68 417.44,-221.6 427.89,-219.8 424.49,-213.68"/>
+<text text-anchor="middle" x="449.98" y="-212.85" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n8&%2345;&gt;n2 -->
+<g id="edge12" class="edge">
+<title>n8&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M507.64,-316.68C488.55,-313.9 464.75,-308.92 444.98,-300.05 437.86,-296.85 430.77,-292.78 424.03,-288.34"/>
+<polygon fill="black" stroke="black" points="425.91,-285.39 415.7,-282.58 421.93,-291.15 425.91,-285.39"/>
+<text text-anchor="middle" x="449.98" y="-307.85" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+</g>
+</svg>
+'/><p>Stratify our SIRD model on this travel model with two regions:</p><pre><code class="language-julia hljs">typed_product(sird_model, travel_model(2)) |&gt; dom |&gt; to_graphviz</code></pre><img src="c839b5e9.svg" alt="Example block output"/><h3 id="Simple-Trip-model-between-N-regions"><a class="docs-heading-anchor" href="#Simple-Trip-model-between-N-regions">Simple Trip model between <span>$N$</span> regions</a><a id="Simple-Trip-model-between-N-regions-1"></a><a class="docs-heading-anchor-permalink" href="#Simple-Trip-model-between-N-regions" title="Permalink"></a></h3><p>As explored in [<a href="https://doi.org/10.1073/pnas.2007488118">Citron 2021</a>], the flux model is not sufficient when individuals travel behavior differs by their home region. A simple extension is the &quot;simple trip model&quot;. We build this model in two parts. First we develop a &quot;living model&quot; which classifies populations according to what place their home is. The function <code>pairwise_id_typed_petri</code> is used to generate the &quot;infection&quot; transitions between each pair of populations. Reflexive transitions are added for strata and disease state transitions.</p><pre><code class="language-julia hljs">function living_model(n)
+  typed_living = pairwise_id_typed_petri(infectious_ontology, :Pop, :infect, [Symbol(&quot;Living$(i)&quot;) for i in 1:n])
+  add_reflexives(typed_living, repeat([[:disease, :strata]], n), infectious_ontology)
+end
+
+to_graphviz(dom(living_model(2)))</code></pre><img src="1e6f81c0.svg" alt="Example block output"/><p>Taking the typed product with the previous travel model will now stratify that model by living status.</p><pre><code class="language-julia hljs">simple_trip_model = typed_product(travel_model(2), living_model(2))
+to_graphviz(dom(simple_trip_model))</code></pre><img src="6a954edc.svg" alt="Example block output"/><p>Stratify our SIRD model on this simple trip model between two regions:</p><pre><code class="language-julia hljs">typed_product(sird_model, simple_trip_model) |&gt; dom |&gt; to_graphviz</code></pre><img src="4821efe2.svg" alt="Example block output"/><h2 id="Model-stratification-and-performance"><a class="docs-heading-anchor" href="#Model-stratification-and-performance">Model stratification and performance</a><a id="Model-stratification-and-performance-1"></a><a class="docs-heading-anchor-permalink" href="#Model-stratification-and-performance" title="Permalink"></a></h2><p>Here we investigate performance of stratified models. We first set up a simple helper function to connect the undirected wiring diagrams to our infectious disease type system and add the necessary reflexive transitions for stratification.</p><pre><code class="language-julia hljs">function oapply_mira_model(uwd)
+  model = oapply_typed(infectious_ontology, uwd, [Symbol(&quot;t$(n)&quot;) for n in 1:nboxes(uwd)])
+  add_reflexives(model, [repeat([[:strata]], njunctions(uwd)-3)..., [], [:strata],[]], infectious_ontology)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">oapply_mira_model (generic function with 1 method)</code></pre><h3 id="SIDARTHE-Model"><a class="docs-heading-anchor" href="#SIDARTHE-Model">SIDARTHE Model</a><a id="SIDARTHE-Model-1"></a><a class="docs-heading-anchor-permalink" href="#SIDARTHE-Model" title="Permalink"></a></h3><p>BIOMD0000000955_miranet</p><pre><code class="language-julia hljs">m1_model = (@relation (S,I,D,A,R,T,H,E) where (S::Pop, I::Pop, D::Pop, A::Pop, R::Pop, T::Pop, H::Pop, E::Pop) begin
+  infect(S, D, I, D)
+  infect(S, A, I, A)
+  infect(S, R, I, R)
+  infect(S, I, I, I)
+  disease(I, D)
+  disease(I, A)
+  disease(I, H)
+  disease(D, R)
+  disease(D, H)
+  disease(A, R)
+  disease(A, H)
+  disease(A, T)
+  disease(R, T)
+  disease(R, H)
+  disease(T, E)
+  disease(T, H)
+end) |&gt; oapply_mira_model
+
+to_graphviz(dom(m1_model))</code></pre><img src="b7adfe64.svg" alt="Example block output"/><h3 id="SEIAHRD-Model"><a class="docs-heading-anchor" href="#SEIAHRD-Model">SEIAHRD Model</a><a id="SEIAHRD-Model-1"></a><a class="docs-heading-anchor-permalink" href="#SEIAHRD-Model" title="Permalink"></a></h3><p>BIOMD0000000960_miranet</p><pre><code class="language-julia hljs">m2_model = (@relation (S,E,I,A,H,R,D) where (S::Pop, E::Pop, I::Pop, A::Pop, H::Pop, R::Pop, D::Pop) begin
+  infect(S, I, E, I)
+  infect(S, A, E, A)
+  infect(S, H, E, H)
+  disease(E, I)
+  disease(E, A)
+  disease(I, H)
+  disease(I, R)
+  disease(I, D)
+  disease(A, R)
+  disease(A, D)
+  disease(H, D)
+  disease(H, R)
+end) |&gt; oapply_mira_model
+
+to_graphviz(dom(m2_model))</code></pre><img src="a27a9556.svg" alt="Example block output"/><h3 id="SEIuIrQRD-Model"><a class="docs-heading-anchor" href="#SEIuIrQRD-Model">SEIuIrQRD Model</a><a id="SEIuIrQRD-Model-1"></a><a class="docs-heading-anchor-permalink" href="#SEIuIrQRD-Model" title="Permalink"></a></h3><p>BIOMD0000000983_miranet</p><pre><code class="language-julia hljs">m3_model = (@relation (S,E,Iu,Ir,Q,R,D) where (S::Pop, E::Pop, Iu::Pop, Ir::Pop, Q::Pop, R::Pop, D::Pop) begin
+  infect(S, Ir, E, Ir)
+  infect(S, Iu, E, Iu)
+  infect(S, Ir, Q, Ir)
+  infect(S, Iu, Q, Iu)
+  disease(Q, Ir)
+  disease(E, Ir)
+  disease(E, Iu)
+  disease(Ir, R)
+  disease(Iu, R)
+  disease(Q, S)
+  disease(Ir, D)
+end) |&gt; oapply_mira_model
+
+to_graphviz(dom(m3_model))</code></pre><img src="796c9172.svg" alt="Example block output"/><h3 id="Enumerating-stratified-models"><a class="docs-heading-anchor" href="#Enumerating-stratified-models">Enumerating stratified models</a><a id="Enumerating-stratified-models-1"></a><a class="docs-heading-anchor-permalink" href="#Enumerating-stratified-models" title="Permalink"></a></h3><p>Next we can take all of our epidemiology, intervention, and geography models and easily enumerate and calculate the models for every possible stratification combination and investigate the resulting models with some set number of regions for the geographic stratification models.</p><pre><code class="language-julia hljs">num_rgns = 5
+disease_models = [(&quot;SIRD&quot;, sird_model), (&quot;SIDARTHE&quot;, m1_model), (&quot;SEIAHRD&quot;, m2_model), (&quot;SEIuIrQRD&quot;, m3_model)]
+policy_models = [nothing, (&quot;Vaccination&quot;, vax_model), (&quot;Masking&quot;, mask_model), (&quot;Masking + Vaccination&quot;, mask_vax_model)]
+travel_models = [nothing, (&quot;Travel&quot;, travel_model(num_rgns)), (&quot;Simple Trip&quot;, typed_product(travel_model(num_rgns), living_model(num_rgns)))]
+
+table = [&quot;| Model | Intervention | Geography ($(num_rgns) regions) | # of States | # of Transitions |&quot;,&quot;|:--|$(repeat(&quot;:-:|&quot;, 4))&quot;]
+
+for pieces in Iterators.product(disease_models, policy_models, travel_models)
+  petri = typed_product(last.(collect(filter(x -&gt; !isnothing(x), pieces)))) |&gt; dom
+  push!(table, &quot;|$(join([isnothing(piece) ? &quot;N/A&quot; : first(piece) for piece in pieces],&quot;|&quot;))|$(ns(petri))|$(nt(petri))|&quot;)
+end
+
+Markdown.parse(join(table, &quot;\n&quot;)) |&gt; DisplayAs.HTML</code></pre><div class="markdown"><table><tr><th align="left">Model</th><th align="center">Intervention</th><th align="center">Geography &#40;5 regions&#41;</th><th align="center"># of States</th><th align="center"># of Transitions</th></tr><tr><td align="left">SIRD</td><td align="center">N/A</td><td align="center">N/A</td><td align="center">4</td><td align="center">6</td></tr><tr><td align="left">SIDARTHE</td><td align="center">N/A</td><td align="center">N/A</td><td align="center">8</td><td align="center">22</td></tr><tr><td align="left">SEIAHRD</td><td align="center">N/A</td><td align="center">N/A</td><td align="center">7</td><td align="center">17</td></tr><tr><td align="left">SEIuIrQRD</td><td align="center">N/A</td><td align="center">N/A</td><td align="center">7</td><td align="center">16</td></tr><tr><td align="left">SIRD</td><td align="center">Vaccination</td><td align="center">N/A</td><td align="center">8</td><td align="center">11</td></tr><tr><td align="left">SIDARTHE</td><td align="center">Vaccination</td><td align="center">N/A</td><td align="center">16</td><td align="center">46</td></tr><tr><td align="left">SEIAHRD</td><td align="center">Vaccination</td><td align="center">N/A</td><td align="center">14</td><td align="center">35</td></tr><tr><td align="left">SEIuIrQRD</td><td align="center">Vaccination</td><td align="center">N/A</td><td align="center">14</td><td align="center">35</td></tr><tr><td align="left">SIRD</td><td align="center">Masking</td><td align="center">N/A</td><td align="center">8</td><td align="center">12</td></tr><tr><td align="left">SIDARTHE</td><td align="center">Masking</td><td align="center">N/A</td><td align="center">16</td><td align="center">44</td></tr><tr><td align="left">SEIAHRD</td><td align="center">Masking</td><td align="center">N/A</td><td align="center">14</td><td align="center">34</td></tr><tr><td align="left">SEIuIrQRD</td><td align="center">Masking</td><td align="center">N/A</td><td align="center">14</td><td align="center">32</td></tr><tr><td align="left">SIRD</td><td align="center">Masking &#43; Vaccination</td><td align="center">N/A</td><td align="center">16</td><td align="center">34</td></tr><tr><td align="left">SIDARTHE</td><td align="center">Masking &#43; Vaccination</td><td align="center">N/A</td><td align="center">32</td><td align="center">116</td></tr><tr><td align="left">SEIAHRD</td><td align="center">Masking &#43; Vaccination</td><td align="center">N/A</td><td align="center">28</td><td align="center">90</td></tr><tr><td align="left">SEIuIrQRD</td><td align="center">Masking &#43; Vaccination</td><td align="center">N/A</td><td align="center">28</td><td align="center">90</td></tr><tr><td align="left">SIRD</td><td align="center">N/A</td><td align="center">Travel</td><td align="center">20</td><td align="center">75</td></tr><tr><td align="left">SIDARTHE</td><td align="center">N/A</td><td align="center">Travel</td><td align="center">40</td><td align="center">200</td></tr><tr><td align="left">SEIAHRD</td><td align="center">N/A</td><td align="center">Travel</td><td align="center">35</td><td align="center">160</td></tr><tr><td align="left">SEIuIrQRD</td><td align="center">N/A</td><td align="center">Travel</td><td align="center">35</td><td align="center">155</td></tr><tr><td align="left">SIRD</td><td align="center">Vaccination</td><td align="center">Travel</td><td align="center">40</td><td align="center">100</td></tr><tr><td align="left">SIDARTHE</td><td align="center">Vaccination</td><td align="center">Travel</td><td align="center">80</td><td align="center">320</td></tr><tr><td align="left">SEIAHRD</td><td align="center">Vaccination</td><td align="center">Travel</td><td align="center">70</td><td align="center">250</td></tr><tr><td align="left">SEIuIrQRD</td><td align="center">Vaccination</td><td align="center">Travel</td><td align="center">70</td><td align="center">250</td></tr><tr><td align="left">SIRD</td><td align="center">Masking</td><td align="center">Travel</td><td align="center">40</td><td align="center">150</td></tr><tr><td align="left">SIDARTHE</td><td align="center">Masking</td><td align="center">Travel</td><td align="center">80</td><td align="center">400</td></tr><tr><td align="left">SEIAHRD</td><td align="center">Masking</td><td align="center">Travel</td><td align="center">70</td><td align="center">320</td></tr><tr><td align="left">SEIuIrQRD</td><td align="center">Masking</td><td align="center">Travel</td><td align="center">70</td><td align="center">310</td></tr><tr><td align="left">SIRD</td><td align="center">Masking &#43; Vaccination</td><td align="center">Travel</td><td align="center">80</td><td align="center">440</td></tr><tr><td align="left">SIDARTHE</td><td align="center">Masking &#43; Vaccination</td><td align="center">Travel</td><td align="center">160</td><td align="center">1120</td></tr><tr><td align="left">SEIAHRD</td><td align="center">Masking &#43; Vaccination</td><td align="center">Travel</td><td align="center">140</td><td align="center">900</td></tr><tr><td align="left">SEIuIrQRD</td><td align="center">Masking &#43; Vaccination</td><td align="center">Travel</td><td align="center">140</td><td align="center">900</td></tr><tr><td align="left">SIRD</td><td align="center">N/A</td><td align="center">Simple Trip</td><td align="center">100</td><td align="center">475</td></tr><tr><td align="left">SIDARTHE</td><td align="center">N/A</td><td align="center">Simple Trip</td><td align="center">200</td><td align="center">1400</td></tr><tr><td align="left">SEIAHRD</td><td align="center">N/A</td><td align="center">Simple Trip</td><td align="center">175</td><td align="center">1100</td></tr><tr><td align="left">SEIuIrQRD</td><td align="center">N/A</td><td align="center">Simple Trip</td><td align="center">175</td><td align="center">1175</td></tr><tr><td align="left">SIRD</td><td align="center">Vaccination</td><td align="center">Simple Trip</td><td align="center">200</td><td align="center">900</td></tr><tr><td align="left">SIDARTHE</td><td align="center">Vaccination</td><td align="center">Simple Trip</td><td align="center">400</td><td align="center">3200</td></tr><tr><td align="left">SEIAHRD</td><td align="center">Vaccination</td><td align="center">Simple Trip</td><td align="center">350</td><td align="center">2450</td></tr><tr><td align="left">SEIuIrQRD</td><td align="center">Vaccination</td><td align="center">Simple Trip</td><td align="center">350</td><td align="center">2850</td></tr><tr><td align="left">SIRD</td><td align="center">Masking</td><td align="center">Simple Trip</td><td align="center">200</td><td align="center">950</td></tr><tr><td align="left">SIDARTHE</td><td align="center">Masking</td><td align="center">Simple Trip</td><td align="center">400</td><td align="center">2800</td></tr><tr><td align="left">SEIAHRD</td><td align="center">Masking</td><td align="center">Simple Trip</td><td align="center">350</td><td align="center">2200</td></tr><tr><td align="left">SEIuIrQRD</td><td align="center">Masking</td><td align="center">Simple Trip</td><td align="center">350</td><td align="center">2350</td></tr><tr><td align="left">SIRD</td><td align="center">Masking &#43; Vaccination</td><td align="center">Simple Trip</td><td align="center">400</td><td align="center">3000</td></tr><tr><td align="left">SIDARTHE</td><td align="center">Masking &#43; Vaccination</td><td align="center">Simple Trip</td><td align="center">800</td><td align="center">8800</td></tr><tr><td align="left">SEIAHRD</td><td align="center">Masking &#43; Vaccination</td><td align="center">Simple Trip</td><td align="center">700</td><td align="center">6900</td></tr><tr><td align="left">SEIuIrQRD</td><td align="center">Masking &#43; Vaccination</td><td align="center">Simple Trip</td><td align="center">700</td><td align="center">7700</td></tr></table>
+</div><h2 id="Performance"><a class="docs-heading-anchor" href="#Performance">Performance</a><a id="Performance-1"></a><a class="docs-heading-anchor-permalink" href="#Performance" title="Permalink"></a></h2><p>As we increase the number of regions in our geographic stratification models, the number of states and transitions increase polynomially which causes the execution time for calculating the final stratified model to also increase polynomially.</p><p><img src="../../../assets/runtime_vs_num_rgns.svg" alt="Runtime vs. Number of Georgraphic Regions"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../composition/">« Composition of Epidemiological Models</a><a class="docs-footer-nextpage" href="../disease_strains/">Multiple-strain Disease Model with Vaccination »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.0 on <span class="colophon-date" title="Thursday 18 April 2024 18:09">Thursday 18 April 2024</span>. Using Julia version 1.10.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

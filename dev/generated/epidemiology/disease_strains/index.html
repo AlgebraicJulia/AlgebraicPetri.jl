@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Multiple-strain Disease Model with Vaccination · AlgebraicPetri.jl</title><meta name="title" content="Multiple-strain Disease Model with Vaccination · AlgebraicPetri.jl"/><meta property="og:title" content="Multiple-strain Disease Model with Vaccination · AlgebraicPetri.jl"/><meta property="twitter:title" content="Multiple-strain Disease Model with Vaccination · AlgebraicPetri.jl"/><meta name="description" content="Documentation for AlgebraicPetri.jl."/><meta property="og:description" content="Documentation for AlgebraicPetri.jl."/><meta property="twitter:description" content="Documentation for AlgebraicPetri.jl."/><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../search_index.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script><script src="../../../assets/analytics.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">AlgebraicPetri.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../../">AlgebraicPetri.jl</a></li><li><span class="tocitem">Epidemiology</span><ul><li><a class="tocitem" href="../composition/">Composition of Epidemiological Models</a></li><li><a class="tocitem" href="../stratification/">Stratification of Epidemiological Models</a></li><li class="is-active"><a class="tocitem" href>Multiple-strain Disease Model with Vaccination</a><ul class="internal"><li><a class="tocitem" href="#Define-basic-type-system"><span>Define basic type system</span></a></li><li><a class="tocitem" href="#Define-a-model-of-multiple-vaccine-types"><span>Define a model of multiple vaccine types</span></a></li><li><a class="tocitem" href="#Stratify-the-SIR-model-with-vaccinations-for-two-vaccine-types"><span>Stratify the SIR model with vaccinations for two vaccine types</span></a></li><li><a class="tocitem" href="#Define-a-model-of-multiple-disease-strains"><span>Define a model of multiple disease strains</span></a></li><li><a class="tocitem" href="#Stratify-the-SIRD-model-for-two-strains"><span>Stratify the SIRD model for two strains</span></a></li><li><a class="tocitem" href="#Define-a-new-type-system-and-corresponding-disease-and-multi-strain-models"><span>Define a new type system and corresponding disease and multi-strain models</span></a></li><li><a class="tocitem" href="#Post-composition:-Retyping-the-type-system"><span>Post-composition: Retyping the type system</span></a></li><li><a class="tocitem" href="#Define-a-multi-strain-SIR-model-with-vaccination-by-multiple-vaccine-types"><span>Define a multi-strain SIR model with vaccination by multiple vaccine types</span></a></li><li><a class="tocitem" href="#Re-stratify-the-multi-strain-multi-vax-SIRD-model-with-the-simple-trip-model"><span>Re-stratify the multi-strain multi-vax SIRD model with the simple trip model</span></a></li></ul></li></ul></li><li><span class="tocitem">Ecology</span><ul><li><a class="tocitem" href="../../predation/lotka-volterra/">Lotka-Volterra Model</a></li></ul></li><li><span class="tocitem">Other</span><ul><li><a class="tocitem" href="../../enzymes/enzyme_reactions/">Cathepsin Enzyme Reactions</a></li><li><a class="tocitem" href="../../other/bilayerconversion/">Converting Models to Computation Graphs</a></li><li><a class="tocitem" href="../../other/max_common_subobject/">Maximum Common Sub C-Set</a></li></ul></li><li><a class="tocitem" href="../../../api/">Library Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Epidemiology</a></li><li class="is-active"><a href>Multiple-strain Disease Model with Vaccination</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Multiple-strain Disease Model with Vaccination</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/AlgebraicJulia/AlgebraicPetri.jl/blob/main/docs/literate/epidemiology/disease_strains.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="epidemiology_strains"><a class="docs-heading-anchor" href="#epidemiology_strains">Multiple-strain Disease Model with Vaccination</a><a id="epidemiology_strains-1"></a><a class="docs-heading-anchor-permalink" href="#epidemiology_strains" title="Permalink"></a></h1><p><a href="https://nbviewer.jupyter.org/github/AlgebraicJulia/AlgebraicPetri.jl/blob/gh-pages/dev/generated/epidemiology/disease_strains.ipynb"><img src="https://img.shields.io/badge/show-nbviewer-579ACA.svg" alt/></a></p><pre><code class="language-julia hljs">using AlgebraicPetri, AlgebraicPetri.TypedPetri
+using Catlab.Programs, Catlab.Graphics
+using Catlab.CategoricalAlgebra
+using Catlab.WiringDiagrams
+using DisplayAs, Markdown</code></pre><p>This example presents models incorporating multiple strains of disease and vaccine type. Importantly, it shows why stratification by disease strain is different from other stratifications, e.g. geography or age, and requires using a different type system. If you are unfamiliar with stratification, we recommend first reading the <a href="../stratification/#epidemiology_stratification">stratification tutorial</a>.</p><h2 id="Define-basic-type-system"><a class="docs-heading-anchor" href="#Define-basic-type-system">Define basic type system</a><a id="Define-basic-type-system-1"></a><a class="docs-heading-anchor-permalink" href="#Define-basic-type-system" title="Permalink"></a></h2><p>We start by defining our basic type system, <span>$P_{infectious}$</span> for infectious disease models.</p><pre><code class="language-julia hljs">const infectious_ontology = LabelledPetriNet(
+  [:Pop],
+  :infect =&gt; ((:Pop, :Pop) =&gt; (:Pop, :Pop)),
+  :disease =&gt; (:Pop =&gt; :Pop),
+  :strata =&gt; (:Pop =&gt; :Pop)
+)
+
+to_graphviz(infectious_ontology)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="180pt" height="240pt"
+ viewBox="0.00 0.00 179.90 240.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 236)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-236 175.9,-236 175.9,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="27.95" cy="-112.5" rx="27.9" ry="27.9"/>
+<text text-anchor="middle" x="27.95" y="-108.8" font-family="Times,serif" font-size="14.00">Pop</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="165.4,-232 108.4,-232 108.4,-175 165.4,-175 165.4,-232"/>
+<text text-anchor="middle" x="136.9" y="-199.8" font-family="Times,serif" font-size="14.00">infect</text>
+</g>
+<!-- n1&%2345;&gt;n2 -->
+<g id="edge1" class="edge">
+<title>n1&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M39.03,-138.2C46.46,-153.98 58.03,-173.42 73.9,-185.5 81.09,-190.98 89.9,-194.79 98.6,-197.44"/>
+<polygon fill="black" stroke="black" points="97.72,-200.83 108.28,-199.97 99.49,-194.06 97.72,-200.83"/>
+<text text-anchor="middle" x="78.9" y="-194.3" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n3 -->
+<g id="node3" class="node">
+<title>n3</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="171.9,-153.5 101.9,-153.5 101.9,-83.5 171.9,-83.5 171.9,-153.5"/>
+<text text-anchor="middle" x="136.9" y="-114.8" font-family="Times,serif" font-size="14.00">disease</text>
+</g>
+<!-- n1&%2345;&gt;n3 -->
+<g id="edge3" class="edge">
+<title>n1&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M55.93,-114.01C66.66,-114.62 79.28,-115.32 91.28,-116"/>
+<polygon fill="black" stroke="black" points="91.43,-119.51 101.61,-116.58 91.83,-112.52 91.43,-119.51"/>
+<text text-anchor="middle" x="78.9" y="-119.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4 -->
+<g id="node4" class="node">
+<title>n4</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="166.4,-59 107.4,-59 107.4,0 166.4,0 166.4,-59"/>
+<text text-anchor="middle" x="136.9" y="-25.8" font-family="Times,serif" font-size="14.00">strata</text>
+</g>
+<!-- n1&%2345;&gt;n4 -->
+<g id="edge6" class="edge">
+<title>n1&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M49.72,-94.39C57.24,-87.98 65.85,-80.8 73.9,-74.5 81.9,-68.22 90.66,-61.68 99.01,-55.59"/>
+<polygon fill="black" stroke="black" points="101.12,-58.38 107.17,-49.68 97.02,-52.71 101.12,-58.38"/>
+<text text-anchor="middle" x="78.9" y="-78.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2&%2345;&gt;n1 -->
+<g id="edge5" class="edge">
+<title>n2&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M108.19,-179.92C92.66,-166.71 73.33,-150.27 57.65,-136.92"/>
+<polygon fill="black" stroke="black" points="59.71,-134.08 49.82,-130.26 55.17,-139.41 59.71,-134.08"/>
+<text text-anchor="middle" x="78.9" y="-161.3" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n3&%2345;&gt;n1 -->
+<g id="edge2" class="edge">
+<title>n3&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M101.66,-100.2C95.87,-97.84 89.82,-95.8 83.9,-94.5 76.85,-92.95 69.42,-93.69 62.39,-95.56"/>
+<polygon fill="black" stroke="black" points="60.78,-92.41 52.46,-98.96 63.05,-99.03 60.78,-92.41"/>
+<text text-anchor="middle" x="78.9" y="-98.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4&%2345;&gt;n1 -->
+<g id="edge4" class="edge">
+<title>n4&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M107.39,-16.32C96.25,-13.16 83.79,-12.26 73.9,-18.5 54.17,-30.93 42.91,-54.68 36.6,-75.19"/>
+<polygon fill="black" stroke="black" points="33.19,-74.37 33.88,-84.94 39.94,-76.25 33.19,-74.37"/>
+<text text-anchor="middle" x="78.9" y="-22.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+</g>
+</svg>
+'/><p>We define a simple SIR model with reflexive transitions typed as &quot;strata&quot; to indicate which stratified states will interact with transitions amongst strata.</p><pre><code class="language-julia hljs">sir_uwd = @relation (S,I,R) where (S::Pop, I::Pop, R::Pop) begin
+  infect(S, I, I, I)
+  disease(I, R)
+end
+
+sir_model = oapply_typed(infectious_ontology, sir_uwd, [:infection, :recovery])
+sir_model = add_reflexives(sir_model, [[:strata], [:strata], [:strata]], infectious_ontology)
+
+to_graphviz(dom(sir_model))</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="563pt" height="213pt"
+ viewBox="0.00 0.00 563.00 213.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 209)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-209 559,-209 559,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="18" cy="-67.5" rx="18" ry="18"/>
+<text text-anchor="middle" x="18" y="-63.8" font-family="Times,serif" font-size="14.00">S</text>
+</g>
+<!-- n4 -->
+<g id="node4" class="node">
+<title>n4</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="161,-156 82,-156 82,-77 161,-77 161,-156"/>
+<text text-anchor="middle" x="121.5" y="-112.8" font-family="Times,serif" font-size="14.00">infection</text>
+</g>
+<!-- n1&%2345;&gt;n4 -->
+<g id="edge3" class="edge">
+<title>n1&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M34.42,-74.94C44.7,-79.91 58.82,-86.72 72.65,-93.4"/>
+<polygon fill="black" stroke="black" points="71.13,-96.55 81.66,-97.75 74.17,-90.25 71.13,-96.55"/>
+<text text-anchor="middle" x="59" y="-92.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n6 -->
+<g id="node6" class="node">
+<title>n6</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="151,-59 92,-59 92,0 151,0 151,-59"/>
+<text text-anchor="middle" x="121.5" y="-25.8" font-family="Times,serif" font-size="14.00">strata</text>
+</g>
+<!-- n1&%2345;&gt;n6 -->
+<g id="edge8" class="edge">
+<title>n1&%2345;&gt;n6</title>
+<path fill="none" stroke="black" d="M35.31,-61.39C47.93,-56.67 65.94,-49.93 82.14,-43.86"/>
+<polygon fill="black" stroke="black" points="83.8,-46.98 91.94,-40.19 81.35,-40.42 83.8,-46.98"/>
+<text text-anchor="middle" x="59" y="-58.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="225" cy="-116.5" rx="18" ry="18"/>
+<text text-anchor="middle" x="225" y="-112.8" font-family="Times,serif" font-size="14.00">I</text>
+</g>
+<!-- n2&%2345;&gt;n4 -->
+<g id="edge9" class="edge">
+<title>n2&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M209.69,-106.63C203.6,-103.01 196.24,-99.34 189,-97.5 183.18,-96.02 177.11,-95.85 171.09,-96.52"/>
+<polygon fill="black" stroke="black" points="170.27,-93.11 161.08,-98.37 171.55,-99.99 170.27,-93.11"/>
+<text text-anchor="middle" x="184" y="-101.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n5 -->
+<g id="node5" class="node">
+<title>n5</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="368,-205 289,-205 289,-126 368,-126 368,-205"/>
+<text text-anchor="middle" x="328.5" y="-161.8" font-family="Times,serif" font-size="14.00">recovery</text>
+</g>
+<!-- n2&%2345;&gt;n5 -->
+<g id="edge1" class="edge">
+<title>n2&%2345;&gt;n5</title>
+<path fill="none" stroke="black" d="M241.42,-123.94C251.7,-128.91 265.82,-135.72 279.65,-142.4"/>
+<polygon fill="black" stroke="black" points="278.13,-145.55 288.66,-146.75 281.17,-139.25 278.13,-145.55"/>
+<text text-anchor="middle" x="266" y="-141.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n7 -->
+<g id="node7" class="node">
+<title>n7</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="358,-108 299,-108 299,-49 358,-49 358,-108"/>
+<text text-anchor="middle" x="328.5" y="-74.8" font-family="Times,serif" font-size="14.00">strata</text>
+</g>
+<!-- n2&%2345;&gt;n7 -->
+<g id="edge6" class="edge">
+<title>n2&%2345;&gt;n7</title>
+<path fill="none" stroke="black" d="M242.31,-110.39C254.93,-105.67 272.94,-98.93 289.14,-92.86"/>
+<polygon fill="black" stroke="black" points="290.8,-95.98 298.94,-89.19 288.35,-89.42 290.8,-95.98"/>
+<text text-anchor="middle" x="266" y="-106.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n3 -->
+<g id="node3" class="node">
+<title>n3</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="432" cy="-165.5" rx="18" ry="18"/>
+<text text-anchor="middle" x="432" y="-161.8" font-family="Times,serif" font-size="14.00">R</text>
+</g>
+<!-- n8 -->
+<g id="node8" class="node">
+<title>n8</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="555,-195 496,-195 496,-136 555,-136 555,-195"/>
+<text text-anchor="middle" x="525.5" y="-161.8" font-family="Times,serif" font-size="14.00">strata</text>
+</g>
+<!-- n3&%2345;&gt;n8 -->
+<g id="edge4" class="edge">
+<title>n3&%2345;&gt;n8</title>
+<path fill="none" stroke="black" d="M450.21,-165.5C460.24,-165.5 473.32,-165.5 485.7,-165.5"/>
+<polygon fill="black" stroke="black" points="485.85,-169 495.85,-165.5 485.85,-162 485.85,-169"/>
+<text text-anchor="middle" x="473" y="-169.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4&%2345;&gt;n2 -->
+<g id="edge7" class="edge">
+<title>n4&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M161.16,-116.5C173.01,-116.5 185.79,-116.5 196.72,-116.5"/>
+<polygon fill="black" stroke="black" points="196.92,-120 206.92,-116.5 196.92,-113 196.92,-120"/>
+<text text-anchor="middle" x="184" y="-120.3" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n5&%2345;&gt;n3 -->
+<g id="edge11" class="edge">
+<title>n5&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M368.16,-165.5C380.01,-165.5 392.79,-165.5 403.72,-165.5"/>
+<polygon fill="black" stroke="black" points="403.92,-169 413.92,-165.5 403.92,-162 403.92,-169"/>
+<text text-anchor="middle" x="391" y="-169.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n6&%2345;&gt;n1 -->
+<g id="edge10" class="edge">
+<title>n6&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M91.96,-26.32C79.8,-26.07 65.74,-27.33 54,-32.5 47.34,-35.43 41.26,-40.26 36.1,-45.39"/>
+<polygon fill="black" stroke="black" points="33.36,-43.21 29.25,-52.97 38.55,-47.91 33.36,-43.21"/>
+<text text-anchor="middle" x="59" y="-36.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n7&%2345;&gt;n2 -->
+<g id="edge5" class="edge">
+<title>n7&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M298.96,-74.14C286.79,-73.47 272.73,-74.34 261,-79.5 253.77,-82.68 247.32,-88.15 241.99,-93.92"/>
+<polygon fill="black" stroke="black" points="239.14,-91.87 235.44,-101.79 244.53,-96.34 239.14,-91.87"/>
+<text text-anchor="middle" x="266" y="-83.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n8&%2345;&gt;n3 -->
+<g id="edge2" class="edge">
+<title>n8&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M495.98,-150.06C487.09,-146.97 477.21,-145.27 468,-147.5 464.26,-148.41 460.47,-149.78 456.84,-151.38"/>
+<polygon fill="black" stroke="black" points="455.09,-148.35 447.72,-155.96 458.22,-154.6 455.09,-148.35"/>
+<text text-anchor="middle" x="473" y="-151.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+</g>
+</svg>
+'/><h2 id="Define-a-model-of-multiple-vaccine-types"><a class="docs-heading-anchor" href="#Define-a-model-of-multiple-vaccine-types">Define a model of multiple vaccine types</a><a id="Define-a-model-of-multiple-vaccine-types-1"></a><a class="docs-heading-anchor-permalink" href="#Define-a-model-of-multiple-vaccine-types" title="Permalink"></a></h2><p>We also define a model of vaccination with multiple vaccine types, typed over <span>$P_{infectious}$</span>. Each stratum has reflexive &quot;disease&quot; transitions. Transitions which represent the administration of a vaccine to an individual are typed as &quot;strata&quot;. Infection transitions between individuals of different vaccination status is possible (i.e.; we do not assume a perfect vaccine).</p><pre><code class="language-julia hljs">function vax_model(n)
+  uwd = RelationDiagram(repeat([:Pop], n+1))
+
+  variable = :Unvaxxed
+  junction = add_junction!(uwd, :Pop, variable=variable)
+  port = ports(uwd, outer=true)[1]
+  set_junction!(uwd, port, junction, outer=true)
+  junctions = Dict(variable =&gt; junction)
+  for i in 1:n
+    variable = Symbol(&quot;VaxType$(i)&quot;)
+    junction = add_junction!(uwd, :Pop, variable=variable)
+    port = ports(uwd, outer=true)[i+1]
+    set_junction!(uwd, port, junction, outer=true)
+    junctions[variable] = junction
+  end
+
+  strains = filter((x) -&gt; x != Symbol(&quot;Unvaxxed&quot;), keys(junctions))
+  for s in strains
+    pair = (:Unvaxxed, s)
+    box = add_box!(uwd, [junction_type(uwd, junctions[p]) for p in pair], name=:strata)
+    for (rgn, port) in zip(pair, ports(uwd, box))
+      set_junction!(uwd, port, junctions[rgn])
+    end
+  end
+  tnames = [Symbol(&quot;vax_$(b)&quot;) for b in strains]
+
+  pairs = collect(Iterators.product(keys(junctions), keys(junctions)))
+  for pair in pairs
+    ins_outs = (pair[1], pair[2], pair[1], pair[2])
+    box = add_box!(uwd, [junction_type(uwd, junctions[p]) for p in ins_outs], name=:infect)
+    for (rgn, port) in zip(ins_outs, ports(uwd, box))
+      set_junction!(uwd, port, junctions[rgn])
+    end
+    push!(tnames,Symbol(&quot;inf_$(pair[1])_$(pair[2])&quot;))
+  end
+  act = oapply_typed(infectious_ontology, uwd, tnames)
+  add_reflexives(act, repeat([[:disease]], n+1), infectious_ontology)
+end
+
+to_graphviz(dom(vax_model(2)))</code></pre><img src="c21c5cc4.svg" alt="Example block output"/><h2 id="Stratify-the-SIR-model-with-vaccinations-for-two-vaccine-types"><a class="docs-heading-anchor" href="#Stratify-the-SIR-model-with-vaccinations-for-two-vaccine-types">Stratify the SIR model with vaccinations for two vaccine types</a><a id="Stratify-the-SIR-model-with-vaccinations-for-two-vaccine-types-1"></a><a class="docs-heading-anchor-permalink" href="#Stratify-the-SIR-model-with-vaccinations-for-two-vaccine-types" title="Permalink"></a></h2><p>We can now stratify the two typed models to get a model of SIR with vaccination by multiple possible vaccine types.</p><pre><code class="language-julia hljs">typed_product(sir_model, vax_model(2)) |&gt; dom |&gt; to_graphviz</code></pre><img src="9f052545.svg" alt="Example block output"/><h2 id="Define-a-model-of-multiple-disease-strains"><a class="docs-heading-anchor" href="#Define-a-model-of-multiple-disease-strains">Define a model of multiple disease strains</a><a id="Define-a-model-of-multiple-disease-strains-1"></a><a class="docs-heading-anchor-permalink" href="#Define-a-model-of-multiple-disease-strains" title="Permalink"></a></h2><p>Here we define a model for multiple disease strains, typed by <span>$P_{infectious}$</span>. In this model, uninfected individuals can become infected by individuals carrying one of the strains. We add reflexive transitions of types <code>:disease</code> and <code>:strata</code> for the strain states but only <code>:strata</code> for the uninfected state, because those individuals should only correspond to <span>$S$</span> in the disease model.</p><pre><code class="language-julia hljs">function strain_model′(n)
+  uwd = RelationDiagram(repeat([:Pop], n+1))
+  variable = :Uninfected
+  junction = add_junction!(uwd, :Pop, variable=variable)
+  port = ports(uwd, outer=true)[1]
+  set_junction!(uwd, port, junction, outer=true)
+  junctions = Dict(variable =&gt; junction)
+  for i in 1:n
+    variable = Symbol(&quot;Strain$(i)&quot;)
+    junction = add_junction!(uwd, :Pop, variable=variable)
+    port = ports(uwd, outer=true)[i+1]
+    set_junction!(uwd, port, junction, outer=true)
+    junctions[variable] = junction
+  end
+  strains = filter((x) -&gt; x != Symbol(&quot;Uninfected&quot;), keys(junctions))
+  for s in strains
+    pair = (:Uninfected, s, s, s)
+    box = add_box!(uwd, [junction_type(uwd, junctions[p]) for p in pair], name=:infect)
+    for (rgn, port) in zip(pair, ports(uwd, box))
+      set_junction!(uwd, port, junctions[rgn])
+    end
+  end
+  act = oapply_typed(infectious_ontology, uwd, [Symbol(&quot;inf_$(b)&quot;) for b in strains])
+  add_reflexives(act, vcat([[:strata]],repeat([[:disease,:strata]], n)), infectious_ontology)
+end
+
+to_graphviz(dom(strain_model′(2)))</code></pre><img src="3bf51460.svg" alt="Example block output"/><h2 id="Stratify-the-SIRD-model-for-two-strains"><a class="docs-heading-anchor" href="#Stratify-the-SIRD-model-for-two-strains">Stratify the SIRD model for two strains</a><a id="Stratify-the-SIRD-model-for-two-strains-1"></a><a class="docs-heading-anchor-permalink" href="#Stratify-the-SIRD-model-for-two-strains" title="Permalink"></a></h2><p>Unfortunately, stratification of these models does not produce the desired result, leading to many states and transitions. The problem is that it does not make sense for the uninfected population to be stratified over the full set of states of the SIRD model (i.e.; uninfected persons can never have any disease state other than &quot;S&quot;). This is due to the fact that there is only one type of place in <span>$P_{infectious}$</span>, so instead the pullback of places simply becomes the product.</p><p>We can address this by changing the type system to include multiple place types.</p><pre><code class="language-julia hljs">typed_product(sir_model, strain_model′(2)) |&gt; dom |&gt; to_graphviz</code></pre><img src="f0aa054e.svg" alt="Example block output"/><h2 id="Define-a-new-type-system-and-corresponding-disease-and-multi-strain-models"><a class="docs-heading-anchor" href="#Define-a-new-type-system-and-corresponding-disease-and-multi-strain-models">Define a new type system and corresponding disease and multi-strain models</a><a id="Define-a-new-type-system-and-corresponding-disease-and-multi-strain-models-1"></a><a class="docs-heading-anchor-permalink" href="#Define-a-new-type-system-and-corresponding-disease-and-multi-strain-models" title="Permalink"></a></h2><p>The new type system has separate states for uninfected and infected to account for the asymmetry in their role in infection and for the corresponding asymmetry in the intended stratification. Accordingly, the <code>:Inf</code> state has <code>:disease</code> and <code>:strataI</code> transitions. The <code>:Uninf</code> state has a <code>:strataU</code> transition, but no <code>:disease</code> transition. We denote the new type system by <span>$P_{strain}$</span>.</p><pre><code class="language-julia hljs">const strain_ontology = LabelledPetriNet(
+  [:Uninf, :Inf],
+  :infect =&gt; ((:Uninf, :Inf) =&gt; (:Inf, :Inf)),
+  :disease =&gt; (:Inf =&gt; :Inf),
+  :strataI =&gt; (:Inf =&gt; :Inf),
+  :strataU =&gt; (:Uninf =&gt; :Uninf)
+)
+
+to_graphviz(strain_ontology)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="407pt" height="211pt"
+ viewBox="0.00 0.00 406.59 210.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 206.5)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-206.5 402.59,-206.5 402.59,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="36.4" cy="-73.5" rx="36.29" ry="36.29"/>
+<text text-anchor="middle" x="36.4" y="-69.8" font-family="Times,serif" font-size="14.00">Uninf</text>
+</g>
+<!-- n3 -->
+<g id="node3" class="node">
+<title>n3</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="182.79,-146 125.79,-146 125.79,-89 182.79,-89 182.79,-146"/>
+<text text-anchor="middle" x="154.29" y="-113.8" font-family="Times,serif" font-size="14.00">infect</text>
+</g>
+<!-- n1&%2345;&gt;n3 -->
+<g id="edge6" class="edge">
+<title>n1&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M70.61,-86.11C84.74,-91.47 101.28,-97.75 115.85,-103.28"/>
+<polygon fill="black" stroke="black" points="114.97,-106.69 125.56,-106.97 117.45,-100.15 114.97,-106.69"/>
+<text text-anchor="middle" x="95.79" y="-100.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n6 -->
+<g id="node6" class="node">
+<title>n6</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="189.79,-71 118.79,-71 118.79,0 189.79,0 189.79,-71"/>
+<text text-anchor="middle" x="154.29" y="-31.8" font-family="Times,serif" font-size="14.00">strataU</text>
+</g>
+<!-- n1&%2345;&gt;n6 -->
+<g id="edge7" class="edge">
+<title>n1&%2345;&gt;n6</title>
+<path fill="none" stroke="black" d="M71.23,-62.41C82.93,-58.57 96.24,-54.21 108.67,-50.13"/>
+<polygon fill="black" stroke="black" points="110,-53.38 118.41,-46.94 107.82,-46.73 110,-53.38"/>
+<text text-anchor="middle" x="95.79" y="-60.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="259.19" cy="-117.5" rx="23.3" ry="23.3"/>
+<text text-anchor="middle" x="259.19" y="-113.8" font-family="Times,serif" font-size="14.00">Inf</text>
+</g>
+<!-- n2&%2345;&gt;n3 -->
+<g id="edge9" class="edge">
+<title>n2&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M238.68,-106.21C232.24,-103.07 224.9,-100.09 217.79,-98.5 209.61,-96.67 200.94,-97.48 192.75,-99.56"/>
+<polygon fill="black" stroke="black" points="191.53,-96.28 183.06,-102.64 193.65,-102.95 191.53,-96.28"/>
+<text text-anchor="middle" x="212.79" y="-102.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4 -->
+<g id="node4" class="node">
+<title>n4</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="398.59,-202.5 328.59,-202.5 328.59,-132.5 398.59,-132.5 398.59,-202.5"/>
+<text text-anchor="middle" x="363.59" y="-163.8" font-family="Times,serif" font-size="14.00">disease</text>
+</g>
+<!-- n2&%2345;&gt;n4 -->
+<g id="edge1" class="edge">
+<title>n2&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M275.77,-134.11C282.78,-140.71 291.51,-147.83 300.59,-152.5 306.21,-155.4 312.41,-157.75 318.65,-159.65"/>
+<polygon fill="black" stroke="black" points="317.84,-163.06 328.4,-162.29 319.66,-156.3 317.84,-163.06"/>
+<text text-anchor="middle" x="305.59" y="-160.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n5 -->
+<g id="node5" class="node">
+<title>n5</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="396.09,-107 331.09,-107 331.09,-42 396.09,-42 396.09,-107"/>
+<text text-anchor="middle" x="363.59" y="-70.8" font-family="Times,serif" font-size="14.00">strataI</text>
+</g>
+<!-- n2&%2345;&gt;n5 -->
+<g id="edge3" class="edge">
+<title>n2&%2345;&gt;n5</title>
+<path fill="none" stroke="black" d="M280.68,-108.2C287.04,-105.36 294.09,-102.26 300.59,-99.5 307.35,-96.63 314.55,-93.66 321.57,-90.8"/>
+<polygon fill="black" stroke="black" points="323,-94 330.96,-87 320.38,-87.51 323,-94"/>
+<text text-anchor="middle" x="305.59" y="-103.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n3&%2345;&gt;n2 -->
+<g id="edge2" class="edge">
+<title>n3&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M182.87,-117.5C196.06,-117.5 211.93,-117.5 225.7,-117.5"/>
+<polygon fill="black" stroke="black" points="225.74,-121 235.74,-117.5 225.74,-114 225.74,-121"/>
+<text text-anchor="middle" x="212.79" y="-121.3" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n4&%2345;&gt;n2 -->
+<g id="edge4" class="edge">
+<title>n4&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M328.39,-143.28C322.6,-139.73 316.53,-136.32 310.59,-133.5 304.71,-130.71 298.23,-128.24 291.92,-126.12"/>
+<polygon fill="black" stroke="black" points="292.86,-122.75 282.27,-123.1 290.76,-129.43 292.86,-122.75"/>
+<text text-anchor="middle" x="305.59" y="-137.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n5&%2345;&gt;n2 -->
+<g id="edge5" class="edge">
+<title>n5&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M330.99,-71.01C320.92,-71.07 309.96,-72.4 300.59,-76.5 292.99,-79.82 286.08,-85.3 280.2,-91.18"/>
+<polygon fill="black" stroke="black" points="277.48,-88.97 273.34,-98.72 282.66,-93.69 277.48,-88.97"/>
+<text text-anchor="middle" x="305.59" y="-80.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n6&%2345;&gt;n1 -->
+<g id="edge8" class="edge">
+<title>n6&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M118.63,-30.93C109.4,-30.79 99.56,-31.64 90.79,-34.5 84.34,-36.61 78.02,-39.82 72.12,-43.52"/>
+<polygon fill="black" stroke="black" points="70.07,-40.67 63.79,-49.21 74.02,-46.45 70.07,-40.67"/>
+<text text-anchor="middle" x="95.79" y="-38.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+</g>
+</svg>
+'/><p>We now recreate the SIR model using the new type system. Note that the <code>where</code> clause now specifies the differing place types for each state.</p><pre><code class="language-julia hljs">sir_for_strains_uwd = @relation (S,I,R) where (S::Uninf, I::Inf, R::Inf) begin
+  infect(S, I, I, I)
+  disease(I, R)
+end
+sir_for_strains_model = oapply_typed(strain_ontology, sir_for_strains_uwd, [:infection, :recovery])
+sir_for_strains_model = add_reflexives(sir_for_strains_model, [[:strataU], [:strataI], [:strataI]], strain_ontology)
+
+to_graphviz(sir_for_strains_model)</code></pre><img src="67458aac.svg" alt="Example block output"/><p>And similarly reform the multi-strain model.</p><pre><code class="language-julia hljs">function strain_model(n)
+  uwd = RelationDiagram(vcat([:Uninf],repeat([:Inf], n)))
+  variable = :Uninfected
+  junction = add_junction!(uwd, :Uninf, variable=variable)
+  port = ports(uwd, outer=true)[1]
+  set_junction!(uwd, port, junction, outer=true)
+  junctions = Dict(variable =&gt; junction)
+  for i in 1:n
+    variable = Symbol(&quot;Strain$(i)&quot;)
+    junction = add_junction!(uwd, :Inf, variable=variable)
+    port = ports(uwd, outer=true)[i+1]
+    set_junction!(uwd, port, junction, outer=true)
+    junctions[variable] = junction
+  end
+  strains = filter((x) -&gt; x != Symbol(&quot;Uninfected&quot;), keys(junctions))
+  for s in strains
+    pair = (:Uninfected, s, s, s)
+    box = add_box!(uwd, [junction_type(uwd, junctions[p]) for p in pair], name=:infect)
+    for (rgn, port) in zip(pair, ports(uwd, box))
+      set_junction!(uwd, port, junctions[rgn])
+    end
+  end
+  act = oapply_typed(strain_ontology, uwd, [Symbol(&quot;inf_$(b)&quot;) for b in strains])
+  add_reflexives(act, vcat([[:strataU]],repeat([[:disease,:strataI]], n)), strain_ontology)
+end
+
+to_graphviz(strain_model(2))</code></pre><img src="b7da57e5.svg" alt="Example block output"/><p>When we now stratify we get the desired model. Note however that there are extraneous &quot;strata&quot; transitions; this is because there were no non-trivial stratum transitions in either input typed Petri net. (note that only &quot;disease&quot; and &quot;infect&quot; transition types were needed to fully define the multiple strain dynamics).</p><pre><code class="language-julia hljs">sir_strain = typed_product(sir_for_strains_model, strain_model(2))
+
+to_graphviz(dom(sir_strain))</code></pre><img src="75d267a3.svg" alt="Example block output"/><h2 id="Post-composition:-Retyping-the-type-system"><a class="docs-heading-anchor" href="#Post-composition:-Retyping-the-type-system">Post-composition: Retyping the type system</a><a id="Post-composition:-Retyping-the-type-system-1"></a><a class="docs-heading-anchor-permalink" href="#Post-composition:-Retyping-the-type-system" title="Permalink"></a></h2><p>In some instances, we may want to relate models typed to different type systems. For example, we usually type our <code>simple_trip</code> model of geographic regions to the <code>infectious_ontology</code> such that we can stratify a disease model by geographic regions, but the multi-strain disease model above is typed by the new <code>strain_ontology</code>.</p><p>Crucially, we can accomplish this <em>if</em> there is an appropriate morphism (map) between the type systems because post-composition by a morphism of type systems is functorial. In this case, there is a morphism from <code>strain_ontology</code> to <code>infectious_ontology</code> (<span>$P_{strain} \to P_{infectious}$</span>), so we will be able to &quot;switch&quot; type systems.</p><h3 id="Morphism-from-strain_ontology-to-infectious_ontology"><a class="docs-heading-anchor" href="#Morphism-from-strain_ontology-to-infectious_ontology">Morphism from <code>strain_ontology</code> to <code>infectious_ontology</code></a><a id="Morphism-from-strain_ontology-to-infectious_ontology-1"></a><a class="docs-heading-anchor-permalink" href="#Morphism-from-strain_ontology-to-infectious_ontology" title="Permalink"></a></h3><p>We use <code>oapply_typed</code> on a UWD representation of the <code>strain_ontology</code>, but note that we could also directly define the map using <code>ACSetTransformation</code>. The result is a morphism <span>$P_{strain}\to P_{infectious}$</span>.</p><pre><code class="language-julia hljs">strain_ont_uwd = @relation (Uninf,Inf) where (Uninf::Pop, Inf::Pop) begin
+  infect(Uninf, Inf, Inf, Inf)
+  disease(Inf, Inf)
+  strata(Inf, Inf)
+  strata(Uninf, Uninf)
+end
+strain_ont_act = oapply_typed(infectious_ontology,strain_ont_uwd,[:infect,:disease,:strataI,:strataU])
+
+to_graphviz(strain_ont_act)</code></pre><img src="b92ffe5c.svg" alt="Example block output"/><h3 id="Define-simple-trip-model-between-N-regions"><a class="docs-heading-anchor" href="#Define-simple-trip-model-between-N-regions">Define simple-trip model between <span>$N$</span> regions</a><a id="Define-simple-trip-model-between-N-regions-1"></a><a class="docs-heading-anchor-permalink" href="#Define-simple-trip-model-between-N-regions" title="Permalink"></a></h3><p>To demonstrate stratification utilizing post-composition to re-type the models, we use the simple-trip geographic model, defined fully in the <a href="../stratification/#epidemiology_stratification">stratification tutorial</a>. It is typed by <code>infectious_ontology</code> (<span>$P_{infectious}$</span>).</p><pre><code class="language-julia hljs">function travel_model(n)
+  uwd = RelationDiagram(repeat([:Pop], n))
+  junctions = Dict(begin
+    variable = Symbol(&quot;Region$(i)&quot;)
+    junction = add_junction!(uwd, :Pop, variable=variable)
+    set_junction!(uwd, port, junction, outer=true)
+    variable =&gt; junction
+  end for (i, port) in enumerate(ports(uwd, outer=true)))
+
+  pairs = filter(x -&gt; first(x) != last(x), collect(Iterators.product(keys(junctions), keys(junctions))))
+  for pair in pairs
+    box = add_box!(uwd, [junction_type(uwd, junctions[p]) for p in pair], name=:strata)
+    for (rgn, port) in zip(pair, ports(uwd, box))
+      set_junction!(uwd, port, junctions[rgn])
+    end
+  end
+
+  act = oapply_typed(infectious_ontology, uwd, [Symbol(&quot;$(a)_$(b)&quot;) for (a, b) in pairs])
+  add_reflexives(act, repeat([[:infect, :disease]], n), infectious_ontology)
+end
+
+function living_model(n)
+  typed_living = pairwise_id_typed_petri(infectious_ontology, :Pop, :infect, [Symbol(&quot;Living$(i)&quot;) for i in 1:n])
+  add_reflexives(typed_living, repeat([[:disease, :strata]], n), infectious_ontology)
+end
+
+simple_trip_model = typed_product(travel_model(2), living_model(2))
+
+to_graphviz(simple_trip_model)</code></pre><img src="c57ce839.svg" alt="Example block output"/><h3 id="Stratify-multi-strain-SIR-and-simple-trip-models"><a class="docs-heading-anchor" href="#Stratify-multi-strain-SIR-and-simple-trip-models">Stratify multi-strain SIR and simple-trip models</a><a id="Stratify-multi-strain-SIR-and-simple-trip-models-1"></a><a class="docs-heading-anchor-permalink" href="#Stratify-multi-strain-SIR-and-simple-trip-models" title="Permalink"></a></h3><p>If we want to use the simple trip model to stratify our multi-strain SIR model, we have a problem because the multi-strain SIR model is typed over <span>$P_{strain}$</span>, that is, it is a morphism <span>$\phi : P \to P_{strain}$</span>. Therefore, we can compose with the morphism <code>strain_ont_act</code> (<span>$P_{strain}\to P_{infectious}$</span>) we made earlier, to get a new morphism from <span>$P \to P_{infectious}$</span>.</p><pre><code class="language-julia hljs">sir_strain_retyped = compose(sir_strain,strain_ont_act)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ACSetTransformation((T = compose(compose(compose(FinFunction([1, 6, 13, 17, 24, 25, 27, 34, 35], 9, 35), FinFunction(#57, FinSet(35), FinSet(5))), FinFunction([1, 2, 4, 3, 3], 5, 4)), FinFunction([1, 2, 3, 3], 4, 3)), S = compose(compose(compose(FinFunction([1, 5, 6, 8, 9], 5, 9), FinFunction(#57, FinSet(9), FinSet(3))), FinFunction([1, 2, 2], 3, 2)), FinFunction([1, 1], 2, 1)), I = compose(compose(compose(FinFunction([1, 8, 13, 20, 28, 33, 41, 42, 45, 53, 54], 11, 54), FinFunction(#57, FinSet(54), FinSet(6))), FinFunction([1, 2, 3, 5, 4, 4], 6, 5)), FinFunction([1, 2, 3, 4, 4], 5, 4)), O = compose(compose(compose(FinFunction([1, 8, 13, 20, 28, 33, 41, 42, 45, 53, 54], 11, 54), FinFunction(#57, FinSet(54), FinSet(6))), FinFunction([1, 2, 3, 5, 4, 4], 6, 5)), FinFunction([1, 2, 3, 4, 4], 5, 4)), Name = Catlab.CategoricalAlgebra.FinSets.LooseVarFunction{Tuple{Symbol, Symbol}, Symbol}(FinDomFunction(Union{ACSets.ColumnImplementations.AttrVar, Symbol}[], FinSet(0), TypeSet(Union{ACSets.ColumnImplementations.AttrVar, Symbol})), compose(compose(SetFunction(#23, TypeSet(Tuple{Symbol, Symbol}), TypeSet(Symbol)), SetFunction(#17, TypeSet(Symbol), TypeSet(Symbol))), SetFunction(#10, TypeSet(Symbol), TypeSet(Symbol))), FinSet(0))), AlgebraicPetri.LabelledPetriNetUntyped{Tuple{Symbol, Symbol}} {T:9, S:5, I:11, O:11, Name:0}, LabelledPetriNet {T:3, S:1, I:4, O:4, Name:0})</code></pre><p>We can now take the typed product to get the multi-strain SIR model stratified over the simple trip model of movement between different regions.</p><pre><code class="language-julia hljs">sir_strain_trip = typed_product(sir_strain_retyped,simple_trip_model)
+
+to_graphviz(dom(sir_strain_trip))</code></pre><img src="4fb04285.svg" alt="Example block output"/><h2 id="Define-a-multi-strain-SIR-model-with-vaccination-by-multiple-vaccine-types"><a class="docs-heading-anchor" href="#Define-a-multi-strain-SIR-model-with-vaccination-by-multiple-vaccine-types">Define a multi-strain SIR model with vaccination by multiple vaccine types</a><a id="Define-a-multi-strain-SIR-model-with-vaccination-by-multiple-vaccine-types-1"></a><a class="docs-heading-anchor-permalink" href="#Define-a-multi-strain-SIR-model-with-vaccination-by-multiple-vaccine-types" title="Permalink"></a></h2><p>Because the multi-vaccine model was typed according to <span>$P_{infectious}$</span>, our retyped multi-strain SIR can be stratified according to the multiple vaccine model in a similar way.</p><pre><code class="language-julia hljs">sir_strain_vax = typed_product(sir_strain_retyped,vax_model(2))
+
+to_graphviz(dom(sir_strain_vax))</code></pre><img src="cdbc5052.svg" alt="Example block output"/><h2 id="Re-stratify-the-multi-strain-multi-vax-SIRD-model-with-the-simple-trip-model"><a class="docs-heading-anchor" href="#Re-stratify-the-multi-strain-multi-vax-SIRD-model-with-the-simple-trip-model">Re-stratify the multi-strain multi-vax SIRD model with the simple trip model</a><a id="Re-stratify-the-multi-strain-multi-vax-SIRD-model-with-the-simple-trip-model-1"></a><a class="docs-heading-anchor-permalink" href="#Re-stratify-the-multi-strain-multi-vax-SIRD-model-with-the-simple-trip-model" title="Permalink"></a></h2><p>If we would like to stratify our SIR-strain-vaccine model (<code>sir_strain_vax</code>) with the simple trip model, we again face a difficulty. These two models are both typed by <span>$P_{infectious}$</span>, but both the &quot;vaccination&quot; transitions of the first model and the &quot;travel&quot; transitions of the second are currently typed to the <code>:strata</code> transition of the <code>infectious_ontology</code> type system. Naively stratifying would thus produce transitions in which persons traveled and were vaccinated simultaneously.</p><p>To appropriately stratify, we need an additional &quot;strata&quot; transition to distinguish between the two types of transitions. We can again use post-compostion with the morphism between type systems to reuse our existing models.</p><h3 id="Define-an-augmented-version-of-the-infectious_ontology-type-system-with-an-additional-&quot;strata&quot;-transition"><a class="docs-heading-anchor" href="#Define-an-augmented-version-of-the-infectious_ontology-type-system-with-an-additional-&quot;strata&quot;-transition">Define an augmented version of the <code>infectious_ontology</code> type system with an additional &quot;strata&quot; transition</a><a id="Define-an-augmented-version-of-the-infectious_ontology-type-system-with-an-additional-&quot;strata&quot;-transition-1"></a><a class="docs-heading-anchor-permalink" href="#Define-an-augmented-version-of-the-infectious_ontology-type-system-with-an-additional-&quot;strata&quot;-transition" title="Permalink"></a></h3><pre><code class="language-julia hljs">const aug_inf_ontology = LabelledPetriNet(
+  [:nPop],
+  :ninfect =&gt; ((:nPop, :nPop) =&gt; (:nPop, :nPop)),
+  :ndisease =&gt; (:nPop =&gt; :nPop),
+  :nstrata =&gt; (:nPop =&gt; :nPop),
+  :nstrata2 =&gt; (:nPop =&gt; :nPop)
+)
+
+to_graphviz(aug_inf_ontology)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: G Pages: 1 -->
+<svg width="201pt" height="354pt"
+ viewBox="0.00 0.00 200.59 353.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 349.5)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-349.5 196.59,-349.5 196.59,4 -4,4"/>
+<!-- n1 -->
+<g id="node1" class="node">
+<title>n1</title>
+<ellipse fill="%236c9ac3" stroke="%236c9ac3" cx="33.8" cy="-178.5" rx="33.6" ry="33.6"/>
+<text text-anchor="middle" x="33.8" y="-174.8" font-family="Times,serif" font-size="14.00">nPop</text>
+</g>
+<!-- n2 -->
+<g id="node2" class="node">
+<title>n2</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="186.09,-345.5 120.09,-345.5 120.09,-279.5 186.09,-279.5 186.09,-345.5"/>
+<text text-anchor="middle" x="153.09" y="-308.8" font-family="Times,serif" font-size="14.00">ninfect</text>
+</g>
+<!-- n1&%2345;&gt;n2 -->
+<g id="edge1" class="edge">
+<title>n1&%2345;&gt;n2</title>
+<path fill="none" stroke="black" d="M42.33,-211.36C49.57,-235.97 62.85,-268.84 85.59,-289.5 92.57,-295.83 101.37,-300.44 110.27,-303.78"/>
+<polygon fill="black" stroke="black" points="109.3,-307.14 119.89,-306.93 111.48,-300.49 109.3,-307.14"/>
+<text text-anchor="middle" x="90.59" y="-299.3" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n3 -->
+<g id="node3" class="node">
+<title>n3</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="192.59,-261 113.59,-261 113.59,-182 192.59,-182 192.59,-261"/>
+<text text-anchor="middle" x="153.09" y="-217.8" font-family="Times,serif" font-size="14.00">ndisease</text>
+</g>
+<!-- n1&%2345;&gt;n3 -->
+<g id="edge4" class="edge">
+<title>n1&%2345;&gt;n3</title>
+<path fill="none" stroke="black" d="M60.32,-199.63C68.02,-204.99 76.78,-210.17 85.59,-213.5 91.17,-215.61 97.18,-217.19 103.22,-218.38"/>
+<polygon fill="black" stroke="black" points="102.92,-221.88 113.36,-220.02 104.04,-214.97 102.92,-221.88"/>
+<text text-anchor="middle" x="90.59" y="-219.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4 -->
+<g id="node4" class="node">
+<title>n4</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="187.09,-163.5 119.09,-163.5 119.09,-95.5 187.09,-95.5 187.09,-163.5"/>
+<text text-anchor="middle" x="153.09" y="-125.8" font-family="Times,serif" font-size="14.00">nstrata</text>
+</g>
+<!-- n1&%2345;&gt;n4 -->
+<g id="edge7" class="edge">
+<title>n1&%2345;&gt;n4</title>
+<path fill="none" stroke="black" d="M65.31,-165.75C78.78,-160.12 94.86,-153.41 109.49,-147.3"/>
+<polygon fill="black" stroke="black" points="110.97,-150.47 118.85,-143.39 108.27,-144.01 110.97,-150.47"/>
+<text text-anchor="middle" x="90.59" y="-160.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n5 -->
+<g id="node5" class="node">
+<title>n5</title>
+<polygon fill="%23e28f41" stroke="%23e28f41" points="191.59,-77 114.59,-77 114.59,0 191.59,0 191.59,-77"/>
+<text text-anchor="middle" x="153.09" y="-34.8" font-family="Times,serif" font-size="14.00">nstrata2</text>
+</g>
+<!-- n1&%2345;&gt;n5 -->
+<g id="edge8" class="edge">
+<title>n1&%2345;&gt;n5</title>
+<path fill="none" stroke="black" d="M51.33,-149.54C60.58,-134.32 72.81,-115.72 85.59,-100.5 92.07,-92.8 99.44,-85.08 106.86,-77.85"/>
+<polygon fill="black" stroke="black" points="109.45,-80.22 114.27,-70.78 104.62,-75.15 109.45,-80.22"/>
+<text text-anchor="middle" x="90.59" y="-104.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n2&%2345;&gt;n1 -->
+<g id="edge6" class="edge">
+<title>n2&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M121.31,-279.12C118.69,-276.22 116.09,-273.31 113.59,-270.5 96.54,-251.25 77.8,-229.41 62.88,-211.83"/>
+<polygon fill="black" stroke="black" points="65.44,-209.45 56.31,-204.08 60.1,-213.97 65.44,-209.45"/>
+<text text-anchor="middle" x="90.59" y="-251.3" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- n3&%2345;&gt;n1 -->
+<g id="edge2" class="edge">
+<title>n3&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M113.33,-205.31C107.41,-202.96 101.36,-200.62 95.59,-198.5 89.22,-196.16 82.42,-193.79 75.76,-191.55"/>
+<polygon fill="black" stroke="black" points="76.77,-188.2 66.18,-188.37 74.57,-194.84 76.77,-188.2"/>
+<text text-anchor="middle" x="90.59" y="-202.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n4&%2345;&gt;n1 -->
+<g id="edge5" class="edge">
+<title>n4&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M118.92,-119.47C107.93,-117.84 95.89,-117.94 85.59,-122.5 75.59,-126.93 66.71,-134.42 59.29,-142.49"/>
+<polygon fill="black" stroke="black" points="56.44,-140.45 52.64,-150.34 61.78,-144.98 56.44,-140.45"/>
+<text text-anchor="middle" x="90.59" y="-126.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- n5&%2345;&gt;n1 -->
+<g id="edge3" class="edge">
+<title>n5&%2345;&gt;n1</title>
+<path fill="none" stroke="black" d="M114.58,-35.51C104.32,-36.44 93.79,-39.2 85.59,-45.5 58.07,-66.66 45.46,-104.63 39.68,-134.6"/>
+<polygon fill="black" stroke="black" points="36.17,-134.37 37.91,-144.82 43.07,-135.57 36.17,-134.37"/>
+<text text-anchor="middle" x="90.59" y="-49.3" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+</g>
+</svg>
+'/><h3 id="Define-morphisms-from-the-original-type-system-to-the-new-augmented-type-system"><a class="docs-heading-anchor" href="#Define-morphisms-from-the-original-type-system-to-the-new-augmented-type-system">Define morphisms from the original type system to the new augmented type system</a><a id="Define-morphisms-from-the-original-type-system-to-the-new-augmented-type-system-1"></a><a class="docs-heading-anchor-permalink" href="#Define-morphisms-from-the-original-type-system-to-the-new-augmented-type-system" title="Permalink"></a></h3><p>We form one morphism that maps the <code>:strata</code> transition to <code>:nstrata</code>. This morphism will serve to re-type the SIRD-strain-vax model.</p><pre><code class="language-julia hljs">function retype_inf_ont(strata_map)
+  uwd = RelationDiagram([:nPop])
+  variable = :Pop
+  junction = add_junction!(uwd, :nPop, variable=variable)
+  port = ports(uwd, outer=true)[1]
+  set_junction!(uwd, port, junction, outer=true)
+  junctions = Dict(variable =&gt; junction)
+
+  boxes = [:ninfect, :ndisease, strata_map]
+  for bname in boxes
+    if bname == :ninfect
+      pair = (:Pop, :Pop, :Pop, :Pop)
+    else
+      pair = (:Pop, :Pop)
+    end
+    box = add_box!(uwd, [junction_type(uwd, junctions[p]) for p in pair], name=bname)
+    for (rgn, port) in zip(pair, ports(uwd, box))
+      set_junction!(uwd, port, junctions[rgn])
+    end
+  end
+
+  act = oapply_typed(aug_inf_ontology, uwd, [:infect, :disease, :strata])
+end
+
+inf_ont_act = retype_inf_ont(:nstrata)
+
+to_graphviz(inf_ont_act)</code></pre><img src="ce51a5f7.svg" alt="Example block output"/><p>We form another morphism that maps the <code>:strata</code> transition to <code>:nstrata2</code>. This morphism will serve to re-type the simple trip model.</p><pre><code class="language-julia hljs">rgn_ont_act = retype_inf_ont(:nstrata2)
+
+to_graphviz(rgn_ont_act)</code></pre><img src="d300f5d0.svg" alt="Example block output"/><h3 id="Add-reflexive-transitions"><a class="docs-heading-anchor" href="#Add-reflexive-transitions">Add reflexive transitions</a><a id="Add-reflexive-transitions-1"></a><a class="docs-heading-anchor-permalink" href="#Add-reflexive-transitions" title="Permalink"></a></h3><p>To finish preparing for stratification, we need to add the new reflexive transitions to the component models. To the SIR-strain-vax model, we add an <code>:nstrata2</code> tranisiton to each state. Note that if the model included a decreased (or any other immobile) state, we would not add a reflexive transition to them, as they cannot travel.</p><pre><code class="language-julia hljs">sir_strain_vax_retyped = flatten_labels(compose(sir_strain_vax,inf_ont_act))
+reflx = [[:nstrata2]]
+for ii in 2:ns(dom(sir_strain_vax_retyped))
+    push!(reflx,[:nstrata2])
+end
+aug_sir_strain_vax = add_reflexives(sir_strain_vax_retyped, reflx, aug_inf_ontology);</code></pre><p>To the simple trip model, we add an <code>:nstrata</code> tranisiton for each state.</p><pre><code class="language-julia hljs">simple_trip_retyped = flatten_labels(compose(simple_trip_model,rgn_ont_act))
+aug_trip = add_reflexives(simple_trip_retyped, repeat([[:nstrata]],ns(dom(simple_trip_retyped))), aug_inf_ontology);</code></pre><h3 id="Stratify-the-SIR-strain-vax-and-simple-trip-models"><a class="docs-heading-anchor" href="#Stratify-the-SIR-strain-vax-and-simple-trip-models">Stratify the SIR-strain-vax and simple trip models</a><a id="Stratify-the-SIR-strain-vax-and-simple-trip-models-1"></a><a class="docs-heading-anchor-permalink" href="#Stratify-the-SIR-strain-vax-and-simple-trip-models" title="Permalink"></a></h3><pre><code class="language-julia hljs">sir_strain_vax_trip = typed_product([aug_sir_strain_vax,aug_trip])
+
+to_graphviz(dom(sir_strain_vax_trip))</code></pre><img src="8f23d506.svg" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../stratification/">« Stratification of Epidemiological Models</a><a class="docs-footer-nextpage" href="../../predation/lotka-volterra/">Lotka-Volterra Model »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.0 on <span class="colophon-date" title="Thursday 18 April 2024 18:09">Thursday 18 April 2024</span>. Using Julia version 1.10.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
