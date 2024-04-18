@@ -20,7 +20,7 @@ display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, e
 
 # ## Petri nets
 
-# Petri nets are a mathematical langauge to describe state transition systems which
+# Petri nets are a mathematical language to describe state transition systems which
 # can effectively represent complex relationships between processes, such as parallelism,
 # concurrency, dependency, and conflict. Originally developed for the design of digital
 # systems, their extremely general formulation has made them useful for modeling in chemistry,
@@ -40,7 +40,7 @@ to_graphviz(SchPetriNet)
 # ## SIS Model
 
 # The susceptible-infectious-susceptible (SIS) model is one of the simplest models
-# of mathematical epidemiology. Nontheless it is a useful starting point to understand
+# of mathematical epidemiology. Nonetheless it is a useful starting point to understand
 # how to use PNs to express and build more complex epidemiological models. 
 
 # We first show how to build the SIS model directly. We use the `LabelledPetriNet` type
@@ -83,7 +83,7 @@ to_graphviz(first(legs(si_inf)))
 # to generate the composed system. Specifically, composition is described using an undirected wiring diagram (UWD),
 # a graphical language for describing relations between objects. We can specify the UWD for the SIS system
 # using the `@relation` macro from Catlab; the function-like syntax in the body are "boxes" and variables
-# are "junctions". Generally, boxes represent processes which may consume or produce resources represnted
+# are "junctions". Generally, boxes represent processes which may consume or produce resources represented
 # as junctions. 
 
 # To compose the open Petri nets, each box in the UWD will correspond to an open PN whose feet attach to

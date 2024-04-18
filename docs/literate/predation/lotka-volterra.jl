@@ -18,7 +18,7 @@ display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, e
 # #### Introduction
 
 # In this tutorial we use the [Lotka-Volterra model](https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations), a classic
-# mathematical model from ecology, to demonstrate basic conceps of compositional model building using AlgebraicPetri.
+# mathematical model from ecology, to demonstrate basic concepts of compositional model building using AlgebraicPetri.
 
 # #### Step 1: Define the building block Petri nets needed to construct the model.
 # 

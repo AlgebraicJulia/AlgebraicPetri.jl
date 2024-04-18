@@ -26,7 +26,7 @@ display_uwd(ex) = to_graphviz(ex, box_labels=:name, junction_labels=:variable, e
 # The morphism does not need to be injective, that is, multiple places can be mapped to the same place (likewise for transitions, etc).
 
 # We denote the Petri net that defines a type system as ``P_{type}``. Let's consider a very simple type
-# system that will nontheless be very useful for a class of models of directly transmitted diseases, called
+# system that will nonetheless be very useful for a class of models of directly transmitted diseases, called
 # ``P_{infectious}``. There is a single type of place (population) and three types of transitions. Infectious
 # transitions require two inputs and produce two outputs. Disease transitions are those that move a single
 # individual amongst disease classes (e.g.; from ``E`` to ``I``). Strata transitions are those that move
@@ -302,7 +302,7 @@ disease_models = [("SIRD", sird_model), ("SIDARTHE", m1_model), ("SEIAHRD", m2_m
 policy_models = [nothing, ("Vaccination", vax_model), ("Masking", mask_model), ("Masking + Vaccination", mask_vax_model)]
 travel_models = [nothing, ("Travel", travel_model(num_rgns)), ("Simple Trip", typed_product(travel_model(num_rgns), living_model(num_rgns)))]
 
-table = ["| Model | Intervention | Geography ($(num_rgns) regions) | # of States | # of Transitons |","|:--|$(repeat(":-:|", 4))"]
+table = ["| Model | Intervention | Geography ($(num_rgns) regions) | # of States | # of Transitions |","|:--|$(repeat(":-:|", 4))"]
 
 for pieces in Iterators.product(disease_models, policy_models, travel_models)
   petri = typed_product(last.(collect(filter(x -> !isnothing(x), pieces)))) |> dom

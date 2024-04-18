@@ -10,7 +10,7 @@ using DisplayAs, Markdown
 
 # This example presents models incorporating multiple strains of disease and vaccine type.
 # Importantly, it shows why stratification by disease strain is different from other stratifications, e.g. geography or age, and requires using a different type system.
-# If you are unfamiliar with stratification, we reccomend first reading the [stratification tutorial](@ref epidemiology_stratification).
+# If you are unfamiliar with stratification, we recommend first reading the [stratification tutorial](@ref epidemiology_stratification).
 
 # ## Define basic type system
 
@@ -95,7 +95,7 @@ typed_product(sir_model, vax_model(2)) |> dom |> to_graphviz
 # ## Define a model of multiple disease strains
 
 # Here we define a model for multiple disease strains, typed by $P_{infectious}$.
-# In this model, uninfected individuals can become infected by indivuals carrying one of the strains.
+# In this model, uninfected individuals can become infected by individuals carrying one of the strains.
 # We add reflexive transitions of types `:disease` and `:strata` for the strain states but only `:strata` for the uninfected state,
 # because those individuals should only correspond to $S$ in the disease model.
 
