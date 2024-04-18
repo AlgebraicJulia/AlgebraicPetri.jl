@@ -6,19 +6,20 @@ module Epidemiology
 using AlgebraicPetri
 using Catlab
 
-export oapply_epi, infection, exposure, illness, recovery, death
+export spontaneous_petri, exposure_petri, oapply_epi, 
+    infection, exposure, illness, recovery, death
 
-#spontaneous_petri(x::Symbol, y::Symbol, z::Symbol)
-#
-#Generates an OpenLabelledPetriNet which represents a transition named `z` which
-#changes a token from state `x` to state `y`.
+"""
+Generates an OpenLabelledPetriNet containing a single transition `z` that moves a
+token from place `x` to place `y`
+"""
 spontaneous_petri(x::Symbol, y::Symbol, z::Symbol) = Open(LabelledPetriNet(unique([x,y]), z=>(x, y)))
 
-#exposure_petri(x::Symbol, y::Symbol, z::Symbol, transition::Symbol)
-#
-#Generates an OpenLabelledPetriNet which represents an exposure transition where
-#a token from state `y` "exposes" a token from state `x`, converting the token
-#from state `x` to state `z`.
+"""
+Generates an OpenLabelledPetriNet containing a single transition `transition`
+which takes as input a single token from place `x` and `y` and produces a single
+token in place `z` and `y`.
+"""
 exposure_petri(x::Symbol, y::Symbol, z::Symbol, transition::Symbol) =
     Open(LabelledPetriNet(unique([x,y,z]), transition=>((x,y)=>(z,y))))
 

@@ -51,14 +51,18 @@ makedocs(
   checkdocs = :none,
   pages     = Any[
     "AlgebraicPetri.jl" => "index.md",
-    "Examples" => Any[
-      "generated/predation/lotka-volterra.md",
-      "generated/covid/epidemiology.md",
+    "Epidemiology" => Any[
+      "generated/epidemiology/composition.md",
+      "generated/epidemiology/stratification.md",
+      "generated/epidemiology/disease_strains.md"
+    ],
+    "Ecology" => Any[
+      "generated/predation/lotka-volterra.md"
+    ],
+    "Other" => Any[
       "generated/enzymes/enzyme_reactions.md",
-      "generated/covid/bilayerconversion.md",
-      "generated/covid/stratification.md",
-      "generated/covid/disease_strains.md",
-      "generated/covid/max_common_subobject.md",
+      "generated/other/bilayerconversion.md",
+      "generated/other/max_common_subobject.md"
     ],
     "Library Reference" => "api.md",
   ]
