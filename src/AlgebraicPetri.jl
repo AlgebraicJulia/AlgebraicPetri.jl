@@ -283,17 +283,8 @@ function induced_subnet(p::T, t) where {T <: AbstractPetriNet}
 end
 
 function induced_subnet(p::T, t::AbstractVector{Int}) where {T <: AbstractPetriNet}
-  @assert all([tt ∈ parts(p,:T) for tt in t])
-
-  input_arcs = incident(p, t, :it)
-  output_arcs = incident(p, t, :ot)
-
-  input_places = [subpart(p, input_i, :is) for input_i in input_arcs]
-  output_places = [subpart(p, output_i, :os) for output_i in output_arcs]
-
-  subnet = T()
-  copy_parts!(subnet, p, T=t, I=vcat(input_arcs...), O=vcat(output_arcs...), S=union(input_places..., output_places...))
-  return subnet
+  subnet = Subobject(p, T=t)
+  return dom(hom(~(¬subnet)))
 end
 
 valueat(x::Number, u, t) = x

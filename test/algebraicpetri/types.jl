@@ -226,7 +226,7 @@ test_petri = PetriNet(
 test_net = induced_subnet(test_petri, [1,2])
 @test ns(test_net) == 4
 @test nt(test_net) == 2
-@test is(test_net) == [1,1]
-@test os(test_net) == [2,3,4]
+@test ni(test_net) == 2
+@test no(test_net) == 3
 
 end
