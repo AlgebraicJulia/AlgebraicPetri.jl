@@ -1,6 +1,6 @@
 # # [COEXIST Multi-Generational COVID Model](@id coexist_example)
 #
-#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/covid/coexist/coexist.ipynb)
+#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/generated/epidemiology/coexist/coexist.ipynb)
 
 using AlgebraicPetri
 

@@ -61,6 +61,8 @@ where each of the boxes is labeled by a symbol that matches the label
 of a transition in the petri net. Then produces a petri net given by
 colimiting the transitions together, and returns the ACSetTransformation
 from that Petri net to the type system.
+
+The `tnames` argument renames the transitions in the resulting typed Petri net.
 """
 function oapply_typed(type_system::LabelledPetriNet, uwd, tnames::Vector{Symbol})
   if junction(uwd, outer=true) != junctions(uwd)
@@ -97,7 +99,7 @@ function oapply_typed(type_system::LabelledPetriNet, uwd, tnames::Vector{Symbol}
   )
 end
 
-r"""
+"""
 Modify a typed petri net to add "reflexive transitions". These are transitions which go from one species to itself, so they don't change the mass action semantics, but they are important for stratification.
 
 The idea behind this is similar to the fact that the product of the graph *----* with itself is
@@ -214,7 +216,8 @@ end
 
 """ Make typed Petri net with 'identity' transformation between species pairs.
 
-Assumes a single species type and a single transition type.
+Assumes a single species type and a single transition type. For each pair of places, generate a transition
+consuming 1 input for each place and producing 1 output in each place.
 """
 function pairwise_id_typed_petri(type_net, stype, ttype, args...;
                                  codom_net=nothing) # TODO: this keyword parameter is a workaround. It should be removed and fixed later.

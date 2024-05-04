@@ -6,6 +6,9 @@ const generated_dir = joinpath(@__DIR__, "src", "generated")
 
 @info "Loading AlgebraicPetri"
 using AlgebraicPetri
+using Catalyst
+using ModelingToolkit
+using OrdinaryDiffEq
 
 const no_literate = "--no-literate" in ARGS
 if !no_literate
@@ -30,11 +33,16 @@ if !no_literate
       end
     end
   end
+else
+  @info "Literate.jl: skipped"
 end
+
+extensions = ["Catalyst", "ModelingToolkit", "OrdinaryDiffEq"]
+extension_modules = [Base.get_extension(AlgebraicPetri, Symbol("AlgebraicPetri"*ext*"Ext")) for ext in extensions]
 
 @info "Building Documenter.jl docs"
 makedocs(
-  modules   = [AlgebraicPetri],
+  modules   = vcat([AlgebraicPetri], extension_modules),
   format    = Documenter.HTML(
     assets = ["assets/analytics.js"],
   ),
@@ -43,14 +51,18 @@ makedocs(
   checkdocs = :none,
   pages     = Any[
     "AlgebraicPetri.jl" => "index.md",
-    "Examples" => Any[
-      "generated/predation/lotka-volterra.md",
-      "generated/covid/epidemiology.md",
+    "Epidemiology" => Any[
+      "generated/epidemiology/composition.md",
+      "generated/epidemiology/stratification.md",
+      "generated/epidemiology/disease_strains.md"
+    ],
+    "Ecology" => Any[
+      "generated/predation/lotka-volterra.md"
+    ],
+    "Other" => Any[
       "generated/enzymes/enzyme_reactions.md",
-      "generated/covid/bilayerconversion.md",
-      "generated/covid/stratification.md",
-      "generated/covid/disease_strains.md",
-      "generated/covid/max_common_subobject.md",
+      "generated/other/bilayerconversion.md",
+      "generated/other/max_common_subobject.md"
     ],
     "Library Reference" => "api.md",
   ]

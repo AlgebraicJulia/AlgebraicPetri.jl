@@ -1,6 +1,6 @@
 # # [Converting Models to Computation Graphs](@id bilayernetwork_example)
 #
-#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/covid/bilayerconversion.ipynb)
+#md # [![](https://img.shields.io/badge/show-nbviewer-579ACA.svg)](@__NBVIEWER_ROOT_URL__/examples/other/bilayerconversion.ipynb)
 
 
 # using Pkg
