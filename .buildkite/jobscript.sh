@@ -1,5 +1,4 @@
 #!/bin/bash
-
 pwd; hostname; date
 
 module load julia
