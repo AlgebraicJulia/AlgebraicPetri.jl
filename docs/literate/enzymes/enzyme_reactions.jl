@@ -133,7 +133,7 @@ rxns = Dict(
 
 # ## Helper functions to generate oapply calls
 
-cat(cat) = begin
+cath(cat) = begin
   catsym = first(cat)
   out = oapply(catX, Dict([:inactX, :bindXX, :degXX, :bindXXinact, :degXXinact] .=> rxns[catsym]), Dict(
     :X=>ob(cat),
@@ -176,9 +176,9 @@ cat_cat(cat1, cat2) = begin
 end
 
 functor(x) = oapply(x, Dict(
-  :catK=>cat(K),
-  :catS=>cat(S),
-  :catL=>cat(L),
+  :catK=>cath(K),
+  :catS=>cath(S),
+  :catL=>cath(L),
   :catKcatS=>cat_cat(K,S),
   :catKcatL=>cat_cat(K,L),
   :catScatK=>cat_cat(S,K),
