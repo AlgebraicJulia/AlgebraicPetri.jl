@@ -20,7 +20,7 @@ AlgebraicPetriModelingToolkitExt = "ModelingToolkit"
 AlgebraicPetriOrdinaryDiffEqExt = "OrdinaryDiffEq"
 
 [compat]
-Catalyst = "13"
+Catalyst = "13, 14"
 Catlab = "0.15.5, 0.16"
 GeneralizedGenerated = "0.3"
 LabelledArrays = "1"
