@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+title: AlgebraicPetri
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Micah
+    family-names: Halter
+    email: micah.halter@gtri.gatech.edu
+    affiliation: Georgia Tech  Research Institute
+    orcid: 'https://orcid.org/0000-0002-0484-971X'
+repository-code: 'https://github.com/AlgebraicJulia/AlgebraicPetri.jl'
+url: 'https://algebraicjulia.github.io/AlgebraicPetri.jl'
+abstract: >-
+  AlgebraicPetri.jl is a Julia package for building Petri
+  Net models compositionally.
+keywords:
+  - petri net
+  - category theory
+  - julia
+  - scientific modeling
+license: MIT
