@@ -47,11 +47,6 @@ function ModelingToolkit.ODESystem(p::AbstractPetriNet; name=:PetriNet, kws...)
   ODESystem(eqs, t, S, r; name=name, kws...)
 end
 
-function ModelingToolkit.ODEProblem(p::AbstractPetriNet, tspan; name=:PetriNet, kwargs...)
-  sys = ODESystem(p; name)
-  ODEProblem(sys, p[:,:concentration], tspan, p[:,:rate]; kwargs...)
-end
-
 """
   ODESystem(bn::Union{AbstractLabelledBilayerNetwork,AbstractBilayerNetwork}; name=:BilayerNetwork, simplify = false)
 
