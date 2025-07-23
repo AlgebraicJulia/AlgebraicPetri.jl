@@ -61,65 +61,74 @@ function balance!(bn::AbstractBilayerNetwork)
 end
 
 function migrate!(bn::AbstractBilayerNetwork, pn::AbstractPetriNet)
+    T,S,I,O, it, is, ot, os = generators(SchPetriNet)
+    (Qin, Qout, Win, Wn, Wa, Box, arg, call, influx, infusion, efflux, effusion
+     ) = generators(ThBilayerNetwork)
     migrate!(bn, pn,
-             Dict(:Qin=>:S, :Qout=>:S, :Box=>:T, :Win=>:I, :Wn=>:I, :Wa=>:O),
-             Dict(:arg=>:is,
-                  :call=>:it,
-                  :efflux=>:it,
-                  :effusion=>:is,
-                  :influx=>:ot,
-                  :infusion=>:os))
+             Dict(Qin=>S, Qout=>S, Box=>T, Win=>I, Wn=>I, Wa=>O),
+             Dict(arg=>is,
+                  call=>it,
+                  efflux=>it,
+                  effusion=>is,
+                  influx=>ot,
+                  infusion=>os))
 end
 
 function migrate!(bn::AbstractLabelledBilayerNetwork, pn::AbstractPetriNet)
-    generators = Dict(:Qin=>:S, :Qout=>:S, :Box=>:T, :Win=>:I, :Wn=>:I, :Wa=>:O)
-    parts = Dict(:arg=>:is,
-                 :call=>:it,
-                 :efflux=>:it,
-                 :effusion=>:is,
-                 :influx=>:ot,
-                 :infusion=>:os)
+    S = Presentation(acset_schema(pn)) # could be SchPetri or SchLabeledPetri
+    (Qin, Qout, Win, Wn, Wa, Box, arg, call, influx, infusion, efflux, effusion,
+     Name, parameter, variable, tanvar) = generators(ThLabelledBilayerNetwork)
+
+    gens = Dict{Any,Any}(Qin=>S[:S], Qout=>S[:S], Box=>S[:T], Win=>S[:I], Wn=>S[:I], Wa=>S[:O])
+    parts = Dict{Any,Any}(arg=>S[:is],
+                 call=>S[:it],
+                 efflux=>S[:it],
+                 effusion=>S[:is],
+                 influx=>S[:ot],
+                 infusion=>S[:os])
     if :Name in attrtypes(acset_schema(pn))
-        generators[:Name] = :Name
+        gens[Name] = S[:Name]
     end
     if has_subpart(pn, :sname)
-        parts[:variable] = :sname
-        parts[:tanvar] = :sname
+        parts[variable] = S[:sname]
+        parts[tanvar] = S[:sname]
     end
     if has_subpart(pn, :tname)
-        parts[:parameter] = :tname
+        parts[parameter] = S[:tname]
     end
-    migrate!(bn, pn, generators, parts)
+    migrate!(bn, pn, gens, parts)
 end
 
 
 function migrate!(pn::AbstractPetriNet, bn::AbstractBilayerNetwork)
+    P, N = Presentation.(acset_schema.([pn, bn])) 
     bnc = copy(bn)
     balance!(bnc)
     migrate!(pn,bnc,
-         Dict(:S=>:Qin, :T=>:Box, :I=>:Win, :O=>:Wa),
-         Dict(:is=>:arg,
-              :it=>:call,
-              :ot=>:influx,
-              :os=>:infusion))
+         Dict(P[:S]=>N[:Qin], P[:T]=>N[:Box], P[:I]=>N[:Win], P[:O]=>N[:Wa]),
+         Dict(P[:is]=>N[:arg],
+              P[:it]=>N[:call],
+              P[:ot]=>N[:influx],
+              P[:os]=>N[:infusion]))
 end
 
 function migrate!(pn::AbstractPetriNet, bn::AbstractLabelledBilayerNetwork)
+    P, N = Presentation.(acset_schema.([pn, bn])) 
     bnc = copy(bn)
     balance!(bnc)
-    generators = Dict(:S=>:Qin, :T=>:Box, :I=>:Win, :O=>:Wa)
-    parts = Dict(:is=>:arg,
-                 :it=>:call,
-                 :ot=>:influx,
-                 :os=>:infusion)
+    generators = Dict{Any,Any}(P[:S]=>N[:Qin], P[:T]=>N[:Box], P[:I]=>N[:Win], P[:O]=>N[:Wa])
+    parts = Dict{Any,Any}(P[:is]=>N[:arg],
+                 P[:it]=>N[:call],
+                 P[:ot]=>N[:influx],
+                 P[:os]=>N[:infusion])
     if :Name in attrtypes(acset_schema(pn))
-        generators[:Name] = :Name
+        generators[P[:Name]] = N[:Name]
     end
     if has_subpart(pn, :sname)
-        parts[:sname] = :variable
+        parts[P[:sname]] = N[:variable]
     end
     if has_subpart(pn, :tname)
-        parts[:tname] = :parameter
+        parts[P[:tname]] = N[:parameter]
     end
     migrate!(pn, bnc, generators, parts)
 end

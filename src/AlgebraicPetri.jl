@@ -408,8 +408,15 @@ flatten_labels(pn::AbstractPetriNet; attributes=[:Name], sep='_') = begin
   f = x->flat_symbol(x, sep)
   map(pn; Dict(attr=>f for attr in attributes)...)
 end
-flatten_labels(act::ACSetTransformation; attributes=[:Name], sep='_') =
-  ACSetTransformation(flatten_labels(act.dom; attributes=attributes, sep=sep), act.codom; components(act)...)
+function flatten_labels(act::ACSetTransformation; attributes=[:Name], sep='_')
+  new_dom = flatten_labels(dom(act); attributes=attributes, sep=sep)
+  split_ = SetFunction(x->tuple(Symbol.(split(string(x), "_"))), 
+                       SetOb(Symbol), SetOb(Tuple{Symbol, Symbol}))
+  new_components = Dict(map(collect(pairs(components(act)))) do (k, v)
+    k => k != :Name ? v : postcompose(split_, v)
+  end)
+  ACSetTransformation(new_dom, codom(act); new_components...)
+end
 
 """ Concentration of a ReactionNet
 """
@@ -456,7 +463,7 @@ const LabelledPetriNet = LabelledPetriNetUntyped{Symbol}
 const OpenLabelledPetriNetObUntyped, OpenLabelledPetriNetUntyped = OpenACSetTypes(LabelledPetriNetUntyped, :S)
 const OpenLabelledPetriNetOb, OpenLabelledPetriNet = OpenLabelledPetriNetObUntyped{Symbol}, OpenLabelledPetriNetUntyped{Symbol}
 
-Open(p::LabelledPetriNet) = OpenLabelledPetriNet(p, map(x -> FinFunction([x], ns(p)), 1:ns(p))...)
+Open(p::LabelledPetriNet; cat=nothing) = OpenLabelledPetriNet(p, map(x -> FinFunction([x], ns(p)), 1:ns(p))...; cat)
 Open(p::LabelledPetriNet, legs...) = begin
   s_idx = Dict(sname(p, s) => s for s in 1:ns(p))
   OpenLabelledPetriNet(p, map(l -> FinFunction(map(i -> s_idx[i], l), ns(p)), legs)...)
