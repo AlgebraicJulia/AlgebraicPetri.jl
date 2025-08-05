@@ -18,18 +18,19 @@ This function does restrict to homomorphisms which preserve the transition
 signatures (number of input/output wires).
 """
 function petri_homomorphisms(p1::AbstractPetriNet, p2::AbstractPetriNet; kw...)
+  cat = ACSetCategory(ACSetCat(p1))
   results = ACSetTransformation[]
   sigsTS = Set{Vector{Int}}()
-  homs = homomorphisms(PetriNet(p1), PetriNet(p2); kw...)
+  homs = homomorphisms(PetriNet(p1), PetriNet(p2); cat, kw...)
   for transform in homs
     if all([length(inputs(p1, t)) == length(inputs(p2, transform.components[:T](t))) &&
             length(outputs(p1, t)) == length(outputs(p2, transform.components[:T](t)))
             for t in 1:nt(p1)]) &&
-        vcat(transform.components[:T].func, transform.components[:S].func) ∉ sigsTS
+        vcat(collect(transform.components[:T]), collect(transform.components[:S])) ∉ sigsTS
 
       push!(results, ACSetTransformation(deepcopy(transform.components), p1, p2))
-      push!(sigsTS, vcat(transform.components[:T].func,
-                         transform.components[:S].func))
+      push!(sigsTS, vcat(collect(transform.components[:T]),
+                         collect(transform.components[:S])))
     end
   end
   results

@@ -2,7 +2,7 @@ module TestModelComparison
 
 using Test
 using AlgebraicPetri, AlgebraicPetri.ModelComparison
-using Catlab.CategoricalAlgebra, Catlab.Graphics
+using Catlab
 
 SIRD = LabelledReactionNet{Float64, Float64}([:S=>0.0, :I=>0.0, :R=>0.0, :D=>0.0],
                                              (:inf=>0.0)=>((:S,:I)=>(:I,:I)),
@@ -29,27 +29,31 @@ for pn in [models,
   @test to_graphviz(legs(c_res)[1]) isa Graphics.Graphviz.Graph
   @test to_graphviz(c_res) isa Graphics.Graphviz.Graph
 
+  cat = ACSetCategory(ACSetCat(pn[1]))
+
   so = Subobject.(legs(c_res))
   for s in so
     @test to_graphviz(s) isa Graphics.Graphviz.Graph
     @test ob(s) == pn[2]
   end
 
-  @test dom(hom(~foldl(∨, so) ∨ foldl(∨, so))) == pn[2]
-  A,B = so
-  @test implies(A, B) == ¬(A) ∨ B
-  @test ¬(A ∧ B) == ¬(A) ∨ ¬(B)
-  @test ¬(A ∧ B) != ¬(A) ∨ B
-  # modus ponens holds only up to inclusion, not equality.
-  @test length(compare(A ∧ implies(A,B), B)) > 0
-  # this is an equivalent check because X ∧ B == X iff X ↪ B 
-  @test (A ∧ implies(A,B)) == B ∧ (A ∧ implies(A,B))
-  @test length(compare(B ∧ implies(B,A), A)) > 0
-  @test (B ∧ implies(B,A)) == A ∧ (B ∧ implies(B,A))
-  @test ¬(A ∨ (¬B)) == ¬(A) ∧ ¬(¬(B))
-  @test ¬(A ∨ (¬B)) == ¬(A) ∧ B
-  @test A ∧ ¬(¬(A)) == ¬(¬(A))
-  @test implies((A∧B), A) == A∨B
+  Catlab.@withmodel cat (∨, ∧, ¬, ~, implies) begin 
+    @test dom(hom(~foldl(∨, so) ∨ foldl(∨, so))) == pn[2]
+    A,B = so
+    @test implies(A, B) == ¬(A) ∨ B
+    @test ¬(A ∧ B) == ¬(A) ∨ ¬(B)
+    @test ¬(A ∧ B) != ¬(A) ∨ B
+    # modus ponens holds only up to inclusion, not equality.
+    @test length(compare(A ∧ implies(A,B), B)) > 0
+    # this is an equivalent check because X ∧ B == X iff X ↪ B 
+    @test (A ∧ implies(A,B)) == B ∧ (A ∧ implies(A,B))
+    @test length(compare(B ∧ implies(B,A), A)) > 0
+    @test (B ∧ implies(B,A)) == A ∧ (B ∧ implies(B,A))
+    @test ¬(A ∨ (¬B)) == ¬(A) ∧ ¬(¬(B))
+    @test ¬(A ∨ (¬B)) == ¬(A) ∧ B
+    @test A ∧ ¬(¬(A)) == ¬(¬(A))
+    @test implies((A∧B), A) == A∨B
+  end
 end
 
 end

@@ -56,10 +56,10 @@ function to_graphviz_property_graph(so::Subobject{<:AbstractPetriNet};
     name::AbstractString="G", lw::Number=3.0, kw...)
   pn = ob(so)
   comps = hom(so).components
-  sts = comps[:S].func
-  trans = comps[:T].func
-  inps = comps[:I].func
-  otps = comps[:O].func
+  sts = collect(comps[:S])
+  trans = collect(comps[:T])
+  inps = collect(comps[:I])
+  otps = collect(comps[:O])
 
   pg = PropertyGraph{Any}(; name = name, prog = prog,
     graph = merge!(GRAPH_ATTRS, graph_attrs),

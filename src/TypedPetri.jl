@@ -26,9 +26,8 @@ function prim_petri(type_system, transition)
     push!(s_map, o)
     add_output!(prim, 1, o′)
   end
-  LooseACSetTransformation(
+  ACSetTransformation(
     (S=s_map, T=[transition], O=incident(type_system, transition, :ot), I=incident(type_system, transition, :it)),
-    (),
     prim,
     type_system
   )
@@ -44,9 +43,8 @@ function prim_cospan(type_system, transition)
   feet = [FinSet(1) for s in 1:ns(p)]
   structured_feet = [PetriNet(1) for s in 1:ns(p)]
   legs = [
-    LooseACSetTransformation(
+    ACSetTransformation(
       (S = [s], T = Int[], I = Int[], O = Int[]),
-      (),
       structured_feet[s],
       p
     )
@@ -79,7 +77,10 @@ function oapply_typed(type_system::LabelledPetriNet, uwd, tnames::Vector{Symbol}
   )
   prim_cospans = Dict(t => prim_cospan_data[t][1] for t in keys(prim_cospan_data))
   petri, colim = oapply(uwd, prim_cospans; return_colimit=true)
-  unlabelled_map = universal(
+
+  𝒞 = ACSetCategory(type_system′)
+
+  unlabelled_map = universal[𝒞](
     colim,
     Multicospan(
       type_system′,
@@ -91,11 +92,13 @@ function oapply_typed(type_system::LabelledPetriNet, uwd, tnames::Vector{Symbol}
     state_labels[only(collect(leg[:S]))] = uwd[j, :variable]
   end
   labelled_petri = LabelledPetriNet(dom(unlabelled_map), state_labels, tnames)
-  LooseACSetTransformation(
-    components(unlabelled_map),
-    (Name=x->nothing,),
+  cat = ACSetCategory(LooseACSetCat(labelled_petri))
+
+  ACSetTransformation(
+    merge(components(unlabelled_map),
+    (Name=x->nothing,)),
     labelled_petri,
-    type_system
+    type_system; cat
   )
 end
 
@@ -130,8 +133,11 @@ function add_reflexives(
   reflexive_transitions,
   type_system::AbstractPetriNet
 )
+  S = acset_schema(typed_petri)
   petri = deepcopy(dom(typed_petri))
-  type_comps = Dict(k=>collect(v) for (k,v) in pairs(deepcopy(components(typed_petri))))
+  type_comps = NamedTuple(Dict(map(ob(S)) do k 
+    k => collect(typed_petri[k])
+  end))
   for (s_i,cts) in enumerate(reflexive_transitions)
     for ct in cts
       type_ind = findfirst(==(ct), type_system[:tname])
@@ -146,11 +152,17 @@ function add_reflexives(
       append!(type_comps[:I], is); append!(type_comps[:O], os);
     end
   end
-  LooseACSetTransformation(
-    type_comps,
-    (Name=x->nothing, (has_subpart(petri, :rate) ? [:Rate=>x->nothing] : [])..., (has_subpart(petri, :concentration) ? [:Concentration=>x->nothing] : [])...),
+  𝒞 = ACSetCategory(LooseACSetCat(dom(typed_petri)))
+  
+  # Create version of old codom w/ () attrs
+  old_codom = deepcopy(codom(typed_petri))
+  new_codom = map(old_codom; Dict(k=>(x->nothing) for k in attrtypes(S))...)
+
+  ACSetTransformation(
+    merge(type_comps,
+    (Name=x->(()), (has_subpart(petri, :rate) ? [:Rate=>x->()] : [])..., (has_subpart(petri, :concentration) ? [:Concentration=>x->()] : [])...)),
     petri,
-    codom(typed_petri)
+    new_codom; cat=𝒞
   )
 end
 
@@ -183,13 +195,13 @@ function add_params(
     end
     pn
   end
-  LooseACSetTransformation(
-    NamedTuple(map(objects(acset_schema(domain))) do ob
+  ACSetTransformation(
+    merge(NamedTuple(map(objects(acset_schema(domain))) do ob
       ob => components(typed_petri)[ob]
     end),
     NamedTuple(map(attrtypes(acset_schema(domain))) do attrtype
       attrtype => x->nothing
-    end),
+    end)),
     domain,
     typing,
   )
@@ -205,13 +217,26 @@ This is the "workhorse" of stratification; this is what actually does the strati
 
 Returns a typed model, i.e. a map in Petri.
 """
-function typed_product(p1, p2)
-  pb = pullback(p1, p2; product_attrs=true)
-  return first(legs(pb)) ⋅ p1
-end
+typed_product(p1, p2) = typed_product([p1, p2])
+
 function typed_product(ps::AbstractVector)
-  pb = pullback(ps; product_attrs=true)
-  return first(legs(pb)) ⋅ first(ps)
+  cat = ACSetCategory(LooseACSetCat(dom(first(ps))))
+  ps2 = map(ps) do p
+    S = acset_schema(p)
+    new_cod = map(codom(p); Dict(k=>(_->()) for k in attrtypes(S))...)
+    new_comps = Dict(map(collect(pairs(components(p)))) do (k,v)
+      res = if k ∈ ob(S) || isnothing(v)
+        v
+      else 
+        con = SetFunction(ConstantFunction((), codom(v), SetOb(Tuple{})))
+        postcompose(v, con)
+      end
+      k => res
+    end)
+    ACSetTransformation(dom(p), new_cod; cat, new_comps...)
+  end
+  pb = pullback[cat](ps2)
+  return compose[cat](first(legs(pb)) , first(ps))
 end
 
 """ Make typed Petri net with 'identity' transformation between species pairs.
@@ -227,9 +252,9 @@ function pairwise_id_typed_petri(type_net, stype, ttype, args...;
   end)
   s = only(incident(type_net, stype, :sname))
   t = only(incident(type_net, ttype, :tname))
-  LooseACSetTransformation(
-    (S = repeat([s], ns(net)), T = repeat([t], nt(net)), I = repeat(incident(type_net, t, :it), nt(net)), O = repeat(incident(type_net, t, :ot), nt(net))),
-    type_components,
+  ACSetTransformation(
+    merge((S = repeat([s], ns(net)), T = repeat([t], nt(net)), I = repeat(incident(type_net, t, :it), nt(net)), O = repeat(incident(type_net, t, :ot), nt(net))),
+    type_components),
     net,
     isnothing(codom_net) ? type_net : codom_net
   )

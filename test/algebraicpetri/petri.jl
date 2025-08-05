@@ -2,7 +2,7 @@ module TestPetri
 
 using Test
 using AlgebraicPetri
-using Catlab.CategoricalAlgebra, Catlab.Theories
+using Catlab
 using Catlab.Graphs, Catlab.Graphics
 
 f = Open([1, 2], PetriNet(4, (1,3), (2,4)), [3, 4])
@@ -22,8 +22,8 @@ h_id = h ⋅ id(OpenPetriNetOb(FinSet(1)))
 @test dom(h) == dom(f)
 @test codom(h) == codom(g)
 
-@test h == h′
-@test h == h_id
+@test h ≃ h′
+@test h ≃ h_id
 
 # Test open petri net notations either fully open or by specifying legs
 
